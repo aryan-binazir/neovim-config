@@ -124,7 +124,7 @@ require('lazy').setup({
     ---@module 'oil'
     ---@type oil.SetupOpts
     opts = {},
-    dependencies = { { "echasnovski/mini.icons", opts = {} } },
+    -- dependencies = { { "echasnovski/mini.icons", opts = {} } },
   },
   {
     'hrsh7th/nvim-cmp',
@@ -374,7 +374,7 @@ require('lazy').setup({
     -- dependencies = { 'nvim-tree/nvim-web-devicons' },
     opts = {
       options = {
-        icons_enabled = true,
+        icons_enabled = false,
         theme = 'onedark',
         component_separators = '|',
         section_separators = '',
