@@ -10,6 +10,15 @@ return {
                 end
                 return 'make install_jsregexp'
             end)(),
+            config = function()
+                require('luasnip.loaders.from_vscode').lazy_load()
+                require('luasnip.loaders.from_vscode').load({
+                    paths = {
+                        vim.fn.stdpath('data') .. '/lazy/friendly-snippets/snippets',
+                        vim.fn.stdpath('config') .. '/lua/snippets'
+                    }
+                })
+            end,
         },
         'saadparwaiz1/cmp_luasnip',
         'hrsh7th/cmp-nvim-lsp',
@@ -19,7 +28,6 @@ return {
     config = function()
         local cmp = require 'cmp'
         local luasnip = require 'luasnip'
-        require('luasnip.loaders.from_vscode').lazy_load()
         luasnip.config.setup {}
 
         cmp.setup {
@@ -35,7 +43,7 @@ return {
                 ['<C-b>'] = cmp.mapping.scroll_docs(-4),
                 ['<C-f>'] = cmp.mapping.scroll_docs(4),
                 ['<C-Space>'] = cmp.mapping.complete {},
-                ['<C-s>'] = cmp.mapping.confirm { select = true },
+                ['<C-y>'] = cmp.mapping.confirm { select = true },
                 ['<C-l>'] = cmp.mapping(function()
                     if luasnip.expand_or_locally_jumpable() then
                         luasnip.expand_or_jump()
