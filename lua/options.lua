@@ -42,5 +42,4 @@ vim.wo.foldexpr = 'nvim_treesitter#foldexpr()'
 -- Set jade files to be viewed as pug files by treesitter
 vim.cmd [[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]]
 
-vim.g.loaded_which_key = 1
 

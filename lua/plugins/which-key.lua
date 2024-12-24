@@ -18,6 +18,9 @@ return {
                     g = false,
                 },
             },
+            health = {
+                checker = false,  -- Disable health checks
+            },
         })
 
         -- Register groups
