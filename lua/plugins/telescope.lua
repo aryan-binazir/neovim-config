@@ -38,7 +38,7 @@ return {
                     }
                 },
                 preview = {
-                    hide_on_startup = true
+                    hide_on_startup = false
                 }
             },
             pickers = {},
@@ -89,9 +89,11 @@ return {
         -- vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 
         -- Telescope keymaps
-        vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>")
-        vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-        vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+        vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>", { desc = 'Telescope [U]ndo' })
+        vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles,
+            { desc = '[?] Find recently opened files' })
+        vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers,
+            { desc = '[ ] Find existing buffers' })
         vim.keymap.set('n', '<leader>/', function()
             require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
                 winblend = 10,
@@ -114,4 +116,4 @@ return {
         -- vim.keymap.set('n', '<leader>ss', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
         -- vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
     end,
-} 
+}

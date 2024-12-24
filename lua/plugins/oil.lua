@@ -11,7 +11,8 @@ return {
             show_hidden = true
         },
         keymaps = {
-            ["<C-p>"] = false, -- Making sure it's disabled in both places
+            ["<C-p>"] = false,
         },
     },
-} 
+}
+

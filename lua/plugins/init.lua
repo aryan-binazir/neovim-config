@@ -2,9 +2,8 @@ return {
     -- Git related plugins
     'tpope/vim-fugitive',
     'tpope/vim-rhubarb',
-    'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-    
-    -- Lazygit integration
+    'tpope/vim-sleuth',
+
     {
         "kdheepak/lazygit.nvim",
         cmd = {
@@ -18,47 +17,11 @@ return {
             "nvim-lua/plenary.nvim",
         },
         keys = {
-            { "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
+            { "<leader>lg", "<cmd>LazyGit<cr>",            desc = "LazyGit" },
             { "<leader>lc", "<cmd>LazyGitCurrentFile<cr>", desc = "LazyGit Current File" }
         }
     },
 
-    -- Tmux navigation
-    {
-        "christoomey/vim-tmux-navigator",
-        cmd = {
-            "TmuxNavigateLeft",
-            "TmuxNavigateDown",
-            "TmuxNavigateUp",
-            "TmuxNavigateRight",
-            "TmuxNavigatePrevious",
-        },
-        keys = {
-            { "<c-h>", "<cmd><C-U>TmuxNavigateLeft<cr>" },
-            { "<c-j>", "<cmd><C-U>TmuxNavigateDown<cr>" },
-            { "<c-k>", "<cmd><C-U>TmuxNavigateUp<cr>" },
-            { "<c-l>", "<cmd><C-U>TmuxNavigateRight<cr>" },
-            { "<c-\\>", "<cmd><C-U>TmuxNavigatePrevious<cr>" },
-        },
-    },
-
-    -- Surround plugin
-    {
-        "kylechui/nvim-surround",
-        version = "*",
-        event = "VeryLazy",
-        config = function()
-            require("nvim-surround").setup({})
-        end
-    },
-
-    -- Useful plugin to show you pending keybinds
-    { 'folke/which-key.nvim', opts = {} },
-
-    -- "gc" to comment visual regions/lines
-    { 'numToStr/Comment.nvim', opts = {} },
-
-    -- Adds git related signs to the gutter, as well as utilities for managing changes
     {
         'lewis6991/gitsigns.nvim',
         opts = {
@@ -131,13 +94,48 @@ return {
         },
     },
 
+    -- Tmux navigation
+    {
+        "christoomey/vim-tmux-navigator",
+        cmd = {
+            "TmuxNavigateLeft",
+            "TmuxNavigateDown",
+            "TmuxNavigateUp",
+            "TmuxNavigateRight",
+            "TmuxNavigatePrevious",
+        },
+        keys = {
+            { "<c-h>",  "<cmd><C-U>TmuxNavigateLeft<cr>" },
+            { "<c-j>",  "<cmd><C-U>TmuxNavigateDown<cr>" },
+            { "<c-k>",  "<cmd><C-U>TmuxNavigateUp<cr>" },
+            { "<c-l>",  "<cmd><C-U>TmuxNavigateRight<cr>" },
+            { "<c-\\>", "<cmd><C-U>TmuxNavigatePrevious<cr>" },
+        },
+    },
+
+    -- Surround plugin
+    {
+        "kylechui/nvim-surround",
+        version = "*",
+        event = "VeryLazy",
+        config = function()
+            require("nvim-surround").setup({})
+        end
+    },
+
+    -- Useful plugin to show you pending keybinds
+    { 'folke/which-key.nvim',  opts = {} },
+
+    -- "gc" to comment visual regions/lines
+    { 'numToStr/Comment.nvim', opts = {} },
+
     -- Theme
     {
         "folke/tokyonight.nvim",
         lazy = false,
         priority = 1000,
         config = function()
-            vim.cmd[[colorscheme tokyonight-night]]
+            vim.cmd [[colorscheme tokyonight-night]]
         end,
     },
 
@@ -186,7 +184,7 @@ return {
         opts = {},
     },
 
-    -- Add the rest of your plugins here
+    -- Additional plugins
     require('plugins.telescope'),
     require('plugins.treesitter'),
     require('plugins.lsp'),
@@ -195,4 +193,5 @@ return {
     require('plugins.oil'),
     require('plugins.copilot'),
     require('plugins.dap'),
-} 
+}
+
