@@ -18,6 +18,7 @@ return {
                     g = false,
                 },
             },
+            ignore_missing = true,  -- Disable health check warnings about missing keymaps
         })
 
         -- Define groups
