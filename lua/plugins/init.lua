@@ -61,7 +61,6 @@ return {
         priority = 1000,
         config = function()
             vim.cmd [[colorscheme tokyonight-night]]
-            require('avante_lib').load()
         end,
     },
 
@@ -122,7 +121,6 @@ return {
     require('plugins.gitsigns'),
     require('plugins.which-key'),
     require('plugins.floaterm'),
-    require('plugins.lint'),
-    require('plugins.avante')
+    require('plugins.lint')
 }
 
