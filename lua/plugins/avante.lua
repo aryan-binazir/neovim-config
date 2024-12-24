@@ -10,36 +10,24 @@ return {
         -- Register commands with which-key
         local wk = require("which-key")
         
-        -- Register normal mode keybindings
+        -- Register keybindings using new spec format
         wk.register({
-            ["<leader>a"] = {
-                mode = { "n" },
-                name = "Avante",
-                a = { "<cmd>AvanteToggle<cr>", "Show Sidebar" },
-                r = { "<cmd>AvanteRefresh<cr>", "Refresh Sidebar" },
-                f = { "<cmd>AvanteFocus<cr>", "Switch Sidebar Focus" },
-                e = { "<cmd>AvanteEdit<cr>", "Edit Selected Blocks" },
-            },
-            c = {
-                mode = { "n" },
-                name = "Conflict Resolution",
-                o = { "<cmd>ChooseOurs<cr>", "Choose Ours" },
-                t = { "<cmd>ChooseTheirs<cr>", "Choose Theirs" },
-                a = { "<cmd>ChooseAllTheirs<cr>", "Choose All Theirs" },
-                ["0"] = { "<cmd>ChooseNone<cr>", "Choose None" },
-                b = { "<cmd>ChooseBoth<cr>", "Choose Both" },
-                c = { "<cmd>ChooseCursor<cr>", "Choose Cursor" },
-            },
-            ["]"] = {
-                mode = { "n" },
-                x = { "<cmd>NextConflict<cr>", "Next Conflict" },
-                ["]"] = { "<cmd>NextCodeblock<cr>", "Next Codeblock" },
-            },
-            ["["] = {
-                mode = { "n" },
-                x = { "<cmd>PrevConflict<cr>", "Previous Conflict" },
-                ["["] = { "<cmd>PrevCodeblock<cr>", "Previous Codeblock" },
-            },
+            { "<leader>a", group = "Avante" },
+            { "<leader>aa", "<cmd>AvanteToggle<cr>", desc = "Show Sidebar" },
+            { "<leader>ae", "<cmd>AvanteEdit<cr>", desc = "Edit Selected Blocks" },
+            { "<leader>af", "<cmd>AvanteFocus<cr>", desc = "Switch Sidebar Focus" },
+            { "<leader>ar", "<cmd>AvanteRefresh<cr>", desc = "Refresh Sidebar" },
+            { "[[", "<cmd>PrevCodeblock<cr>", desc = "Previous Codeblock" },
+            { "[x", "<cmd>PrevConflict<cr>", desc = "Previous Conflict" },
+            { "]]", "<cmd>NextCodeblock<cr>", desc = "Next Codeblock" },
+            { "]x", "<cmd>NextConflict<cr>", desc = "Next Conflict" },
+            { "c", group = "Conflict Resolution" },
+            { "c0", "<cmd>ChooseNone<cr>", desc = "Choose None" },
+            { "ca", "<cmd>ChooseAllTheirs<cr>", desc = "Choose All Theirs" },
+            { "cb", "<cmd>ChooseBoth<cr>", desc = "Choose Both" },
+            { "cc", "<cmd>ChooseCursor<cr>", desc = "Choose Cursor" },
+            { "co", "<cmd>ChooseOurs<cr>", desc = "Choose Ours" },
+            { "ct", "<cmd>ChooseTheirs<cr>", desc = "Choose Theirs" },
         })
 
         -- Register commands
