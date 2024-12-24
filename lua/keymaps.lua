@@ -33,12 +33,6 @@ vim.keymap.set('n', '<leader>sl', function() vim.cmd("Sleuth") end, { desc = '[S
 vim.keymap.set('n', '<leader>qq', ':q!<CR>')
 vim.keymap.set('n', '<leader>wq', ':wq!<CR>')
 
--- Copilot keymaps
-vim.api.nvim_set_keymap("i", "<C-s>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
-vim.api.nvim_set_keymap("i", "<C-h>", '<Plug>(copilot-next)', { silent = true })
-vim.api.nvim_set_keymap("i", "<C-l>", '<Plug>(copilot-previous)', { silent = true })
-vim.api.nvim_set_keymap("i", "<C-\\>", '<Plug>(copilot-dismiss)', { silent = true })
-
 -- Highlight on yank
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
