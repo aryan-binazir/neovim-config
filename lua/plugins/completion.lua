@@ -22,6 +22,7 @@ return {
         'saadparwaiz1/cmp_luasnip',
         'hrsh7th/cmp-nvim-lsp',
         'hrsh7th/cmp-path',
+        'hrsh7th/cmp-buffer',
     },
     config = function()
         local cmp = require 'cmp'
@@ -45,9 +46,21 @@ return {
                 ['<C-e>'] = cmp.mapping.abort(),
             },
             sources = {
-                { name = 'nvim_lsp' },
-                { name = 'luasnip' },
-                { name = 'path' },
+                { name = 'nvim_lsp', priority = 1000 },
+                { name = 'luasnip', priority = 750 },
+                { name = 'buffer', priority = 500, keyword_length = 3 },
+                { name = 'path', priority = 250 },
+            },
+            formatting = {
+                format = function(entry, vim_item)
+                    vim_item.menu = ({
+                        nvim_lsp = "[LSP]",
+                        luasnip = "[Snip]",
+                        buffer = "[Buf]",
+                        path = "[Path]",
+                    })[entry.source.name]
+                    return vim_item
+                end
             },
         }
     end,
