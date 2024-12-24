@@ -15,17 +15,17 @@ return {
             },
         })
 
-        -- Register groups
+        -- Register groups with new spec format
         local wk = require("which-key")
         wk.register({
-            ["<leader>c"] = { name = "+copilot" },
-            ["<leader>l"] = { name = "+lsp/lazy" },
-            ["<leader>t"] = { name = "+toggle" },
-            ["<leader>w"] = { name = "+workspace" },
-            ["<leader>s"] = { name = "+search" },
-            ["<leader>h"] = { name = "+hunks" },
-            ["<leader>f"] = { name = "+find/files" },
-            ["<leader>d"] = { name = "+debug/diagnostics" },
+            { "<leader>c", group = "copilot" },
+            { "<leader>l", group = "lsp/lazy" },
+            { "<leader>t", group = "toggle" },
+            { "<leader>w", group = "workspace" },
+            { "<leader>s", group = "search" },
+            { "<leader>h", group = "hunks" },
+            { "<leader>f", group = "find/files" },
+            { "<leader>d", group = "debug/diagnostics" },
         })
     end
 } 
