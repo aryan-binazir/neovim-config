@@ -193,5 +193,6 @@ return {
     require('plugins.oil'),
     require('plugins.copilot'),
     require('plugins.dap'),
+    require('plugins.floaterm'),
 }
 
