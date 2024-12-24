@@ -27,7 +27,14 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Initialize lazy.nvim with plugins
-require('lazy').setup('plugins')
+require('lazy').setup({
+    spec = {
+        { import = "plugins" },
+    },
+    change_detection = {
+        notify = false,
+    },
+})
 
 -- Keymaps
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
