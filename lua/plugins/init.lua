@@ -71,18 +71,6 @@ return {
         dependencies = { "nvim-lua/plenary.nvim" }
     },
 
-    -- GitHub Copilot
-    { "github/copilot.vim" },
-    {
-        "CopilotC-Nvim/CopilotChat.nvim",
-        dependencies = {
-            { "github/copilot.vim" },
-            { "nvim-lua/plenary.nvim", branch = "master" },
-        },
-        build = "make tiktoken",
-        opts = {},
-    },
-
     -- UI enhancements
     { 'stevearc/dressing.nvim', opts = {} },
     {
