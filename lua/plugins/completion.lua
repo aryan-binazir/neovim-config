@@ -10,20 +10,6 @@ return {
                 end
                 return 'make install_jsregexp'
             end)(),
-            config = function()
-                require('luasnip').setup({
-                    history = true,
-                    delete_check_events = "TextChanged",
-                })
-                require('luasnip.loaders.from_vscode').lazy_load()
-                require('luasnip.loaders.from_vscode').load({
-                    paths = {
-                        vim.fn.stdpath('data') .. '/lazy/friendly-snippets/snippets',
-                        vim.fn.stdpath('config') .. '/lua/snippets'
-                    }
-                })
-                require("luasnip.loaders").enable_snipmate = false
-            end,
         },
         'saadparwaiz1/cmp_luasnip',
         'hrsh7th/cmp-nvim-lsp',
@@ -33,6 +19,8 @@ return {
     config = function()
         local cmp = require 'cmp'
         local luasnip = require 'luasnip'
+        require('luasnip.loaders.from_vscode').lazy_load()
+        luasnip.config.setup {}
 
         cmp.setup {
             snippet = {
