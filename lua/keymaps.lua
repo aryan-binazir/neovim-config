@@ -21,7 +21,6 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- Other keymaps
-vim.keymap.set('n', '<leader>f', ':Oil --float<CR>', { desc = 'Open Oil Float' })
 vim.keymap.set('n', '<leader>cc', ':CopilotChatToggle<CR>', { noremap = true, silent = true, desc = 'Open Copilot Chat' })
 vim.keymap.set('n', '<leader>cr', ':CopilotChatReset<CR>', { noremap = true, silent = true, desc = 'Reset Copilot Chat' })
 vim.keymap.set('n', '<leader>cm', ':CopilotChatModels<CR>', { noremap = true, silent = true, desc = 'Change Copilot Model' })
