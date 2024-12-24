@@ -39,8 +39,5 @@ vim.wo.foldmethod = 'expr'
 vim.opt.foldenable = false
 vim.wo.foldexpr = 'nvim_treesitter#foldexpr()'
 
--- Set colorscheme
-vim.cmd [[colorscheme tokyonight-night]]
-
 -- Set jade files to be viewed as pug files by treesitter
 vim.cmd [[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]] 
