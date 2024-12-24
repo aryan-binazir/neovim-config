@@ -10,8 +10,17 @@ return {
     config = function()
         local cmp = require 'cmp'
         local luasnip = require 'luasnip'
+        
+        -- Load friendly-snippets
         require('luasnip.loaders.from_vscode').lazy_load()
-        luasnip.config.setup {}
+        
+        -- Configure luasnip
+        luasnip.config.setup({
+            history = true,
+            enable_autosnippets = true,
+            -- Update more often
+            updateevents = "TextChanged,TextChangedI",
+        })
 
         cmp.setup {
             snippet = {
@@ -51,10 +60,21 @@ return {
                     end
                 end, { 'i', 's' }),
             },
-            sources = {
-                { name = 'nvim_lsp' },
-                { name = 'luasnip' },
-                { name = 'path' },
+            sources = cmp.config.sources({
+                { name = 'nvim_lsp', priority = 1000 },
+                { name = 'luasnip', priority = 750 },
+                { name = 'path', priority = 500 },
+            }),
+            formatting = {
+                format = function(entry, vim_item)
+                    -- Show source name
+                    vim_item.menu = ({
+                        nvim_lsp = "[LSP]",
+                        luasnip = "[Snippet]",
+                        path = "[Path]",
+                    })[entry.source.name]
+                    return vim_item
+                end
             },
         }
     end,
