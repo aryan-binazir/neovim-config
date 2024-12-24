@@ -11,6 +11,10 @@ return {
                 return 'make install_jsregexp'
             end)(),
             config = function()
+                require('luasnip').setup({
+                    history = true,
+                    delete_check_events = "TextChanged",
+                })
                 require('luasnip.loaders.from_vscode').lazy_load()
                 require('luasnip.loaders.from_vscode').load({
                     paths = {
@@ -18,6 +22,7 @@ return {
                         vim.fn.stdpath('config') .. '/lua/snippets'
                     }
                 })
+                require("luasnip.loaders").enable_snipmate = false
             end,
         },
         'saadparwaiz1/cmp_luasnip',
@@ -28,7 +33,6 @@ return {
     config = function()
         local cmp = require 'cmp'
         local luasnip = require 'luasnip'
-        luasnip.config.setup {}
 
         cmp.setup {
             snippet = {
