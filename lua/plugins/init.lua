@@ -19,7 +19,16 @@ return {
         keys = {
             { "<leader>lg", "<cmd>LazyGit<cr>",            desc = "LazyGit" },
             { "<leader>lc", "<cmd>LazyGitCurrentFile<cr>", desc = "LazyGit Current File" }
-        }
+        },
+        config = function()
+            -- Add keymap to quit Lazygit floating window
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "lazygit",
+                callback = function()
+                    vim.keymap.set("n", "q", ":q<CR>", { buffer = true, silent = true })
+                end,
+            })
+        end,
     },
 
     -- Tmux navigation
