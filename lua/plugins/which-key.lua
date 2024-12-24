@@ -18,21 +18,26 @@ return {
                     g = false,
                 },
             },
-            health = {
-                checker = false,  -- Disable health checks
-            },
-        })
+        spec = {
+            { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
+            { '<leader>d', group = '[D]ocument' },
+            { '<leader>r', group = '[R]ename' },
+            { '<leader>s', group = '[S]earch' },
+            { '<leader>w', group = '[W]orkspace' },
+            { '<leader>t', group = '[T]oggle' },
+            { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+          },
 
         -- Register groups
-        wk.register({
-            ["<leader>c"] = { name = "+[C]opilot" },
-            ["<leader>d"] = { name = "+[D]ebug/Diagnostics" },
-            ["<leader>f"] = { name = "+[F]ind/Files" },
-            ["<leader>h"] = { name = "+Git [H]unk" },
-            ["<leader>l"] = { name = "+[L]SP/Lazy" },
-            ["<leader>s"] = { name = "+[S]earch" },
-            ["<leader>t"] = { name = "+[T]oggle" },
-            ["<leader>w"] = { name = "+[W]orkspace" },
-        })
+        -- wk.register({
+        --     ["<leader>c"] = { name = "+[C]opilot" },
+        --     ["<leader>d"] = { name = "+[D]ebug/Diagnostics" },
+        --     ["<leader>f"] = { name = "+[F]ind/Files" },
+        --     ["<leader>h"] = { name = "+Git [H]unk" },
+        --     ["<leader>l"] = { name = "+[L]SP/Lazy" },
+        --     ["<leader>s"] = { name = "+[S]earch" },
+        --     ["<leader>t"] = { name = "+[T]oggle" },
+        --     ["<leader>w"] = { name = "+[W]orkspace" },
+        -- })
     end
 } 
