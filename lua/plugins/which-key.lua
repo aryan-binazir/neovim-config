@@ -14,5 +14,18 @@ return {
                 },
             },
         })
+
+        -- Register groups
+        local wk = require("which-key")
+        wk.register({
+            ["<leader>c"] = { name = "+copilot" },
+            ["<leader>l"] = { name = "+lsp/lazy" },
+            ["<leader>t"] = { name = "+toggle" },
+            ["<leader>w"] = { name = "+workspace" },
+            ["<leader>s"] = { name = "+search" },
+            ["<leader>h"] = { name = "+hunks" },
+            ["<leader>f"] = { name = "+find/files" },
+            ["<leader>d"] = { name = "+debug/diagnostics" },
+        })
     end
 } 
