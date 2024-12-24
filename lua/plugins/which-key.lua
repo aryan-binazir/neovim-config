@@ -18,22 +18,18 @@ return {
                     g = false,
                 },
             },
-            ignore_missing = true,  -- Disable health check warnings about missing keymaps
         })
 
-        -- Define groups
-        local spec = {
-            { '<leader>c', group = '[C]opilot', mode = { 'n', 'x' } },
-            { '<leader>d', group = '[D]ebug/Diagnostics' },
-            { '<leader>f', group = '[F]ind/Files' },
-            { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-            { '<leader>l', group = '[L]SP/Lazy' },
-            { '<leader>s', group = '[S]earch' },
-            { '<leader>t', group = '[T]oggle' },
-            { '<leader>w', group = '[W]orkspace' },
-        }
-
         -- Register groups
-        wk.register(spec)
+        wk.register({
+            ["<leader>c"] = { name = "+[C]opilot" },
+            ["<leader>d"] = { name = "+[D]ebug/Diagnostics" },
+            ["<leader>f"] = { name = "+[F]ind/Files" },
+            ["<leader>h"] = { name = "+Git [H]unk" },
+            ["<leader>l"] = { name = "+[L]SP/Lazy" },
+            ["<leader>s"] = { name = "+[S]earch" },
+            ["<leader>t"] = { name = "+[T]oggle" },
+            ["<leader>w"] = { name = "+[W]orkspace" },
+        })
     end
 } 
