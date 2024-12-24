@@ -13,28 +13,32 @@ return {
         -- Register normal mode keybindings
         wk.register({
             ["<leader>a"] = {
+                mode = { "n" },
                 name = "Avante",
                 a = { "<cmd>AvanteToggle<cr>", "Show Sidebar" },
                 r = { "<cmd>AvanteRefresh<cr>", "Refresh Sidebar" },
                 f = { "<cmd>AvanteFocus<cr>", "Switch Sidebar Focus" },
                 e = { "<cmd>AvanteEdit<cr>", "Edit Selected Blocks" },
             },
-            ["c"] = {
+            c = {
+                mode = { "n" },
                 name = "Conflict Resolution",
-                o = { "Choose Ours" },
-                t = { "Choose Theirs" },
-                a = { "Choose All Theirs" },
-                ["0"] = { "Choose None" },
-                b = { "Choose Both" },
-                c = { "Choose Cursor" },
+                o = { "<cmd>ChooseOurs<cr>", "Choose Ours" },
+                t = { "<cmd>ChooseTheirs<cr>", "Choose Theirs" },
+                a = { "<cmd>ChooseAllTheirs<cr>", "Choose All Theirs" },
+                ["0"] = { "<cmd>ChooseNone<cr>", "Choose None" },
+                b = { "<cmd>ChooseBoth<cr>", "Choose Both" },
+                c = { "<cmd>ChooseCursor<cr>", "Choose Cursor" },
             },
             ["]"] = {
-                x = { "Next Conflict" },
-                ["]"] = { "Next Codeblock" },
+                mode = { "n" },
+                x = { "<cmd>NextConflict<cr>", "Next Conflict" },
+                ["]"] = { "<cmd>NextCodeblock<cr>", "Next Codeblock" },
             },
             ["["] = {
-                x = { "Previous Conflict" },
-                ["["] = { "Previous Codeblock" },
+                mode = { "n" },
+                x = { "<cmd>PrevConflict<cr>", "Previous Conflict" },
+                ["["] = { "<cmd>PrevCodeblock<cr>", "Previous Codeblock" },
             },
         })
 
