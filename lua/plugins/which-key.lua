@@ -39,5 +39,5 @@ return {
         --     ["<leader>t"] = { name = "+[T]oggle" },
         --     ["<leader>w"] = { name = "+[W]orkspace" },
         -- })
-    end
+    -- end
 } 
