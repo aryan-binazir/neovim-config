@@ -121,6 +121,5 @@ return {
     require('plugins.gitsigns'),
     require('plugins.which-key'),
     require('plugins.floaterm'),
-    -- require('plugins.avante'),
 }
 
