@@ -1,4 +1,5 @@
 return {
+    require('avante_lib').load()
     "yetone/avante.nvim",
     event = "VeryLazy",
     lazy = false,
