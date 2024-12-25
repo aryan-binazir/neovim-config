@@ -1,9 +1,8 @@
 return {
     -- Git related plugins
-    'tpope/vim-fugitive',
-    'tpope/vim-rhubarb',
-    'tpope/vim-sleuth',
-
+    { 'tpope/vim-fugitive', },
+    { 'tpope/vim-rhubarb', },
+    { 'tpope/vim-sleuth', },
     {
         "kdheepak/lazygit.nvim",
         cmd = {
@@ -30,7 +29,6 @@ return {
             })
         end,
     },
-
     -- Tmux navigation
     {
         "christoomey/vim-tmux-navigator",
@@ -105,19 +103,5 @@ return {
         main = "ibl",
         opts = {},
     },
-
-    -- Additional plugins
-    require('plugins.telescope'),
-    require('plugins.treesitter'),
-    require('plugins.lsp'),
-    require('plugins.completion'),
-    require('plugins.harpoon'),
-    require('plugins.oil'),
-    require('plugins.copilot'),
-    require('plugins.dap'),
-    require('plugins.gitsigns'),
-    require('plugins.which-key'),
-    require('plugins.floaterm'),
-    require('plugins.lint')
 }
 
