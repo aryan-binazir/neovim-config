@@ -13,7 +13,8 @@ return {
                     enabled = true,
                     auto_trigger = true,
                     keymap = {
-                        accept = "<C-s>",
+                        accept = "<Tab>",
+                        accept_word = "<C-s>",
                         next = "<C-j>",
                         prev = "<C-k>",
                         dismiss = "<C-\\>",
@@ -41,4 +42,3 @@ return {
         opts = {},
     }
 }
-
