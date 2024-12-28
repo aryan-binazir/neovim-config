@@ -29,6 +29,10 @@ return {
                         ['<C-p>'] = require('telescope.actions.layout').toggle_preview
                     },
                 },
+                file_ignore_patterns = {
+                    "node_modules",
+                    ".git/"
+                },
                 layout_config = {
                     horizontal = {
                         width = 0.99,
@@ -111,7 +115,12 @@ return {
         vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
         vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
         vim.keymap.set('n', '<C-f>', require('telescope.builtin').live_grep, { desc = 'Search by Grep C-f' })
-        vim.keymap.set('n', '<C-p>', require('telescope.builtin').find_files, { desc = 'Search Files C-p' })
+        vim.keymap.set('n', '<C-p>', function()
+            require('telescope.builtin').find_files({
+                hidden = true,
+                no_ignore = true,
+            })
+        end, { desc = 'Search Files C-p' })
         -- vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
         -- vim.keymap.set('n', '<leader>ss', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
         -- vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
