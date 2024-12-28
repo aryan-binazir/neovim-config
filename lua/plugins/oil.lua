@@ -1,8 +1,11 @@
 return {
     'stevearc/oil.nvim',
+    dependencies = {
+        "nvim-tree/nvim-web-devicons",
+    },
     config = function()
         require("oil").setup({
-            columns = { "icons" },
+            columns = { "icon", "size", "mtime" },
             keymap = {
                 ["<C-h>"] = false,
                 ["<C-p>"] = false,
@@ -19,4 +22,3 @@ return {
         vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open Oil File Browser" })
     end,
 }
-
