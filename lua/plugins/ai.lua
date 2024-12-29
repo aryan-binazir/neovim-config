@@ -13,7 +13,7 @@ return {
                     enabled = true,
                     auto_trigger = true,
                     keymap = {
-                        accept = "<Tab>",
+                        accept = "<C-y>",
                         accept_word = "<C-s>",
                         next = "<C-j>",
                         prev = "<C-k>",
