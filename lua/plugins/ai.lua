@@ -1,31 +1,9 @@
 return {
     {
-        "zbirenbaum/copilot.lua",
-        cmd = "Copilot",
-        event = "InsertEnter",
+        "zbirenbaum/copilot-cmp",
         config = function()
-            require("copilot").setup({
-                panel = {
-                    enabled = true,
-                    auto_refresh = true,
-                },
-                suggestion = {
-                    enabled = true,
-                    auto_trigger = true,
-                    keymap = {
-                        accept = "<C-s>",
-                        accept_word = "<C-b>",
-                        next = "<C-j>",
-                        prev = "<C-k>",
-                        dismiss = "<C-\\>",
-                    },
-                },
-                filetypes = {
-                    markdown = true,
-                    help = false,
-                },
-            })
-        end,
+            require("copilot_cmp").setup()
+        end
     },
     {
         "CopilotC-Nvim/CopilotChat.nvim",
@@ -38,6 +16,29 @@ return {
             require("CopilotChat").setup {
                 model = 'claude-3.5-sonnet',
             }
+            -- Ensure that Copilot uses the same model
+            require("copilot").setup({
+                model = 'claude-3.5-sonnet',
+                panel = {
+                    enabled = true,
+                    auto_refresh = true,
+                },
+                suggestion = {
+                    enabled = false,
+                    auto_trigger = false,
+                    -- keymap = {
+                    --     accept = "<C-s>",
+                    --     accept_word = "<C-b>",
+                    --     next = "<C-j>",
+                    --     prev = "<C-k>",
+                    --     dismiss = "<C-\\>",
+                    -- },
+                },
+                filetypes = {
+                    markdown = true,
+                    help = false,
+                },
+            })
         end,
         opts = {},
     },
@@ -47,7 +48,7 @@ return {
         lazy = false,
         version = false, -- set this if you want to always pull the latest change
         opts = {
-            -- add any opts here
+            provider = "copilot"
         },
         -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
         build = "make",
