@@ -18,7 +18,6 @@ return {
             }
             -- Ensure that Copilot uses the same model
             require("copilot").setup({
-                model = 'claude-3.5-sonnet',
                 panel = {
                     enabled = true,
                     auto_refresh = true,
@@ -48,7 +47,11 @@ return {
         lazy = false,
         version = false, -- set this if you want to always pull the latest change
         opts = {
-            provider = "copilot"
+            provider = "copilot",
+            copilot = {
+                model = "claude-3.5-sonnet",
+                api = "chat",
+            }
         },
         -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
         build = "make",
