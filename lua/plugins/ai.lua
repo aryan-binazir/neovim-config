@@ -1,26 +1,12 @@
 return {
     {
-        "zbirenbaum/copilot-cmp",
+
+        "zbirenbaum/copilot.lua",
         config = function()
-            require("copilot_cmp").setup()
-        end
-    },
-    {
-        "CopilotC-Nvim/CopilotChat.nvim",
-        dependencies = {
-            { "zbirenbaum/copilot.lua" },
-            { "nvim-lua/plenary.nvim" },
-        },
-        build = "make tiktoken",
-        config = function()
-            require("CopilotChat").setup {
-                model = 'claude-3.5-sonnet',
-            }
-            -- Ensure that Copilot uses the same model
             require("copilot").setup({
                 panel = {
-                    enabled = true,
-                    auto_refresh = true,
+                    enabled = false,
+                    auto_refresh = false,
                 },
                 suggestion = {
                     enabled = false,
@@ -38,19 +24,30 @@ return {
                     help = false,
                 },
             })
-        end,
-        opts = {},
+        end
+    },
+    {
+        "zbirenbaum/copilot-cmp",
+        config = function()
+            require("copilot_cmp").setup()
+        end
     },
     {
         "yetone/avante.nvim",
         event = "VeryLazy",
         lazy = false,
-        version = false, -- set this if you want to always pull the latest change
+        version = false,
         opts = {
             provider = "copilot",
             copilot = {
                 model = "claude-3.5-sonnet",
                 api = "chat",
+            },
+            window = {
+                layout = {
+                    prompt_height = "10%",
+                    chat_height = "80%"
+                }
             }
         },
         -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
@@ -91,4 +88,40 @@ return {
             },
         },
     }
+    -- {
+    --     "CopilotC-Nvim/CopilotChat.nvim",
+    --     dependencies = {
+    --         { "zbirenbaum/copilot.lua" },
+    --         { "nvim-lua/plenary.nvim" },
+    --     },
+    --     build = "make tiktoken",
+    --     config = function()
+    --         require("CopilotChat").setup {
+    --             model = 'claude-3.5-sonnet',
+    --         }
+    --         -- Ensure that Copilot uses the same model
+    --         require("copilot").setup({
+    --             panel = {
+    --                 enabled = true,
+    --                 auto_refresh = true,
+    --             },
+    --             suggestion = {
+    --                 enabled = false,
+    --                 auto_trigger = false,
+    --                 -- keymap = {
+    --                 --     accept = "<C-s>",
+    --                 --     accept_word = "<C-b>",
+    --                 --     next = "<C-j>",
+    --                 --     prev = "<C-k>",
+    --                 --     dismiss = "<C-\\>",
+    --                 -- },
+    --             },
+    --             filetypes = {
+    --                 markdown = true,
+    --                 help = false,
+    --             },
+    --         })
+    --     end,
+    --     opts = {},
+    -- },
 }
