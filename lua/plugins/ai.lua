@@ -27,12 +27,6 @@ return {
             })
         end
     },
-    -- {
-    --     "zbirenbaum/copilot-cmp",
-    --     config = function()
-    --         require("copilot_cmp").setup()
-    --     end
-    -- },
     {
         "yetone/avante.nvim",
         event = "VeryLazy",
@@ -88,7 +82,7 @@ return {
                 ft = { "markdown", "Avante" },
             },
         },
-    }
+    },
     -- {
     --     "CopilotC-Nvim/CopilotChat.nvim",
     --     dependencies = {
@@ -124,5 +118,11 @@ return {
     --         })
     --     end,
     --     opts = {},
+    -- },
+    -- {
+    --     "zbirenbaum/copilot-cmp",
+    --     config = function()
+    --         require("copilot_cmp").setup()
+    --     end
     -- },
 }
