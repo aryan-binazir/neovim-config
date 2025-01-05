@@ -29,6 +29,21 @@ return {
         local luasnip = require 'luasnip'
         luasnip.config.setup {}
 
+        -- Function to toggle completion
+        local function toggle_completion()
+            if cmp.visible() then
+                cmp.close()
+            end
+            local ok, _ = pcall(require, 'cmp')
+            if ok then
+                cmp.setup.global({ enabled = not cmp.get_config().enabled })
+                vim.notify("Completion " .. (cmp.get_config().enabled and "enabled" or "disabled"))
+            end
+        end
+
+        -- Keymapping for completion toggle
+        vim.keymap.set('n', '<Leader>tc', toggle_completion, { desc = 'Toggle completion' })
+
         cmp.setup {
             snippet = {
                 expand = function(args)
