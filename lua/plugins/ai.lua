@@ -5,25 +5,29 @@ return {
         config = function()
             require("copilot").setup({
                 panel = {
-                    enabled = true,
-                    auto_refresh = true,
+                    -- enabled = true,
+                    -- auto_refresh = true,
+                    enabled = false,
+                    auto_refresh = false,
                 },
                 suggestion = {
-                    enabled = true,
-                    auto_trigger = true,
-                    keymap = {
-                        accept = "<S-Tab>",
-                        -- accept = "<C-s>",
-                        accept_word = "<C-b>",
-                        next = "<C-j>",
-                        prev = "<C-k>",
-                        dismiss = "<C-\\>",
-                    },
+                    enabled = false,
+                    auto_trigger = false,
+                    -- enabled = true,
+                    -- auto_trigger = true,
+                    -- keymap = {
+                    --     accept = "<S-Tab>",
+                    --     -- accept = "<C-s>",
+                    --     accept_word = "<C-b>",
+                    --     next = "<C-j>",
+                    --     prev = "<C-k>",
+                    --     dismiss = "<C-\\>",
+                    -- },
                 },
-                filetypes = {
-                    markdown = true,
-                    help = false,
-                },
+                -- filetypes = {
+                -- markdown = true,
+                -- help = false,
+                -- },
             })
         end
     },
@@ -83,6 +87,12 @@ return {
             },
         },
     },
+    {
+        "zbirenbaum/copilot-cmp",
+        config = function()
+            require("copilot_cmp").setup()
+        end
+    },
     -- {
     --     "CopilotC-Nvim/CopilotChat.nvim",
     --     dependencies = {
@@ -118,11 +128,5 @@ return {
     --         })
     --     end,
     --     opts = {},
-    -- },
-    -- {
-    --     "zbirenbaum/copilot-cmp",
-    --     config = function()
-    --         require("copilot_cmp").setup()
-    --     end
     -- },
 }

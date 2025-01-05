@@ -42,11 +42,11 @@ return {
                 ['<C-b>'] = cmp.mapping.scroll_docs(-4),
                 ['<C-f>'] = cmp.mapping.scroll_docs(4),
                 ['<C-Space>'] = cmp.mapping.complete {},
-                ['<CR>'] = cmp.mapping.confirm { select = true },
+                ['<S-Tab>'] = cmp.mapping.confirm { select = true },
                 ['<C-e>'] = cmp.mapping.abort(),
             },
             sources = {
-                -- { name = 'copilot',  priority = 1000 },
+                { name = 'copilot',  priority = 1000 },
                 { name = 'nvim_lsp', priority = 1000 },
                 { name = 'luasnip',  priority = 750 },
                 { name = 'buffer',   priority = 500, keyword_length = 3 },
@@ -55,7 +55,7 @@ return {
             formatting = {
                 format = function(entry, vim_item)
                     vim_item.kind = ({
-                        -- copilot = "[OH]",
+                        copilot = "[a]",
                         nvim_lsp = "[LSP]",
                         luasnip = "[Snip]",
                         buffer = "[Buf]",
