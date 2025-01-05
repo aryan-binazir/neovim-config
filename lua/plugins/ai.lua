@@ -5,19 +5,20 @@ return {
         config = function()
             require("copilot").setup({
                 panel = {
-                    enabled = false,
-                    auto_refresh = false,
+                    enabled = true,
+                    auto_refresh = true,
                 },
                 suggestion = {
-                    enabled = false,
-                    auto_trigger = false,
-                    -- keymap = {
-                    --     accept = "<C-s>",
-                    --     accept_word = "<C-b>",
-                    --     next = "<C-j>",
-                    --     prev = "<C-k>",
-                    --     dismiss = "<C-\\>",
-                    -- },
+                    enabled = true,
+                    auto_trigger = true,
+                    keymap = {
+                        accept = "<S-Tab>",
+                        -- accept = "<C-s>",
+                        accept_word = "<C-b>",
+                        next = "<C-j>",
+                        prev = "<C-k>",
+                        dismiss = "<C-\\>",
+                    },
                 },
                 filetypes = {
                     markdown = true,
@@ -26,12 +27,12 @@ return {
             })
         end
     },
-    {
-        "zbirenbaum/copilot-cmp",
-        config = function()
-            require("copilot_cmp").setup()
-        end
-    },
+    -- {
+    --     "zbirenbaum/copilot-cmp",
+    --     config = function()
+    --         require("copilot_cmp").setup()
+    --     end
+    -- },
     {
         "yetone/avante.nvim",
         event = "VeryLazy",
