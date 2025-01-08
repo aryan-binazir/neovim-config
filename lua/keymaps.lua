@@ -21,12 +21,14 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- Other keymaps
-vim.keymap.set('n', '<leader>cc', ':CopilotChatToggle<CR>', { noremap = true, silent = true, desc = 'Open Copilot Chat' })
-vim.keymap.set('n', '<leader>cr', ':CopilotChatReset<CR>', { noremap = true, silent = true, desc = 'Reset Copilot Chat' })
-vim.keymap.set('n', '<leader>cm', ':CopilotChatModels<CR>', { noremap = true, silent = true, desc = 'Change Copilot Model' })
+vim.keymap.set('n', '<leader>cc', ':CodyToggleChat<CR>', { noremap = true, silent = true, desc = 'Open Cody Chat' })
+-- vim.keymap.set('n', '<leader>cr', ':CodyAsk<CR>', { noremap = true, silent = true, desc = 'Reset Cody Chat' })
+vim.keymap.set('n', '<leader>cm', ':CodyChatModels<CR>', { noremap = true, silent = true, desc = 'Select Chat Model' })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
-vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>', { noremap = true, silent = true, desc = "Toggle relative number" })
-vim.keymap.set('n', '<leader>l8', ':!autopep8 --in-place -a -a -a -a --max-line-length 79 %<CR>', { noremap = true, silent = true, desc = "Auto Pep 8 Formatting" })
+vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
+    { noremap = true, silent = true, desc = "Toggle relative number" })
+vim.keymap.set('n', '<leader>l8', ':!autopep8 --in-place -a -a -a -a --max-line-length 79 %<CR>',
+    { noremap = true, silent = true, desc = "Auto Pep 8 Formatting" })
 vim.keymap.set('n', '<leader>sl', function() vim.cmd("Sleuth") end, { desc = '[SL]euth' })
 
 -- Quick exit keymaps
@@ -41,4 +43,4 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     end,
     group = highlight_group,
     pattern = '*',
-}) 
+})

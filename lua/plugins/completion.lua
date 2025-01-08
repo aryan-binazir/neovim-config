@@ -61,7 +61,7 @@ return {
                 ['<C-e>'] = cmp.mapping.abort(),
             },
             sources = {
-                { name = 'copilot',  priority = 1000 },
+                { name = 'cody',     priority = 1000 },
                 { name = 'nvim_lsp', priority = 1000 },
                 { name = 'luasnip',  priority = 750 },
                 { name = 'buffer',   priority = 500, keyword_length = 3 },
@@ -70,7 +70,7 @@ return {
             formatting = {
                 format = function(entry, vim_item)
                     vim_item.kind = ({
-                        copilot = "[a]",
+                        cody = "[a]",
                         nvim_lsp = "[LSP]",
                         luasnip = "[Snip]",
                         buffer = "[Buf]",
