@@ -36,7 +36,7 @@ return {
                         return
                     end
 
-                    if client.name == 'tsserver' then
+                    if client.name == 'ts_ls' then
                         return
                     end
 
@@ -125,4 +125,3 @@ return {
         end,
     }
 }
-
