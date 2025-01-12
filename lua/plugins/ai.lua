@@ -14,14 +14,13 @@ return {
                     auto_trigger = false,
                     -- enabled = true,
                     -- auto_trigger = true,
-                    keymap = {
-                        accept = "<C-Tab>",
-                        -- accept = "<C-s>",
-                        accept_word = "<C-b>",
-                        next = "<C-j>",
-                        prev = "<C-k>",
-                        dismiss = "<C-\\>",
-                    },
+                    -- keymap = {
+                    --     accept = "<C-y>",
+                    --     accept_word = "<C-b>",
+                    --     next = "<C-j>",
+                    --     prev = "<C-k>",
+                    --     dismiss = "<C-\\>",
+                    -- },
                 },
                 -- filetypes = {
                 -- markdown = true,
