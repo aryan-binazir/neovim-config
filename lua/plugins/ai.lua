@@ -1,46 +1,78 @@
 return {
     {
-        "sourcegraph/sg.nvim",
+        "zbirenbaum/copilot.lua",
+        config = function()
+            require("copilot").setup({
+                panel = {
+                    -- enabled = true,
+                    -- auto_refresh = true,
+                    enabled = false,
+                    auto_refresh = false,
+                },
+                suggestion = {
+                    enabled = false,
+                    auto_trigger = false,
+                    -- enabled = true,
+                    -- auto_trigger = true,
+                    keymap = {
+                        accept = "<C-Tab>",
+                        -- accept = "<C-s>",
+                        accept_word = "<C-b>",
+                        next = "<C-j>",
+                        prev = "<C-k>",
+                        dismiss = "<C-\\>",
+                    },
+                },
+                -- filetypes = {
+                -- markdown = true,
+                -- help = false,
+                -- },
+            })
+        end
+    },
+    {
+        "zbirenbaum/copilot-cmp",
+        config = function()
+            require("copilot_cmp").setup()
+        end
+    },
+    {
+        "CopilotC-Nvim/CopilotChat.nvim",
         dependencies = {
-            "nvim-lua/plenary.nvim",
-            "nvim-telescope/telescope.nvim",
+            { "zbirenbaum/copilot.lua" },
+            { "nvim-lua/plenary.nvim" },
         },
-        build = ":lua require('sg.build').install()",
-        config = true,
-    }
-    -- The following kept in case these ever need to be set up again
-    -- {
+        build = "make tiktoken",
+        config = function()
+            require("CopilotChat").setup {
+                model = 'claude-3.5-sonnet',
+            }
+            -- Ensure that Copilot uses the same model
+            -- require("copilot").setup({
+            --     panel = {
+            --         enabled = true,
+            --         auto_refresh = true,
+            --     },
+            --     suggestion = {
+            --         enabled = false,
+            --         auto_trigger = false,
+            --         -- keymap = {
+            --         --     accept = "<C-s>",
+            --         --     accept_word = "<C-b>",
+            --         --     next = "<C-j>",
+            --         --     prev = "<C-k>",
+            --         --     dismiss = "<C-\\>",
+            --         -- },
+            --     },
+            --     filetypes = {
+            --         markdown = true,
+            --         help = false,
+            --     },
+            -- })
+        end,
+        opts = {},
+    },
     --
-    --     "zbirenbaum/copilot.lua",
-    --     config = function()
-    --         require("copilot").setup({
-    --             panel = {
-    --                 -- enabled = true,
-    --                 -- auto_refresh = true,
-    --                 enabled = false,
-    --                 auto_refresh = false,
-    --             },
-    --             suggestion = {
-    --                 enabled = false,
-    --                 auto_trigger = false,
-    --                 -- enabled = true,
-    --                 -- auto_trigger = true,
-    --                 -- keymap = {
-    --                 --     accept = "<S-Tab>",
-    --                 --     -- accept = "<C-s>",
-    --                 --     accept_word = "<C-b>",
-    --                 --     next = "<C-j>",
-    --                 --     prev = "<C-k>",
-    --                 --     dismiss = "<C-\\>",
-    --                 -- },
-    --             },
-    --             -- filetypes = {
-    --             -- markdown = true,
-    --             -- help = false,
-    --             -- },
-    --         })
-    --     end
-    -- },
     -- {
     --     "yetone/avante.nvim",
     --     event = "VeryLazy",
@@ -98,45 +130,12 @@ return {
     --     },
     -- },
     -- {
-    --     "zbirenbaum/copilot-cmp",
-    --     config = function()
-    --         require("copilot_cmp").setup()
-    --     end
-    -- },
-    -- {
-    --     "CopilotC-Nvim/CopilotChat.nvim",
+    --     "sourcegraph/sg.nvim",
     --     dependencies = {
-    --         { "zbirenbaum/copilot.lua" },
-    --         { "nvim-lua/plenary.nvim" },
+    --         "nvim-lua/plenary.nvim",
+    --         "nvim-telescope/telescope.nvim",
     --     },
-    --     build = "make tiktoken",
-    --     config = function()
-    --         require("CopilotChat").setup {
-    --             model = 'claude-3.5-sonnet',
-    --         }
-    --         -- Ensure that Copilot uses the same model
-    --         require("copilot").setup({
-    --             panel = {
-    --                 enabled = true,
-    --                 auto_refresh = true,
-    --             },
-    --             suggestion = {
-    --                 enabled = false,
-    --                 auto_trigger = false,
-    --                 -- keymap = {
-    --                 --     accept = "<C-s>",
-    --                 --     accept_word = "<C-b>",
-    --                 --     next = "<C-j>",
-    --                 --     prev = "<C-k>",
-    --                 --     dismiss = "<C-\\>",
-    --                 -- },
-    --             },
-    --             filetypes = {
-    --                 markdown = true,
-    --                 help = false,
-    --             },
-    --         })
-    --     end,
-    --     opts = {},
-    -- },
+    --     build = ":lua require('sg.build').install()",
+    --     config = true,
+    -- }
 }
