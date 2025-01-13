@@ -56,7 +56,7 @@ return {
             --         enabled = false,
             --         auto_trigger = false,
             --         -- keymap = {
-            --         --     accept = "<C-s>",
+            --         --     accept = "<C-y>",
             --         --     accept_word = "<C-b>",
             --         --     next = "<C-j>",
             --         --     prev = "<C-k>",
