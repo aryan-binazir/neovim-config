@@ -4,35 +4,29 @@ return {
         config = function()
             require("copilot").setup({
                 panel = {
-                    -- enabled = true,
-                    -- auto_refresh = true,
-                    enabled = false,
-                    auto_refresh = false,
+                    enabled = true,
+                    auto_refresh = true,
+                    -- enabled = false,
+                    -- auto_refresh = false,
                 },
                 suggestion = {
-                    enabled = false,
-                    auto_trigger = false,
-                    -- enabled = true,
-                    -- auto_trigger = true,
-                    -- keymap = {
-                    --     accept = "<C-y>",
-                    --     accept_word = "<C-b>",
-                    --     next = "<C-j>",
-                    --     prev = "<C-k>",
-                    --     dismiss = "<C-\\>",
-                    -- },
+                    -- enabled = false,
+                    -- auto_trigger = false,
+                    enabled = true,
+                    auto_trigger = true,
+                    keymap = {
+                        accept = "<S-Tab>",
+                        accept_word = "<C-b>",
+                        next = "<C-j>",
+                        prev = "<C-k>",
+                        dismiss = "<C-\\>",
+                    },
                 },
-                -- filetypes = {
-                -- markdown = true,
-                -- help = false,
-                -- },
+                filetypes = {
+                    markdown = true,
+                    help = false,
+                },
             })
-        end
-    },
-    {
-        "zbirenbaum/copilot-cmp",
-        config = function()
-            require("copilot_cmp").setup()
         end
     },
     {
@@ -71,6 +65,12 @@ return {
         end,
         opts = {},
     },
+    -- {
+    --     "zbirenbaum/copilot-cmp",
+    --     config = function()
+    --         require("copilot_cmp").setup()
+    --     end
+    -- },
     --
     -- {
     --     "yetone/avante.nvim",
