@@ -21,10 +21,10 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- Other keymaps
-vim.keymap.set('n', '<leader>cc', ':CopilotChatToggle<CR>', { noremap = true, silent = true, desc = 'Open Copilot Chat' })
-vim.keymap.set('n', '<leader>cr', ':CopilotChatReset<CR>', { noremap = true, silent = true, desc = 'Reset Copilot Chat' })
-vim.keymap.set('n', '<leader>cm', ':CopilotChatModels<CR>',
-    { noremap = true, silent = true, desc = 'Change Copilot Model' })
+-- vim.keymap.set('n', '<leader>cc', ':CopilotChatToggle<CR>', { noremap = true, silent = true, desc = 'Open Copilot Chat' })
+-- vim.keymap.set('n', '<leader>cr', ':CopilotChatReset<CR>', { noremap = true, silent = true, desc = 'Reset Copilot Chat' })
+-- vim.keymap.set('n', '<leader>cm', ':CopilotChatModels<CR>',
+-- { noremap = true, silent = true, desc = 'Change Copilot Model' })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
 vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
     { noremap = true, silent = true, desc = "Toggle relative number" })
@@ -45,3 +45,4 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     group = highlight_group,
     pattern = '*',
 })
+vim.g.codeium_enabled = true
