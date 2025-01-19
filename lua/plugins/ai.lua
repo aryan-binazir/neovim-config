@@ -1,188 +1,53 @@
 return {
   {
-    'Exafunction/codeium.vim',
-    event = 'BufEnter',
+    "Exafunction/codeium.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "hrsh7th/nvim-cmp",
+    },
     config = function()
-      -- Start Codeium as disabled
-      vim.g.codeium_enabled = false
+      require("codeium").setup({
+        -- Optionally disable cmp source if using virtual text only
+        enable_cmp_source = false,
+        virtual_text = {
+          enabled = true,
 
-      -- Disable Tab acceptance
-      vim.g.codeium_no_map_tab = true
+          -- These are the defaults
 
-      vim.keymap.set('i', '<S-Tab>', function() return vim.fn['codeium#Accept']() end, { expr = true, silent = true })
-      vim.keymap.set('i', '<c-k>', function() return vim.fn['codeium#CycleCompletions'](1) end,
-        { expr = true, silent = true })
-      vim.keymap.set('i', '<c-j>', function() return vim.fn['codeium#CycleCompletions'](-1) end,
-        { expr = true, silent = true })
-      vim.keymap.set('i', '<c-x>', function() return vim.fn['codeium#Clear']() end, { expr = true, silent = true })
-      vim.keymap.set("n", "<leader>ce", function()
-        vim.cmd("Codeium Enable")
-      end, { noremap = true, silent = true, desc = "Enable Codeium" })
-      vim.keymap.set("n", "<leader>cd", function()
-        vim.cmd("Codeium Disable")
-      end, { noremap = true, silent = true, desc = "Disable Codeium" })
+          -- Set to true if you never want completions to be shown automatically.
+          manual = false,
+          -- A mapping of filetype to true or false, to enable virtual text.
+          filetypes = {},
+          -- Whether to enable virtual text of not for filetypes not specifically listed above.
+          default_filetype_enabled = true,
+          -- How long to wait (in ms) before requesting completions after typing stops.
+          idle_delay = 75,
+          -- Priority of the virtual text. This usually ensures that the completions appear on top of
+          -- other plugins that also add virtual text, such as LSP inlay hints, but can be modified if
+          -- desired.
+          virtual_text_priority = 65535,
+          -- Set to false to disable all key bindings for managing completions.
+          map_keys = true,
+          -- The key to press when hitting the accept keybinding but no completion is showing.
+          -- Defaults to \t normally or <c-n> when a popup is showing.
+          accept_fallback = nil,
+          -- Key bindings for managing completions in virtual text mode.
+          key_bindings = {
+            -- Accept the current completion.
+            accept = "<C-s>",
+            -- Accept the next word.
+            accept_word = false,
+            -- Accept the next line.
+            accept_line = "<C-x>",
+            -- Clear the virtual text.
+            clear = false,
+            -- Cycle to the next completion.
+            next = "<C-j>",
+            -- Cycle to the previous completion.
+            prev = "<C-k>",
+          }
+        }
+      })
     end
   },
-  -- {
-  --   "Exafunction/codeium.nvim",
-  --   config = function()
-  --     -- Keybindings
-  --     vim.keymap.set("i", "<S-Tab>", function()
-  --       return vim.fn["codeium#Accept"]()
-  --     end, { expr = true, silent = true })
-  --     vim.keymap.set("i", "<C-;>", function()
-  --       return vim.fn["codeium#CycleCompletions"](1)
-  --     end, { expr = true, silent = true })
-  --     vim.keymap.set("i", "<C-,>", function()
-  --       return vim.fn["codeium#CycleCompletions"](-1)
-  --     end, { expr = true, silent = true })
-  --     vim.keymap.set("i", "<C-x>", function()
-  --       return vim.fn["codeium#Clear"]()
-  --     end, { expr = true, silent = true })
-  --     vim.keymap.set("n", "<leader>ce", function()
-  --       vim.cmd("Codeium Enable")
-  --     end, { noremap = true, silent = true, desc = "Enable Codeium" })
-  --     vim.keymap.set("n", "<leader>cd", function()
-  --       vim.cmd("Codeium Disable")
-  --     end, { noremap = true, silent = true, desc = "Disable Codeium" })
-  --   end,
-  -- },
-  -- {
-  --     "zbirenbaum/copilot.lua",
-  --     config = function()
-  --         require("copilot").setup({
-  --             panel = {
-  --                 enabled = true,
-  --                 auto_refresh = true,
-  --                 -- enabled = false,
-  --                 -- auto_refresh = false,
-  --             },
-  --             suggestion = {
-  --                 -- enabled = false,
-  --                 -- auto_trigger = false,
-  --                 enabled = true,
-  --                 auto_trigger = true,
-  --                 keymap = {
-  --                     accept = "<S-Tab>",
-  --                     accept_word = "<C-b>",
-  --                     next = "<C-j>",
-  --                     prev = "<C-k>",
-  --                     dismiss = "<C-\\>",
-  --                 },
-  --             },
-  --             filetypes = {
-  --                 markdown = true,
-  --                 help = false,
-  --             },
-  --         })
-  --     end
-  -- },
-  -- {
-  --     "CopilotC-Nvim/CopilotChat.nvim",
-  --     dependencies = {
-  --         { "zbirenbaum/copilot.lua" },
-  --         { "nvim-lua/plenary.nvim" },
-  --     },
-  --     build = "make tiktoken",
-  --     config = function()
-  --         require("CopilotChat").setup {
-  --             model = 'claude-3.5-sonnet',
-  --         }
-  --         -- Ensure that Copilot uses the same model
-  --         -- require("copilot").setup({
-  --         --     panel = {
-  --         --         enabled = true,
-  --         --         auto_refresh = true,
-  --         --     },
-  --         --     suggestion = {
-  --         --         enabled = false,
-  --         --         auto_trigger = false,
-  --         --         -- keymap = {
-  --         --         --     accept = "<C-y>",
-  --         --         --     accept_word = "<C-b>",
-  --         --         --     next = "<C-j>",
-  --         --         --     prev = "<C-k>",
-  --         --         --     dismiss = "<C-\\>",
-  --         --         -- },
-  --         --     },
-  --         --     filetypes = {
-  --         --         markdown = true,
-  --         --         help = false,
-  --         --     },
-  --         -- })
-  --     end,
-  --     opts = {},
-  -- },
-  -- {
-  --     "zbirenbaum/copilot-cmp",
-  --     config = function()
-  --         require("copilot_cmp").setup()
-  --     end
-  -- },
-  --
-  -- {
-  --     "yetone/avante.nvim",
-  --     event = "VeryLazy",
-  --     lazy = false,
-  --     version = false,
-  --     opts = {
-  --         provider = "copilot",
-  --         copilot = {
-  --             model = "claude-3.5-sonnet",
-  --             api = "chat",
-  --         },
-  --         window = {
-  --             layout = {
-  --                 prompt_height = "10%",
-  --                 chat_height = "80%"
-  --             }
-  --         }
-  --     },
-  --     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-  --     build = "make",
-  --     -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
-  --     dependencies = {
-  --         "stevearc/dressing.nvim",
-  --         "nvim-lua/plenary.nvim",
-  --         "MunifTanjim/nui.nvim",
-  --         --- The below dependencies are optional,
-  --         "hrsh7th/nvim-cmp",            -- autocompletion for avante commands and mentions
-  --         "nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
-  --         "zbirenbaum/copilot.lua",      -- for providers='copilot'
-  --         {
-  --             -- support for image pasting
-  --             "HakonHarnes/img-clip.nvim",
-  --             event = "VeryLazy",
-  --             opts = {
-  --                 -- recommended settings
-  --                 default = {
-  --                     embed_image_as_base64 = false,
-  --                     prompt_for_file_name = false,
-  --                     drag_and_drop = {
-  --                         insert_mode = true,
-  --                     },
-  --                     -- required for Windows users
-  --                     use_absolute_path = true,
-  --                 },
-  --             },
-  --         },
-  --         {
-  --             -- Make sure to set this up properly if you have lazy=true
-  --             'MeanderingProgrammer/render-markdown.nvim',
-  --             opts = {
-  --                 file_types = { "markdown", "Avante" },
-  --             },
-  --             ft = { "markdown", "Avante" },
-  --         },
-  --     },
-  -- },
-  -- {
-  --     "sourcegraph/sg.nvim",
-  --     dependencies = {
-  --         "nvim-lua/plenary.nvim",
-  --         "nvim-telescope/telescope.nvim",
-  --     },
-  --     build = ":lua require('sg.build').install()",
-  --     config = true,
-  -- }
 }
