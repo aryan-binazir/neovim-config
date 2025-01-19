@@ -38,9 +38,9 @@ return {
             -- Accept the next word.
             accept_word = false,
             -- Accept the next line.
-            accept_line = "<C-x>",
+            accept_line = "<C-l>",
             -- Clear the virtual text.
-            clear = false,
+            clear = "<C-x>",
             -- Cycle to the next completion.
             next = "<C-j>",
             -- Cycle to the previous completion.
@@ -48,6 +48,33 @@ return {
           }
         }
       })
+
+      -- Create a global function to toggle ghost text
+      vim.g.codeium_ghost_text_enabled = true
+      _G.toggle_codeium_ghost_text = function()
+        vim.g.codeium_ghost_text_enabled = not vim.g.codeium_ghost_text_enabled
+        require("codeium").setup({
+          enable_cmp_source = false,
+          virtual_text = {
+            enabled = vim.g.codeium_ghost_text_enabled,
+            manual = false,
+            filetypes = {},
+            default_filetype_enabled = true,
+            idle_delay = 75,
+            virtual_text_priority = 65535,
+            map_keys = true,
+            accept_fallback = nil,
+            key_bindings = {
+              accept = "<C-s>",
+              accept_word = false,
+              accept_line = "<C-l>",
+              clear = "<C-x>",
+              next = "<C-j>",
+              prev = "<C-k>",
+            }
+          }
+        })
+      end
     end
   },
 }

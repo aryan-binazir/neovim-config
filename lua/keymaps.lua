@@ -20,6 +20,9 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnos
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
+-- Codeium keymaps
+vim.keymap.set('n', '<leader>ta', ':lua toggle_codeium_ghost_text()<CR>', { noremap = true, silent = true, desc = 'Toggle Codeium ghost text' })
+
 -- Other keymaps
 vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
