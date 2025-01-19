@@ -1,6 +1,7 @@
 return {
   {
     'Exafunction/codeium.vim',
+    event = 'BufEnter',
     config = function()
       -- Start Codeium as disabled
       vim.g.codeium_enabled = false
