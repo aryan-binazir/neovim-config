@@ -10,7 +10,7 @@ return {
         -- Optionally disable cmp source if using virtual text only
         enable_cmp_source = false,
         virtual_text = {
-          enabled = true,
+          enabled = false,
 
           -- These are the defaults
 
@@ -50,7 +50,7 @@ return {
       })
 
       -- Create a global function to toggle ghost text
-      vim.g.codeium_ghost_text_enabled = true
+      vim.g.codeium_ghost_text_enabled = false
       _G.toggle_codeium_ghost_text = function()
         vim.g.codeium_ghost_text_enabled = not vim.g.codeium_ghost_text_enabled
         require("codeium").setup({

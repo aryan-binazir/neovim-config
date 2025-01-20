@@ -29,6 +29,10 @@ return {
         local luasnip = require 'luasnip'
         luasnip.config.setup {}
 
+        cmp.setup({
+            enabled = false
+        })
+
         -- Function to toggle completion
         local function toggle_completion()
             if cmp.visible() then
