@@ -10,7 +10,7 @@ return {
         -- Optionally disable cmp source if using virtual text only
         enable_cmp_source = false,
         virtual_text = {
-          enabled = false,
+          enabled = true,
 
           -- These are the defaults
 
@@ -34,7 +34,7 @@ return {
           -- Key bindings for managing completions in virtual text mode.
           key_bindings = {
             -- Accept the current completion.
-            accept = "<C-s>",
+            accept = "<S-Tab>",
             -- Accept the next word.
             accept_word = false,
             -- Accept the next line.
@@ -50,7 +50,7 @@ return {
       })
 
       -- Create a global function to toggle ghost text
-      vim.g.codeium_ghost_text_enabled = false
+      vim.g.codeium_ghost_text_enabled = true
       _G.toggle_codeium_ghost_text = function()
         vim.g.codeium_ghost_text_enabled = not vim.g.codeium_ghost_text_enabled
         require("codeium").setup({
@@ -65,7 +65,7 @@ return {
             map_keys = true,
             accept_fallback = nil,
             key_bindings = {
-              accept = "<C-s>",
+              accept = "<S-Tab>",
               accept_word = false,
               accept_line = "<C-l>",
               clear = "<C-x>",
