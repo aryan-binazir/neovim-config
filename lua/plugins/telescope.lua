@@ -43,7 +43,13 @@ return {
                 },
                 preview = {
                     hide_on_startup = false
-                }
+                },
+                attach_mappings = function(bufnr, map)
+                    -- Force our C-p mapping in insert mode
+                    vim.keymap.set('i', '<C-p>', require('telescope.actions.layout').toggle_preview, 
+                        { buffer = bufnr, noremap = true, silent = true })
+                    return true
+                end
             },
             pickers = {},
             extensions = {

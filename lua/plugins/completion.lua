@@ -29,6 +29,9 @@ return {
         local luasnip = require 'luasnip'
         luasnip.config.setup {}
 
+        -- Global variable to track manual toggle state
+        vim.g.completion_enabled = false
+
         cmp.setup({
             enabled = false
         })
@@ -40,8 +43,15 @@ return {
             end
             local ok, _ = pcall(require, 'cmp')
             if ok then
-                cmp.setup.global({ enabled = not cmp.get_config().enabled })
-                vim.notify("Completion " .. (cmp.get_config().enabled and "enabled" or "disabled"))
+                vim.g.completion_enabled = not vim.g.completion_enabled
+                cmp.setup({
+                    enabled = function()
+                        local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
+                        if buftype == "prompt" then return false end
+                        return vim.g.completion_enabled
+                    end
+                })
+                vim.notify("Completion " .. (vim.g.completion_enabled and "enabled" or "disabled"))
             end
         end
 
@@ -81,6 +91,11 @@ return {
                     return vim_item
                 end
             },
+            enabled = function()
+                local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
+                if buftype == "prompt" then return false end
+                return vim.g.completion_enabled
+            end
         }
     end,
 }
