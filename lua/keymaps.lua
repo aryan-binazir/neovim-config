@@ -9,6 +9,19 @@ function Toggle_diagnostics()
     end
 end
 
+-- Function to toggle Copilot
+function Toggle_copilot()
+    if vim.g.copilot_enabled == false then
+        vim.g.copilot_enabled = true
+        vim.notify("Copilot enabled", vim.log.levels.INFO)
+        vim.cmd("Copilot enable")
+    else
+        vim.g.copilot_enabled = false
+        vim.notify("Copilot disabled", vim.log.levels.INFO)
+        vim.cmd("Copilot disable")
+    end
+end
+
 -- Basic keymaps
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -18,14 +31,15 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 vim.keymap.set('n', '<A-k>', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', '<A-j>', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Go to diagnostics list' })
 
--- Codeium keymaps
-vim.keymap.set('n', '<leader>ta', ':lua toggle_codeium_ghost_text()<CR>',
-    { noremap = true, silent = true, desc = 'Toggle Codeium ghost text' })
+-- Copilot keymaps
+vim.keymap.set("n", "<leader>ta", Toggle_copilot, { noremap = true, silent = true, desc = "Toggle Copilot" })
 
 -- Other keymaps
-vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
+-- vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
+-- vim.keymap.set("n", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true, desc = "Open Copilot Chat" })
+-- vim.keymap.set("n", "<leader>cm", ":CopilotChatModels<CR>", { noremap = true, silent = true, desc = "List Copilot Chat Models" })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
 vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
     { noremap = true, silent = true, desc = "Toggle relative number" })
