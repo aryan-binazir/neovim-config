@@ -30,10 +30,10 @@ return {
         luasnip.config.setup {}
 
         -- Global variable to track manual toggle state
-        vim.g.completion_enabled = false
+        vim.g.completion_enabled = true
 
         cmp.setup({
-            enabled = false
+            enabled = true
         })
 
         -- Function to toggle completion
