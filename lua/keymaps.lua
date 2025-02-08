@@ -9,15 +9,14 @@ function Toggle_diagnostics()
     end
 end
 
--- Function to toggle Copilot
 function Toggle_copilot()
     if vim.g.copilot_enabled == false then
         vim.g.copilot_enabled = true
-        vim.notify("Copilot enabled", vim.log.levels.INFO)
+        vim.notify("Enabled", vim.log.levels.INFO)
         vim.cmd("Copilot enable")
     else
         vim.g.copilot_enabled = false
-        vim.notify("Copilot disabled", vim.log.levels.INFO)
+        vim.notify("Disabled", vim.log.levels.INFO)
         vim.cmd("Copilot disable")
     end
 end
