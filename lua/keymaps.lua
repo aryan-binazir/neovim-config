@@ -9,14 +9,14 @@ function Toggle_diagnostics()
     end
 end
 
-function Toggle_copilot()
+function Toggle_ai()
     if vim.g.copilot_enabled == false then
         vim.g.copilot_enabled = true
-        vim.notify("Enabled", vim.log.levels.INFO)
+        vim.notify("AI Enabled", vim.log.levels.INFO)
         vim.cmd("Copilot enable")
     else
         vim.g.copilot_enabled = false
-        vim.notify("Disabled", vim.log.levels.INFO)
+        vim.notify("AI Disabled", vim.log.levels.INFO)
         vim.cmd("Copilot disable")
     end
 end
@@ -33,7 +33,7 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Go to diagnostics list' })
 
 -- Copilot keymaps
-vim.keymap.set("n", "<leader>ta", Toggle_copilot, { noremap = true, silent = true, desc = "Toggle Copilot" })
+vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, desc = "Toggle AI" })
 
 -- Other keymaps
 -- vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })

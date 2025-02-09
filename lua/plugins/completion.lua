@@ -51,7 +51,7 @@ return {
                         return vim.g.completion_enabled
                     end
                 })
-                vim.notify("Completion " .. (vim.g.completion_enabled and "enabled" or "disabled"))
+                vim.notify("CMP " .. (vim.g.completion_enabled and "enabled" or "disabled"))
             end
         end
 
