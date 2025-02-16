@@ -7,9 +7,11 @@ return {
       require("copilot").setup({
         suggestion = {
           enabled = true,
+          hide_during_completion = true,
           auto_trigger = true,
           keymap = {
             accept = "<S-Tab>",
+            -- accept_line = "<S-Tab>",
             dismiss = "<C-e>",
             next = "<C-j>",
             prev = "<C-k>",
