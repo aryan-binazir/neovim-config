@@ -83,7 +83,7 @@ return {
           map_keys = true,
           accept_fallback = nil,
           key_bindings = {
-            -- accept = "<s-tab>",
+            accept = "<Tab>",
             accept_word = false,
             accept_line = "<S-Tab>",
             clear = "<c-e>",
