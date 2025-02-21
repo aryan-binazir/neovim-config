@@ -44,7 +44,7 @@ vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
 vim.keymap.set('n', '<leader>l8', ':!autopep8 --in-place -a -a -a -a --max-line-length 79 %<CR>',
     { noremap = true, silent = true, desc = "Auto Pep 8 Formatting" })
 vim.keymap.set('n', '<leader>sl', function() vim.cmd("Sleuth") end, { desc = '[SL]euth' })
-vim.keymap.set("n", "<leader>rr", "<cmd>checktime<CR>", { desc = "Check external changes" })
+vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "Check external changes" })
 
 -- Quick exit keymaps
 vim.keymap.set('n', '<leader>qq', ':q!<CR>')
