@@ -1,25 +1,25 @@
 return {
-  -- {
-  --   "zbirenbaum/copilot.lua",
-  --   cmd = "Copilot",
-  --   event = "InsertEnter",
-  --   config = function()
-  --     require("copilot").setup({
-  --       suggestion = {
-  --         enabled = true,
-  --         hide_during_completion = true,
-  --         auto_trigger = true,
-  --         keymap = {
-  --           -- accept = "<S-Tab>",
-  --           accept_line = "<S-Tab>",
-  --           dismiss = "<C-e>",
-  --           next = "<C-j>",
-  --           prev = "<C-k>",
-  --         },
-  --       },
-  --     })
-  --   end,
-  -- },
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
+    config = function()
+      require("copilot").setup({
+        suggestion = {
+          enabled = true,
+          hide_during_completion = true,
+          auto_trigger = true,
+          keymap = {
+            -- accept = "<S-Tab>",
+            accept_line = "<S-Tab>",
+            dismiss = "<C-e>",
+            next = "<C-j>",
+            prev = "<C-k>",
+          },
+        },
+      })
+    end,
+  },
   -- {
   --   "yetone/avante.nvim",
   --   event = "VeryLazy",
@@ -64,36 +64,36 @@ return {
   --     },
   --   },
   -- },
-  {
-    "exafunction/codeium.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "hrsh7th/nvim-cmp",
-    },
-    config = function()
-      require("codeium").setup({
-        enable_cmp_source = false,
-        virtual_text = {
-          enabled = true,
-          manual = false,
-          filetypes = {},
-          default_filetype_enabled = true,
-          idle_delay = 75,
-          virtual_text_priority = 65535,
-          map_keys = true,
-          accept_fallback = nil,
-          key_bindings = {
-            accept = "<Tab>",
-            accept_word = false,
-            accept_line = "<S-Tab>",
-            clear = "<c-e>",
-            next = "<c-j>",
-            prev = "<c-k>",
-          }
-        }
-      })
-    end
-  }
+  -- {
+  --   "exafunction/codeium.nvim",
+  --   dependencies = {
+  --     "nvim-lua/plenary.nvim",
+  --     "hrsh7th/nvim-cmp",
+  --   },
+  --   config = function()
+  --     require("codeium").setup({
+  --       enable_cmp_source = false,
+  --       virtual_text = {
+  --         enabled = true,
+  --         manual = false,
+  --         filetypes = {},
+  --         default_filetype_enabled = true,
+  --         idle_delay = 75,
+  --         virtual_text_priority = 65535,
+  --         map_keys = true,
+  --         accept_fallback = nil,
+  --         key_bindings = {
+  --           accept = "<Tab>",
+  --           accept_word = false,
+  --           accept_line = "<S-Tab>",
+  --           clear = "<c-e>",
+  --           next = "<c-j>",
+  --           prev = "<c-k>",
+  --         }
+  --       }
+  --     })
+  --   end
+  -- }
   -- {
   --   "CopilotC-Nvim/CopilotChat.nvim",
   --   dependencies = {
