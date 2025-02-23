@@ -6,7 +6,7 @@ return {
         local harpoon = require("harpoon")
         harpoon:setup()
 
-        vim.keymap.set("n", "<leader>m", function() harpoon:list():append() end, { desc = 'Add to Harpoon' })
+        vim.keymap.set("n", "<leader>m", function() harpoon:list():add() end, { desc = 'Add to Harpoon' })
         vim.keymap.set("n", "<C-g>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
 
         -- Change to leader + number keys
@@ -25,4 +25,3 @@ return {
         vim.keymap.set("n", "<C-m>", function() harpoon:list():next() end)
     end,
 }
-
