@@ -10,8 +10,8 @@ return {
           hide_during_completion = true,
           auto_trigger = true,
           keymap = {
-            -- accept = "<S-Tab>",
-            accept_line = "<S-Tab>",
+            accept = "<S-Tab>",
+            accept_line = "<C-y>",
             dismiss = "<C-e>",
             next = "<C-j>",
             prev = "<C-k>",
@@ -20,6 +20,23 @@ return {
       })
     end,
   },
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      { "zbirenbaum/copilot.lua" },
+      { "nvim-lua/plenary.nvim", branch = "master" },
+    },
+    build = "make tiktoken",
+    opts = {
+      model = "claude-3.5-sonnet",
+    },
+  },
+  -- {
+  --   "zbirenbaum/copilot-cmp",
+  --   config = function()
+  --     require("copilot_cmp").setup()
+  --   end
+  -- },
   -- {
   --   "yetone/avante.nvim",
   --   event = "VeryLazy",
@@ -94,22 +111,4 @@ return {
   --     })
   --   end
   -- }
-  -- {
-  --   "CopilotC-Nvim/CopilotChat.nvim",
-  --   dependencies = {
-  --     { "github/copilot.vim" },
-  --     { "nvim-lua/plenary.nvim", branch = "master" },
-  --   },
-  --   build = "make tiktoken",
-  --   opts = {
-  --     debug = false,
-  --     model = "claude-3.5-sonnet",
-  --     prompts = {
-  --       Explain = "Please explain how this code works.",
-  --       Review = "Please review the following code and provide suggestions for improvement.",
-  --       Tests = "Please generate unit tests for the following code.",
-  --       Refactor = "Please suggest ways to refactor this code to improve its clarity and maintainability.",
-  --     },
-  --   },
-  -- },
 }
