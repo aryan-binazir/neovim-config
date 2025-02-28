@@ -21,65 +21,65 @@ return {
     end,
   },
   {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    dependencies = {
-      { "zbirenbaum/copilot.lua" },
-      { "nvim-lua/plenary.nvim", branch = "master" },
-    },
-    build = "make tiktoken",
+    "yetone/avante.nvim",
+    event = "VeryLazy",
+    lazy = false,
+    version = false,
     opts = {
-      model = "claude-3.7-sonnet",
+      provider = "copilot",
+      copilot = {
+        model = "claude-3.7-sonnet",
+      },
+    },
+    build = "make",
+    dependencies = {
+      "stevearc/dressing.nvim",
+      "nvim-lua/plenary.nvim",
+      "muniftanjim/nui.nvim",
+      "nvim-telescope/telescope.nvim",
+      "hrsh7th/nvim-cmp",
+      "ibhagwan/fzf-lua",
+      "nvim-tree/nvim-web-devicons",
+      "zbirenbaum/copilot.lua",
+      {
+        "hakonharnes/img-clip.nvim",
+        event = "VeryLazy",
+        opts = {
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        'meanderingprogrammer/render-markdown.nvim',
+        opts = {
+          file_types = { "markdown", "avante" },
+        },
+        ft = { "markdown", "avante" },
+      },
     },
   },
+  -- {
+  --   "CopilotC-Nvim/CopilotChat.nvim",
+  --   dependencies = {
+  --     { "zbirenbaum/copilot.lua" },
+  --     { "nvim-lua/plenary.nvim", branch = "master" },
+  --   },
+  --   build = "make tiktoken",
+  --   opts = {
+  --     model = "claude-3.7-sonnet",
+  --   },
+  -- },
   -- {
   --   "zbirenbaum/copilot-cmp",
   --   config = function()
   --     require("copilot_cmp").setup()
   --   end
-  -- },
-  -- {
-  --   "yetone/avante.nvim",
-  --   event = "VeryLazy",
-  --   lazy = false,
-  --   version = false,
-  --   opts = {
-  --     provider = "copilot",
-  --     copilot = {
-  --       model = "claude-3.7-sonnet",
-  --     },
-  --   },
-  --   build = "make",
-  --   dependencies = {
-  --     "stevearc/dressing.nvim",
-  --     "nvim-lua/plenary.nvim",
-  --     "muniftanjim/nui.nvim",
-  --     "nvim-telescope/telescope.nvim",
-  --     "hrsh7th/nvim-cmp",
-  --     "ibhagwan/fzf-lua",
-  --     "nvim-tree/nvim-web-devicons",
-  --     "zbirenbaum/copilot.lua",
-  --     {
-  --       "hakonharnes/img-clip.nvim",
-  --       event = "VeryLazy",
-  --       opts = {
-  --         default = {
-  --           embed_image_as_base64 = false,
-  --           prompt_for_file_name = false,
-  --           drag_and_drop = {
-  --             insert_mode = true,
-  --           },
-  --           use_absolute_path = true,
-  --         },
-  --       },
-  --     },
-  --     {
-  --       'meanderingprogrammer/render-markdown.nvim',
-  --       opts = {
-  --         file_types = { "markdown", "avante" },
-  --       },
-  --       ft = { "markdown", "avante" },
-  --     },
-  --   },
   -- },
   -- {
   --   "exafunction/codeium.nvim",
