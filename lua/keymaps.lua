@@ -74,3 +74,9 @@ vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, de
 vim.keymap.set("n", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true, desc = "Open Copilot Chat" })
 vim.keymap.set("n", "<leader>cm", ":CopilotChatModels<CR>",
     { noremap = true, silent = true, desc = "List Copilot Chat Models" })
+
+-- Window resizing keymaps
+vim.keymap.set("n", "<leader>=", ":vertical resize +25<CR>",
+    { noremap = true, silent = true, desc = "Increase window width" })
+vim.keymap.set("n", "<leader>-", ":vertical resize -25<CR>",
+    { noremap = true, silent = true, desc = "Decrease window width" })
