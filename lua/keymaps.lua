@@ -60,11 +60,11 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 function Toggle_ai()
     if vim.g.copilot_enabled == false then
         vim.g.copilot_enabled = true
-        vim.notify("AI Enabled", vim.log.levels.INFO)
+        vim.notify("E", vim.log.levels.INFO)
         vim.cmd("Copilot enable")
     else
         vim.g.copilot_enabled = false
-        vim.notify("AI Disabled", vim.log.levels.INFO)
+        vim.notify("D", vim.log.levels.INFO)
         vim.cmd("Copilot disable")
     end
 end
