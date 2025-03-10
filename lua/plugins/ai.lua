@@ -1,25 +1,25 @@
 return {
-  {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
-    config = function()
-      require("copilot").setup({
-        suggestion = {
-          enabled = true,
-          hide_during_completion = true,
-          auto_trigger = true,
-          keymap = {
-            accept = "<S-Tab>",
-            accept_line = "<C-y>",
-            dismiss = "<C-e>",
-            next = "<C-j>",
-            prev = "<C-k>",
-          },
-        },
-      })
-    end,
-  },
+  -- {
+  --   "zbirenbaum/copilot.lua",
+  --   cmd = "Copilot",
+  --   event = "InsertEnter",
+  --   config = function()
+  --     require("copilot").setup({
+  --       suggestion = {
+  --         enabled = true,
+  --         hide_during_completion = true,
+  --         auto_trigger = true,
+  --         keymap = {
+  --           accept = "<S-Tab>",
+  --           accept_line = "<C-y>",
+  --           dismiss = "<C-e>",
+  --           next = "<C-j>",
+  --           prev = "<C-k>",
+  --         },
+  --       },
+  --     })
+  --   end,
+  -- },
   -- {
   --   "yetone/avante.nvim",
   --   event = "VeryLazy",
@@ -64,17 +64,17 @@ return {
   --     },
   --   },
   -- },
-  {
-    "CopilotC-Nvim/CopilotChat.nvim",
-    dependencies = {
-      { "zbirenbaum/copilot.lua" },
-      { "nvim-lua/plenary.nvim", branch = "master" },
-    },
-    build = "make tiktoken",
-    opts = {
-      model = "claude-3.7-sonnet",
-    },
-  },
+  -- {
+  --   "CopilotC-Nvim/CopilotChat.nvim",
+  --   dependencies = {
+  --     { "zbirenbaum/copilot.lua" },
+  --     { "nvim-lua/plenary.nvim", branch = "master" },
+  --   },
+  --   build = "make tiktoken",
+  --   opts = {
+  --     model = "claude-3.7-sonnet",
+  --   },
+  -- },
   -- {
   --   "zbirenbaum/copilot-cmp",
   --   config = function()
