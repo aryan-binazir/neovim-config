@@ -30,6 +30,10 @@ return {
   --     copilot = {
   --       model = "claude-3.7-sonnet",
   --     },
+  --     windows = {
+  --       position = 'bottom',
+  --       height = 40,
+  --     },
   --   },
   --   build = "make",
   --   dependencies = {
@@ -78,7 +82,7 @@ return {
   --     "CopilotChatModels",
   --   },
   --   opts = {
-  --     model = "claude-3.7-sonnet",
+  --     model = "claude-3.7-sonnet-thought",
   --     window = {
   --       layout = "float",
   --       border = "rounded",
