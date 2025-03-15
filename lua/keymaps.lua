@@ -73,11 +73,11 @@ vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, de
 -- vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
 
 -- Window resizing keymaps
-vim.keymap.set("n", "<leader>l", ":vertical resize +25<CR>",
+vim.keymap.set("n", "<leader>l", ":vertical resize +15<CR>",
     { noremap = true, silent = true, desc = "Increase window width" })
-vim.keymap.set("n", "<leader>h", ":vertical resize -25<CR>",
+vim.keymap.set("n", "<leader>h", ":vertical resize -15<CR>",
     { noremap = true, silent = true, desc = "Decrease window width" })
-vim.keymap.set("n", "<leader>k", ":resize +25<CR>",
+vim.keymap.set("n", "<leader>k", ":resize +15<CR>",
     { noremap = true, silent = true, desc = "Increase window height" })
-vim.keymap.set("n", "<leader>j", ":resize -25<CR>",
+vim.keymap.set("n", "<leader>j", ":resize -15<CR>",
     { noremap = true, silent = true, desc = "Decrease window width" })
