@@ -57,23 +57,20 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- AI
--- function Toggle_ai()
---     if vim.g.copilot_enabled == false then
---         vim.g.copilot_enabled = true
---         vim.notify("E", vim.log.levels.INFO)
---         vim.cmd("Copilot enable")
---     else
---         vim.g.copilot_enabled = false
---         vim.notify("D", vim.log.levels.INFO)
---         vim.cmd("Copilot disable")
---     end
--- end
+function Toggle_ai()
+    if vim.g.copilot_enabled == false then
+        vim.g.copilot_enabled = true
+        vim.notify("E", vim.log.levels.INFO)
+        vim.cmd("Copilot enable")
+    else
+        vim.g.copilot_enabled = false
+        vim.notify("D", vim.log.levels.INFO)
+        vim.cmd("Copilot disable")
+    end
+end
 
--- vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, desc = "Toggle AI" })
+vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, desc = "Toggle AI" })
 -- vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
--- vim.keymap.set("n", "<leader>cc", ":CopilotChat<CR>", { noremap = true, silent = true, desc = "Open Copilot Chat" })
--- vim.keymap.set("n", "<leader>cm", ":CopilotChatModels<CR>",
--- { noremap = true, silent = true, desc = "List Copilot Chat Models" })
 
 -- Window resizing keymaps
 vim.keymap.set("n", "<leader>=", ":vertical resize +25<CR>",

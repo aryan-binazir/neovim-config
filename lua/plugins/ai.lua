@@ -71,9 +71,47 @@ return {
   --     { "nvim-lua/plenary.nvim", branch = "master" },
   --   },
   --   build = "make tiktoken",
+  --   cmd = {
+  --     "CopilotChat",
+  --     "CopilotChatExplain",
+  --     "CopilotChatFix",
+  --     "CopilotChatModels",
+  --   },
   --   opts = {
   --     model = "claude-3.7-sonnet",
+  --     window = {
+  --       layout = "float",
+  --       border = "rounded",
+  --       width = 1,
+  --       height = 0.9,
+  --     },
+  --     context = {
+  --       enable = true,
+  --       -- strategy = "selected",
+  --       additional_context = "Comment with useful details about the code",
+  --     },
+  --     prompts = {
+  --       Explain = "Explain how this code works in detail.",
+  --       Refactor = "Refactor this code to improve clarity and readability.",
+  --       Optimize = "Optimize this code for better performance.",
+  --       Bugs = "What potential bugs or edge cases are in this code?",
+  --       Documentation = "Generate comprehensive documentation for this code.",
+  --       Tests = "Generate unit tests for this code.",
+  --     },
   --   },
+  --   keys = {
+  --     { "<leader>cc", "<cmd>CopilotChat<CR>",              desc = "CopilotChat - Open" },
+  --     { "<leader>ce", "<cmd>CopilotChatExplain<CR>",       desc = "CopilotChat - Explain Code" },
+  --     { "<leader>cm", "<cmd>CopilotChatModels<CR>",        desc = "List Copilot Chat Models" },
+  --     { "<leader>cf", "<cmd>CopilotChatFix<CR>",           desc = "CopilotChat - Fix Code" },
+  --     { "<leader>ct", "<cmd>CopilotChatTests<CR>",         desc = "CopilotChat - Generate Tests" },
+  --     { "<leader>cr", "<cmd>CopilotChatRefactor<CR>",      desc = "CopilotChat - Refactor Code" },
+  --     { "<leader>cd", "<cmd>CopilotChatDocumentation<CR>", desc = "CopilotChat - Generate Docs" },
+  --     -- Visual mode actions
+  --     { "<leader>cc", ":CopilotChat<CR>",                  mode = "x",                           desc = "CopilotChat - Explain Selection" },
+  --     { "<leader>ce", ":CopilotChatExplain<CR>",           mode = "x",                           desc = "CopilotChat - Explain Selection" },
+  --     { "<leader>cf", ":CopilotChatFix<CR>",               mode = "x",                           desc = "CopilotChat - Fix Selection" },
+  --   }
   -- },
   -- {
   --   "zbirenbaum/copilot-cmp",
