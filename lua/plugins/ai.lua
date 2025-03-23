@@ -20,103 +20,103 @@ return {
       })
     end,
   },
-  {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    lazy = false,
-    version = false,
-    opts = {
-      provider = "copilot",
-      copilot = {
-        model = "claude-3.7-sonnet",
-      },
-      windows = {
-        position = 'bottom',
-        height = 40,
-      },
-    },
-    build = "make",
-    dependencies = {
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "muniftanjim/nui.nvim",
-      "nvim-telescope/telescope.nvim",
-      "hrsh7th/nvim-cmp",
-      "ibhagwan/fzf-lua",
-      "nvim-tree/nvim-web-devicons",
-      "zbirenbaum/copilot.lua",
-      {
-        "hakonharnes/img-clip.nvim",
-        event = "VeryLazy",
-        opts = {
-          default = {
-            embed_image_as_base64 = false,
-            prompt_for_file_name = false,
-            drag_and_drop = {
-              insert_mode = true,
-            },
-            use_absolute_path = true,
-          },
-        },
-      },
-      {
-        'meanderingprogrammer/render-markdown.nvim',
-        opts = {
-          file_types = { "markdown", "avante" },
-        },
-        ft = { "markdown", "avante" },
-      },
-    },
-  },
   -- {
-  --   "CopilotC-Nvim/CopilotChat.nvim",
-  --   dependencies = {
-  --     { "zbirenbaum/copilot.lua" },
-  --     { "nvim-lua/plenary.nvim", branch = "master" },
-  --   },
-  --   build = "make tiktoken",
-  --   cmd = {
-  --     "CopilotChat",
-  --     "CopilotChatExplain",
-  --     "CopilotChatFix",
-  --     "CopilotChatModels",
-  --   },
+  --   "yetone/avante.nvim",
+  --   event = "VeryLazy",
+  --   lazy = false,
+  --   version = false,
   --   opts = {
-  --     model = "claude-3.7-sonnet-thought",
-  --     window = {
-  --       layout = "float",
-  --       border = "rounded",
-  --       width = 1,
-  --       height = 0.9,
+  --     provider = "copilot",
+  --     copilot = {
+  --       model = "claude-3.7-sonnet",
   --     },
-  --     context = {
-  --       enable = true,
-  --       -- strategy = "selected",
-  --       additional_context = "Comment with useful details about the code",
-  --     },
-  --     prompts = {
-  --       Explain = "Explain how this code works in detail.",
-  --       Refactor = "Refactor this code to improve clarity and readability.",
-  --       Optimize = "Optimize this code for better performance.",
-  --       Bugs = "What potential bugs or edge cases are in this code?",
-  --       Documentation = "Generate comprehensive documentation for this code.",
-  --       Tests = "Generate unit tests for this code.",
+  --     windows = {
+  --       position = 'bottom',
+  --       height = 40,
   --     },
   --   },
-  --   keys = {
-  --     { "<leader>cc", "<cmd>CopilotChat<CR>",              desc = "CopilotChat - Open" },
-  --     { "<leader>ce", "<cmd>CopilotChatExplain<CR>",       desc = "CopilotChat - Explain Code" },
-  --     { "<leader>cm", "<cmd>CopilotChatModels<CR>",        desc = "List Copilot Chat Models" },
-  --     { "<leader>cf", "<cmd>CopilotChatFix<CR>",           desc = "CopilotChat - Fix Code" },
-  --     { "<leader>ct", "<cmd>CopilotChatTests<CR>",         desc = "CopilotChat - Generate Tests" },
-  --     { "<leader>cr", "<cmd>CopilotChatRefactor<CR>",      desc = "CopilotChat - Refactor Code" },
-  --     { "<leader>cd", "<cmd>CopilotChatDocumentation<CR>", desc = "CopilotChat - Generate Docs" },
-  --     -- Visual mode actions
-  --     { "<leader>cc", ":CopilotChat<CR>",                  mode = "x",                           desc = "CopilotChat - Explain Selection" },
-  --     { "<leader>ce", ":CopilotChatExplain<CR>",           mode = "x",                           desc = "CopilotChat - Explain Selection" },
-  --     { "<leader>cf", ":CopilotChatFix<CR>",               mode = "x",                           desc = "CopilotChat - Fix Selection" },
-  --   }
+  --   build = "make",
+  --   dependencies = {
+  --     "stevearc/dressing.nvim",
+  --     "nvim-lua/plenary.nvim",
+  --     "muniftanjim/nui.nvim",
+  --     "nvim-telescope/telescope.nvim",
+  --     "hrsh7th/nvim-cmp",
+  --     "ibhagwan/fzf-lua",
+  --     "nvim-tree/nvim-web-devicons",
+  --     "zbirenbaum/copilot.lua",
+  --     {
+  --       "hakonharnes/img-clip.nvim",
+  --       event = "VeryLazy",
+  --       opts = {
+  --         default = {
+  --           embed_image_as_base64 = false,
+  --           prompt_for_file_name = false,
+  --           drag_and_drop = {
+  --             insert_mode = true,
+  --           },
+  --           use_absolute_path = true,
+  --         },
+  --       },
+  --     },
+  --     {
+  --       'meanderingprogrammer/render-markdown.nvim',
+  --       opts = {
+  --         file_types = { "markdown", "avante" },
+  --       },
+  --       ft = { "markdown", "avante" },
+  --     },
+  --   },
   -- },
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      { "zbirenbaum/copilot.lua" },
+      { "nvim-lua/plenary.nvim", branch = "master" },
+    },
+    build = "make tiktoken",
+    cmd = {
+      "CopilotChat",
+      "CopilotChatExplain",
+      "CopilotChatFix",
+      "CopilotChatModels",
+    },
+    opts = {
+      model = "claude-3.7-sonnet-thought",
+      window = {
+        layout = "float",
+        border = "rounded",
+        width = 1,
+        height = 0.9,
+      },
+      context = {
+        enable = true,
+        -- strategy = "selected",
+        additional_context = "Comment with useful details about the code",
+      },
+      prompts = {
+        Explain = "Explain how this code works in detail.",
+        Refactor = "Refactor this code to improve clarity and readability.",
+        Optimize = "Optimize this code for better performance.",
+        Bugs = "What potential bugs or edge cases are in this code?",
+        Documentation = "Generate comprehensive documentation for this code.",
+        Tests = "Generate unit tests for this code.",
+      },
+    },
+    keys = {
+      { "<leader>cc", "<cmd>CopilotChat<CR>",              desc = "CopilotChat - Open" },
+      { "<leader>ce", "<cmd>CopilotChatExplain<CR>",       desc = "CopilotChat - Explain Code" },
+      { "<leader>cm", "<cmd>CopilotChatModels<CR>",        desc = "List Copilot Chat Models" },
+      { "<leader>cf", "<cmd>CopilotChatFix<CR>",           desc = "CopilotChat - Fix Code" },
+      { "<leader>ct", "<cmd>CopilotChatTests<CR>",         desc = "CopilotChat - Generate Tests" },
+      { "<leader>cr", "<cmd>CopilotChatRefactor<CR>",      desc = "CopilotChat - Refactor Code" },
+      { "<leader>cd", "<cmd>CopilotChatDocumentation<CR>", desc = "CopilotChat - Generate Docs" },
+      -- Visual mode actions
+      { "<leader>cc", ":CopilotChat<CR>",                  mode = "x",                           desc = "CopilotChat - Explain Selection" },
+      { "<leader>ce", ":CopilotChatExplain<CR>",           mode = "x",                           desc = "CopilotChat - Explain Selection" },
+      { "<leader>cf", ":CopilotChatFix<CR>",               mode = "x",                           desc = "CopilotChat - Fix Selection" },
+    }
+  },
   -- {
   --   "zbirenbaum/copilot-cmp",
   --   config = function()
