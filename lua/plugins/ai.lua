@@ -19,6 +19,7 @@ return {
         },
       })
     end,
+    copilot_model = "gpt-4o-copilot"
   },
   -- {
   --   "yetone/avante.nvim",
