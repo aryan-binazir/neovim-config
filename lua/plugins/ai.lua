@@ -111,10 +111,12 @@ return {
       { "<leader>cm", "<cmd>CopilotChatModels<CR>",        desc = "List Copilot Chat Models" },
       { "<leader>cf", "<cmd>CopilotChatFix<CR>",           desc = "CopilotChat - Fix Code" },
       { "<leader>ct", "<cmd>CopilotChatTests<CR>",         desc = "CopilotChat - Generate Tests" },
+      { "<leader>cv", "<cmd>CopilotChatReview<CR>",        desc = "CopilotChat - Generate Tests" },
       { "<leader>cr", "<cmd>CopilotChatRefactor<CR>",      desc = "CopilotChat - Refactor Code" },
       { "<leader>cd", "<cmd>CopilotChatDocumentation<CR>", desc = "CopilotChat - Generate Docs" },
       -- Visual mode actions
       { "<leader>cc", ":CopilotChat<CR>",                  mode = "x",                           desc = "CopilotChat - Explain Selection" },
+      { "<leader>cv", "<cmd>CopilotChatReview<CR>",        mode = "x",                           desc = "CopilotChat - Generate Tests" },
       { "<leader>ce", ":CopilotChatExplain<CR>",           mode = "x",                           desc = "CopilotChat - Explain Selection" },
       { "<leader>cf", ":CopilotChatFix<CR>",               mode = "x",                           desc = "CopilotChat - Fix Selection" },
     }
