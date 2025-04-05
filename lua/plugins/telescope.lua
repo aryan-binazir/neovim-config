@@ -26,8 +26,13 @@ return {
                     i = {
                         ['<C-u>'] = false,
                         ['<C-d>'] = false,
-                        ['<C-p>'] = require('telescope.actions.layout').toggle_preview
+                        ['<C-p>'] = require('telescope.actions.layout').toggle_preview,
+                        ["<C-o>"] = require('telescope.actions').send_to_loclist + require('telescope.actions').open_loclist,
                     },
+
+                    n = {
+                        ["<C-o>"] = require('telescope.actions').send_selected_to_loclist + require('telescope.actions').open_loclist,
+                    },                 
                 },
                 file_ignore_patterns = {
                     "node_modules",
