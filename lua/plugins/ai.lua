@@ -9,9 +9,10 @@ return {
           enabled = true,
           hide_during_completion = true,
           auto_trigger = true,
+          debounce = 75,
           keymap = {
-            accept = false, -- Disable default accept key
-            accept_line = "<C-y>",
+            accept = false,
+            accept_line = "<S-tab>",
             dismiss = "<C-e>",
             next = "<C-j>",
             prev = "<C-k>",
