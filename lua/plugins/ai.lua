@@ -10,7 +10,7 @@ return {
           hide_during_completion = true,
           auto_trigger = true,
           keymap = {
-            accept = "<S-Tab>",
+            accept = false, -- Disable default accept key
             accept_line = "<C-y>",
             dismiss = "<C-e>",
             next = "<C-j>",
@@ -18,8 +18,18 @@ return {
           },
         },
       })
+
+      local suggestion = require("copilot.suggestion")
+
+      vim.keymap.set("i", "<Tab>", function()
+        if suggestion.is_visible() then
+          suggestion.accept()
+          return ""
+        else
+          return "<Tab>"
+        end
+      end, { expr = true, noremap = true })
     end,
-    copilot_model = "gpt-4o-copilot"
   },
   -- {
   --   "yetone/avante.nvim",
