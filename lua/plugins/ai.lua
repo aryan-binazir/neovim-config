@@ -32,54 +32,68 @@ return {
       end, { expr = true, noremap = true })
     end,
   },
-  -- {
-  --   "yetone/avante.nvim",
-  --   event = "VeryLazy",
-  --   lazy = false,
-  --   version = false,
-  --   opts = {
-  --     provider = "copilot",
-  --     copilot = {
-  --       model = "claude-3.7-sonnet",
-  --     },
-  --     windows = {
-  --       position = 'bottom',
-  --       height = 40,
-  --     },
-  --   },
-  --   build = "make",
-  --   dependencies = {
-  --     "stevearc/dressing.nvim",
-  --     "nvim-lua/plenary.nvim",
-  --     "muniftanjim/nui.nvim",
-  --     "nvim-telescope/telescope.nvim",
-  --     "hrsh7th/nvim-cmp",
-  --     "ibhagwan/fzf-lua",
-  --     "nvim-tree/nvim-web-devicons",
-  --     "zbirenbaum/copilot.lua",
-  --     {
-  --       "hakonharnes/img-clip.nvim",
-  --       event = "VeryLazy",
-  --       opts = {
-  --         default = {
-  --           embed_image_as_base64 = false,
-  --           prompt_for_file_name = false,
-  --           drag_and_drop = {
-  --             insert_mode = true,
-  --           },
-  --           use_absolute_path = true,
-  --         },
-  --       },
-  --     },
-  --     {
-  --       'meanderingprogrammer/render-markdown.nvim',
-  --       opts = {
-  --         file_types = { "markdown", "avante" },
-  --       },
-  --       ft = { "markdown", "avante" },
-  --     },
-  --   },
-  -- },
+  {
+    "yetone/avante.nvim",
+    event = "VeryLazy",
+    lazy = false,
+    version = false,
+    opts = {
+      provider = "copilot",
+      copilot = {
+        model = "claude-3.7-sonnet",
+      },
+      windows = {
+        position = "smart",
+        width = 60,
+      },
+
+      behaviour = {
+        auto_suggestions = false, -- Experimental stage
+        auto_set_highlight_group = true,
+        auto_set_keymaps = true,
+        auto_apply_diff_after_generation = false,
+        support_paste_from_clipboard = false,
+        minimize_diff = true,
+        enable_token_counting = true,
+        enable_cursor_planning_mode = true,
+      },
+      cursor_applying_provider = "copilot",
+      memory = { enabled = false },
+      hints = { enabled = false },
+    },
+    build = "make",
+    dependencies = {
+      "stevearc/dressing.nvim",
+      "nvim-lua/plenary.nvim",
+      "muniftanjim/nui.nvim",
+      "nvim-telescope/telescope.nvim",
+      "hrsh7th/nvim-cmp",
+      "ibhagwan/fzf-lua",
+      "nvim-tree/nvim-web-devicons",
+      "zbirenbaum/copilot.lua",
+      {
+        "hakonharnes/img-clip.nvim",
+        event = "VeryLazy",
+        opts = {
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            use_absolute_path = true,
+          },
+        },
+      },
+      {
+        'meanderingprogrammer/render-markdown.nvim',
+        opts = {
+          file_types = { "markdown", "avante" },
+        },
+        ft = { "markdown", "avante" },
+      },
+    },
+  },
   {
     "CopilotC-Nvim/CopilotChat.nvim",
     dependencies = {

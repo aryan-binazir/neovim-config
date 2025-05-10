@@ -81,3 +81,7 @@ vim.keymap.set("n", "<leader>k", ":resize +15<CR>",
     { noremap = true, silent = true, desc = "Increase window height" })
 vim.keymap.set("n", "<leader>j", ":resize -15<CR>",
     { noremap = true, silent = true, desc = "Decrease window width" })
+
+-- Avante keymaps
+vim.keymap.set("n", "<leader>am", ":AvanteModels<CR>",
+    { noremap = true, silent = true, desc = "List Avante AI Models" })
