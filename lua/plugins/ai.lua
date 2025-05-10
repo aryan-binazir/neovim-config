@@ -46,7 +46,6 @@ return {
         position = "smart",
         width = 60,
       },
-
       behaviour = {
         auto_suggestions = false, -- Experimental stage
         auto_set_highlight_group = true,
