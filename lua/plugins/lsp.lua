@@ -107,21 +107,20 @@ return {
             capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
             local mason_lspconfig = require('mason-lspconfig')
+            local ensure_installed_servers = { "lua_ls", "gopls", "pyright", "eslint", "jsonls" }
 
             mason_lspconfig.setup {
-                ensure_installed = { "lua_ls", "gopls", "pyright", "eslint", "jsonls" },
+                ensure_installed = ensure_installed_servers,
             }
 
-            mason_lspconfig.setup_handlers {
-                function(server_name)
-                    require('lspconfig')[server_name].setup {
-                        capabilities = capabilities,
-                        on_attach = on_attach,
-                        settings = servers[server_name],
-                        filetypes = (servers[server_name] or {}).filetypes,
-                    }
-                end,
-            }
+            for _, server_name in ipairs(ensure_installed_servers) do
+                require('lspconfig')[server_name].setup {
+                    capabilities = capabilities,
+                    on_attach = on_attach,
+                    settings = servers[server_name],
+                    filetypes = (servers[server_name] or {}).filetypes,
+                }
+            end
         end,
     }
 }
