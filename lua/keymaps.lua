@@ -70,7 +70,6 @@ function Toggle_ai()
 end
 
 vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, desc = "Toggle AI" })
--- vim.keymap.set("n", "<leader>cc", ":Codeium Chat<CR>", { noremap = true, silent = true, desc = "Open Codeium Chat" })
 
 -- Window resizing keymaps
 vim.keymap.set("n", "<leader>l", ":vertical resize +15<CR>",
@@ -83,5 +82,5 @@ vim.keymap.set("n", "<leader>j", ":resize -15<CR>",
     { noremap = true, silent = true, desc = "Decrease window width" })
 
 -- Avante keymaps
-vim.keymap.set("n", "<leader>am", ":AvanteModels<CR>",
-    { noremap = true, silent = true, desc = "List Avante AI Models" })
+vim.keymap.set("n", "<leader>cm", ":AvanteModels<CR>",
+    { noremap = true, silent = true, desc = "Choose Avante AI Model" })
