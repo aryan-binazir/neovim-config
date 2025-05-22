@@ -91,6 +91,16 @@ return {
           model = "gpt-4-0125-preview",
           display_name = "copilot/gpt 4.1",
         },
+        ["copilot-claude-4-opus"] = {
+          __inherited_from = "copilot",
+          model = "claude-opus-4",
+          display_name = "copilot/claude 4 opus",
+        },
+        ["copilot-claude-4-sonnet"] = {
+          __inherited_from = "copilot",
+          model = "claude-sonnet-4",
+          display_name = "copilot/claude 4 sonnet",
+        },
       },
     },
     build = "make",
