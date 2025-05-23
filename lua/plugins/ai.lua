@@ -40,7 +40,7 @@ return {
     opts = {
       provider = "copilot",
       copilot = {
-        model = "gemini-2.5-pro",
+        model = "gpt-4.1"
       },
       windows = {
         position = "smart",
@@ -88,8 +88,13 @@ return {
         },
         ["copilot-gpt4-1"] = {
           __inherited_from = "copilot",
-          model = "gpt-4-0125-preview",
+          model = "gpt-4.1",
           display_name = "copilot/gpt 4.1",
+        },
+        ["gemini-2.5-pro"] = {
+          __inherited_from = "copilot",
+          model = "gemini-2.5-pro",
+          display_name = "copilot/gemini-2.5-pro",
         },
         ["copilot-claude-4-opus"] = {
           __inherited_from = "copilot",
