@@ -82,5 +82,9 @@ vim.keymap.set("n", "<leader>j", ":resize -15<CR>",
     { noremap = true, silent = true, desc = "Decrease window width" })
 
 -- Avante keymaps
-vim.keymap.set("n", "<leader>cm", ":AvanteModels<CR>",
+vim.keymap.set("n", "<leader>am", ":AvanteModels<CR>",
     { noremap = true, silent = true, desc = "Choose Avante AI Model" })
+vim.keymap.set("n", "<leader>ax", ":AvanteClear<CR>",
+    { noremap = true, silent = true, desc = "Clear Avante conversation" })
+vim.keymap.set("n", "<leader>af", ":AvanteFocus<CR>",
+    { noremap = true, silent = true, desc = "Focus Avante sidebar" })
