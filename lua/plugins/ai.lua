@@ -39,9 +39,6 @@ return {
     version = false,
     opts = {
       provider = "copilot",
-      copilot = {
-        model = "gpt-4.1"
-      },
       windows = {
         position = "smart",
         width = 60,
@@ -64,48 +61,51 @@ return {
       cursor_applying_provider = "copilot",
       memory = { enabled = false },
       hints = { enabled = false },
-      -- Add additional models as vendors
-      vendors = {
-        ["copilot-claude-3.5"] = {
-          __inherited_from = "copilot",
-          model = "claude-3.5-sonnet",
-          display_name = "copilot/claude 3.5 sonnet",
+      -- Updated configuration structure - moved from vendors to providers
+      providers = {
+        copilot = {
+          model = "gpt-4.1"
         },
-        ["copilot-claude-3.7"] = {
-          __inherited_from = "copilot",
-          model = "claude-3.7-sonnet",
-          display_name = "copilot/claude 3.7 sonnet",
-        },
-        ["copilot-claude-3.7-thought"] = {
-          __inherited_from = "copilot",
-          model = "claude-3.7-sonnet-thought",
-          display_name = "copilot/claude 3.7 sonnet (thought)",
-        },
-        ["copilot-o4-mini"] = {
-          __inherited_from = "copilot",
-          model = "o4-mini",
-          display_name = "copilot/openai o4-mini",
-        },
-        ["copilot-gpt4-1"] = {
-          __inherited_from = "copilot",
-          model = "gpt-4.1",
-          display_name = "copilot/gpt 4.1",
-        },
-        ["gemini-2.5-pro"] = {
-          __inherited_from = "copilot",
-          model = "gemini-2.5-pro",
-          display_name = "copilot/gemini-2.5-pro",
-        },
-        ["copilot-claude-4-opus"] = {
-          __inherited_from = "copilot",
-          model = "claude-opus-4",
-          display_name = "copilot/claude 4 opus",
-        },
-        ["copilot-claude-4-sonnet"] = {
-          __inherited_from = "copilot",
-          model = "claude-sonnet-4",
-          display_name = "copilot/claude 4 sonnet",
-        },
+        -- ["copilot-claude-3.5"] = {
+        --   __inherited_from = "copilot",
+        --   model = "claude-3.5-sonnet",
+        --   display_name = "copilot/claude 3.5 sonnet",
+        -- },
+        -- ["copilot-claude-3.7"] = {
+        --   __inherited_from = "copilot",
+        --   model = "claude-3.7-sonnet",
+        --   display_name = "copilot/claude 3.7 sonnet",
+        -- },
+        -- ["copilot-claude-3.7-thought"] = {
+        --   __inherited_from = "copilot",
+        --   model = "claude-3.7-sonnet-thought",
+        --   display_name = "copilot/claude 3.7 sonnet (thought)",
+        -- },
+        -- ["copilot-o4-mini"] = {
+        --   __inherited_from = "copilot",
+        --   model = "o4-mini",
+        --   display_name = "copilot/openai o4-mini",
+        -- },
+        -- ["copilot-gpt4-1"] = {
+        --   __inherited_from = "copilot",
+        --   model = "gpt-4.1",
+        --   display_name = "copilot/gpt 4.1",
+        -- },
+        -- ["gemini-2.5-pro"] = {
+        --   __inherited_from = "copilot",
+        --   model = "gemini-2.5-pro",
+        --   display_name = "copilot/gemini-2.5-pro",
+        -- },
+        -- ["copilot-claude-4-opus"] = {
+        --   __inherited_from = "copilot",
+        --   model = "claude-opus-4",
+        --   display_name = "copilot/claude 4 opus",
+        -- },
+        -- ["copilot-claude-4-sonnet"] = {
+        --   __inherited_from = "copilot",
+        --   model = "claude-sonnet-4",
+        --   display_name = "copilot/claude 4 sonnet",
+        -- },
       },
     },
     build = "make",
