@@ -39,74 +39,52 @@ return {
     version = false,
     opts = {
       provider = "copilot",
+      mode = "agentic",
+      auto_suggestions_provider = "copilot",
       windows = {
         position = "smart",
         width = 60,
       },
       behaviour = {
-        auto_suggestions = false, -- Experimental stage
+        auto_suggestions = false,
+        auto_focus_sidebar = true,
         auto_set_highlight_group = true,
         auto_set_keymaps = true,
         auto_apply_diff_after_generation = false,
         support_paste_from_clipboard = false,
         minimize_diff = true,
         enable_token_counting = true,
-        enable_cursor_planning_mode = true,
-        use_cwd_as_project_root = true, -- Use current working directory as project root
+        use_cwd_as_project_root = true,
+        auto_check_diagnostics = true,
+        auto_approve_tool_permissions = false,
       },
       selector = {
         provider = "telescope",
         provider_opts = {},
       },
-      cursor_applying_provider = "copilot",
+      input = {
+        provider = "native",
+        provider_opts = {},
+      },
       memory = { enabled = false },
       hints = { enabled = false },
-      -- Updated configuration structure - moved from vendors to providers
+      repo_map = {
+        ignore_patterns = { "%.git", "%.worktree", "__pycache__", "node_modules" },
+        negate_patterns = {},
+      },
       providers = {
         copilot = {
-          model = "gpt-4.1"
+          model = "gpt-4.1",
+          timeout = 30000,
+          extra_request_body = {
+            temperature = 0.75,
+            max_tokens = 20480,
+          },
         },
-        -- ["copilot-claude-3.5"] = {
-        --   __inherited_from = "copilot",
-        --   model = "claude-3.5-sonnet",
-        --   display_name = "copilot/claude 3.5 sonnet",
-        -- },
-        -- ["copilot-claude-3.7"] = {
-        --   __inherited_from = "copilot",
-        --   model = "claude-3.7-sonnet",
-        --   display_name = "copilot/claude 3.7 sonnet",
-        -- },
-        -- ["copilot-claude-3.7-thought"] = {
-        --   __inherited_from = "copilot",
-        --   model = "claude-3.7-sonnet-thought",
-        --   display_name = "copilot/claude 3.7 sonnet (thought)",
-        -- },
-        -- ["copilot-o4-mini"] = {
-        --   __inherited_from = "copilot",
-        --   model = "o4-mini",
-        --   display_name = "copilot/openai o4-mini",
-        -- },
-        -- ["copilot-gpt4-1"] = {
-        --   __inherited_from = "copilot",
-        --   model = "gpt-4.1",
-        --   display_name = "copilot/gpt 4.1",
-        -- },
-        -- ["gemini-2.5-pro"] = {
-        --   __inherited_from = "copilot",
-        --   model = "gemini-2.5-pro",
-        --   display_name = "copilot/gemini-2.5-pro",
-        -- },
-        -- ["copilot-claude-4-opus"] = {
-        --   __inherited_from = "copilot",
-        --   model = "claude-opus-4",
-        --   display_name = "copilot/claude 4 opus",
-        -- },
-        -- ["copilot-claude-4-sonnet"] = {
-        --   __inherited_from = "copilot",
-        --   model = "claude-sonnet-4",
-        --   display_name = "copilot/claude 4 sonnet",
-        -- },
       },
+      -- Tool management
+      disabled_tools = {},
+      custom_tools = {},
     },
     build = "make",
     dependencies = {
