@@ -47,3 +47,5 @@ vim.opt.foldcolumn = '0'     -- Don't show fold column
 vim.cmd [[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]]
 
 
+-- For Obsidian plugin
+vim.opt.conceallevel = 2

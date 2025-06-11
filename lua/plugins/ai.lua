@@ -18,6 +18,9 @@ return {
             prev = "<C-k>",
           },
         },
+        filetypes = {
+          markdown = true,
+        },
       })
 
       local suggestion = require("copilot.suggestion")

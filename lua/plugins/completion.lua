@@ -48,6 +48,7 @@ return {
                     enabled = function()
                         local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
                         if buftype == "prompt" then return false end
+                        if vim.bo.filetype == "markdown" then return false end
                         return vim.g.completion_enabled
                     end
                 })
@@ -94,6 +95,7 @@ return {
             enabled = function()
                 local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
                 if buftype == "prompt" then return false end
+                if vim.bo.filetype == "markdown" then return false end
                 return vim.g.completion_enabled
             end
         }
