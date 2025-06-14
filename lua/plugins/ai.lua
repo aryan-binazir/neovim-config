@@ -1,38 +1,34 @@
 return {
   {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
+    "supermaven-inc/supermaven-nvim",
     config = function()
-      require("copilot").setup({
-        suggestion = {
-          enabled = true,
-          hide_during_completion = true,
-          auto_trigger = true,
-          debounce = 75,
-          keymap = {
-            accept = false,
-            accept_line = "<S-tab>",
-            dismiss = "<C-e>",
-            next = "<C-j>",
-            prev = "<C-k>",
-          },
-        },
-        filetypes = {
-          markdown = true,
+      require("supermaven-nvim").setup({
+        keymaps = {
+          accept_suggestion = "<Tab>",
+          accept_word = "<S-Tab>",
+          clear_suggestion = "<C-e>",
         },
       })
 
-      local suggestion = require("copilot.suggestion")
+      local api = require("supermaven-nvim.api")
+      vim.api.nvim_create_autocmd("VimEnter", {
+        callback = function()
+          vim.defer_fn(function()
+            api.stop()
+            print("SM d")
+          end, 100)
+        end,
+      })
 
-      vim.keymap.set("i", "<Tab>", function()
-        if suggestion.is_visible() then
-          suggestion.accept()
-          return ""
+      vim.keymap.set("n", "<leader>sm", function()
+        if api.is_running() then
+          api.stop()
+          print("SM d")
         else
-          return "<Tab>"
+          api.start()
+          print("SM e")
         end
-      end, { expr = true, noremap = true })
+      end, { desc = "Toggle SM" })
     end,
   },
   {
@@ -77,7 +73,7 @@ return {
       },
       providers = {
         copilot = {
-          model = "gpt-4.1",
+          model = "claude-sonnet-4",
           timeout = 30000,
           extra_request_body = {
             temperature = 0.75,
@@ -122,4 +118,40 @@ return {
       },
     },
   },
+  -- {
+  --   "zbirenbaum/copilot.lua",
+  --   cmd = "Copilot",
+  --   event = "InsertEnter",
+  --   config = function()
+  --     require("copilot").setup({
+  --       suggestion = {
+  --         enabled = false,
+  --         hide_during_completion = true,
+  --         auto_trigger = true,
+  --         debounce = 75,
+  --         keymap = {
+  --           accept = false,
+  --           accept_line = "<S-tab>",
+  --           dismiss = "<C-e>",
+  --           next = "<C-j>",
+  --           prev = "<C-k>",
+  --         },
+  --       },
+  --       filetypes = {
+  --         markdown = true,
+  --       },
+  --     })
+  --
+  --     local suggestion = require("copilot.suggestion")
+  --
+  --     vim.keymap.set("i", "<Tab>", function()
+  --       if suggestion.is_visible() then
+  --         suggestion.accept()
+  --         return ""
+  --       else
+  --         return "<Tab>"
+  --       end
+  --     end, { expr = true, noremap = true })
+  --   end,
+  -- },
 }
