@@ -114,12 +114,20 @@ return {
             }
 
             for _, server_name in ipairs(ensure_installed_servers) do
-                require('lspconfig')[server_name].setup {
+                local config = {
                     capabilities = capabilities,
                     on_attach = on_attach,
                     settings = servers[server_name],
                     filetypes = (servers[server_name] or {}).filetypes,
                 }
+                
+                -- Prevent duplicate gopls instances
+                if server_name == 'gopls' then
+                    config.root_dir = require('lspconfig.util').root_pattern('go.mod', 'go.work', '.git')
+                    config.single_file_support = false
+                end
+                
+                require('lspconfig')[server_name].setup(config)
             end
         end,
     }
