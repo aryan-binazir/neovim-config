@@ -119,40 +119,4 @@ return {
       },
     },
   },
-  -- {
-  --   "zbirenbaum/copilot.lua",
-  --   cmd = "Copilot",
-  --   event = "InsertEnter",
-  --   config = function()
-  --     require("copilot").setup({
-  --       suggestion = {
-  --         enabled = false,
-  --         hide_during_completion = true,
-  --         auto_trigger = true,
-  --         debounce = 75,
-  --         keymap = {
-  --           accept = false,
-  --           accept_line = "<S-tab>",
-  --           dismiss = "<C-e>",
-  --           next = "<C-j>",
-  --           prev = "<C-k>",
-  --         },
-  --       },
-  --       filetypes = {
-  --         markdown = true,
-  --       },
-  --     })
-  --
-  --     local suggestion = require("copilot.suggestion")
-  --
-  --     vim.keymap.set("i", "<Tab>", function()
-  --       if suggestion.is_visible() then
-  --         suggestion.accept()
-  --         return ""
-  --       else
-  --         return "<Tab>"
-  --       end
-  --     end, { expr = true, noremap = true })
-  --   end,
-  -- },
 }
