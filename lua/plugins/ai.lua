@@ -48,7 +48,7 @@ return {
         auto_suggestions = false,
         auto_focus_sidebar = true,
         auto_set_highlight_group = true,
-        auto_set_keymaps = true,
+        auto_set_keymaps = false,
         auto_apply_diff_after_generation = false,
         support_paste_from_clipboard = false,
         minimize_diff = true,
@@ -85,6 +85,10 @@ return {
       -- Tool management
       disabled_tools = {},
       custom_tools = {},
+    },
+    keys = {
+      { "<leader>ae", function() require("avante.api").edit() end, desc = "avante: edit", mode = { "n", "v" } },
+      { "<C-k>", function() require("avante.api").edit() end, desc = "avante: edit", mode = "v" },
     },
     build = "make",
     dependencies = {
