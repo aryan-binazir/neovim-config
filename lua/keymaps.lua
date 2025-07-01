@@ -55,36 +55,3 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     group = highlight_group,
     pattern = '*',
 })
-
--- AI
-function Toggle_ai()
-    if vim.g.copilot_enabled == false then
-        vim.g.copilot_enabled = true
-        vim.notify("E", vim.log.levels.INFO)
-        vim.cmd("Copilot enable")
-    else
-        vim.g.copilot_enabled = false
-        vim.notify("D", vim.log.levels.INFO)
-        vim.cmd("Copilot disable")
-    end
-end
-
-vim.keymap.set("n", "<leader>ta", Toggle_ai, { noremap = true, silent = true, desc = "Toggle AI" })
-
--- Window resizing keymaps
-vim.keymap.set("n", "<leader>l", ":vertical resize +15<CR>",
-    { noremap = true, silent = true, desc = "Increase window width" })
-vim.keymap.set("n", "<leader>h", ":vertical resize -15<CR>",
-    { noremap = true, silent = true, desc = "Decrease window width" })
-vim.keymap.set("n", "<leader>k", ":resize +15<CR>",
-    { noremap = true, silent = true, desc = "Increase window height" })
-vim.keymap.set("n", "<leader>j", ":resize -15<CR>",
-    { noremap = true, silent = true, desc = "Decrease window width" })
-
--- Avante keymaps
-vim.keymap.set("n", "<leader>am", ":AvanteModels<CR>",
-    { noremap = true, silent = true, desc = "Choose Avante AI Model" })
-vim.keymap.set("n", "<leader>ax", ":AvanteClear<CR>",
-    { noremap = true, silent = true, desc = "Clear Avante conversation" })
-vim.keymap.set("n", "<leader>af", ":AvanteFocus<CR>",
-    { noremap = true, silent = true, desc = "Focus Avante sidebar" })
