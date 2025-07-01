@@ -15,7 +15,7 @@ return {
         callback = function()
           vim.defer_fn(function()
             api.stop()
-            print("SM d")
+            print("sd")
           end, 100)
         end,
       })
