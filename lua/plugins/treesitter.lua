@@ -39,19 +39,19 @@ return {
                         enable = true,
                         set_jumps = true,
                         goto_next_start = {
-                            [']m'] = '@function.outer',
+                            ['<leader>fn'] = '@function.outer',
                             [']]'] = '@class.outer',
                         },
                         goto_next_end = {
-                            [']M'] = '@function.outer',
+                            ['<leader>fe'] = '@function.outer',
                             [']['] = '@class.outer',
                         },
                         goto_previous_start = {
-                            ['[m'] = '@function.outer',
+                            ['<leader>fp'] = '@function.outer',
                             ['[['] = '@class.outer',
                         },
                         goto_previous_end = {
-                            ['[M'] = '@function.outer',
+                            ['<leader>fE'] = '@function.outer',
                             ['[]'] = '@class.outer',
                         },
                     },

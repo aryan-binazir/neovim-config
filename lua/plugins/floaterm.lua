@@ -10,9 +10,6 @@ return {
 
         -- Normal mode mappings
         vim.keymap.set('n', '<leader>ft', ':FloatermToggle<CR>', { desc = 'Toggle Floating Terminal' })
-        vim.keymap.set('n', '<leader>fn', ':FloatermNew<CR>', { desc = 'New Floating Terminal' })
-        vim.keymap.set('n', '<leader>fn', ':FloatermNext<CR>', { desc = 'Next Terminal' })
-        vim.keymap.set('n', '<leader>fp', ':FloatermPrev<CR>', { desc = 'Previous Terminal' })
         vim.keymap.set('n', '<leader>fk', ':FloatermKill<CR>', { desc = 'Kill Terminal' })
 
         -- Terminal mode mappings
