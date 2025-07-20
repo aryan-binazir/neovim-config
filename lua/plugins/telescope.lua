@@ -89,10 +89,8 @@ return {
             require('telescope.builtin').find_files({
                 hidden = true,
                 no_ignore = true,
+                find_command = { 'rg', '--files', '--hidden', '--glob', '!**/.git/*' },
             })
         end, { desc = 'Search Files C-p' })
-        -- vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
-        -- vim.keymap.set('n', '<leader>ss', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
-        -- vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
     end,
 }

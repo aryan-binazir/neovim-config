@@ -34,10 +34,14 @@ vim.g.lazygit_use_neovim_remote = 1
 vim.g.lazygit_use_custom_config_file_path = 0
 vim.g.lazygit_config_file_path = {}
 
-vim.wo.foldmethod = 'expr'
-vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 vim.opt.foldenable = false
 vim.opt.foldlevel = 99
+vim.api.nvim_create_autocmd({'BufRead', 'BufNewFile'}, {
+  callback = function()
+    vim.wo.foldmethod = 'expr'
+    vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+  end,
+})
 
 -- Set jade files to be viewed as pug files by treesitter
 vim.cmd [[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]]

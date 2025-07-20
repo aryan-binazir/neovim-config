@@ -28,6 +28,11 @@ return {
         local cmp = require('cmp')
         local luasnip = require('luasnip')
         luasnip.config.setup {}
+        
+        -- Load custom snippets
+        require('snippets.javascript')
+        require('snippets.go')
+        require('snippets.python')
 
         -- Global variable to track manual toggle state
         vim.g.completion_enabled = true
