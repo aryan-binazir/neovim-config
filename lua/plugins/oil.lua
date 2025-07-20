@@ -6,16 +6,13 @@ return {
     config = function()
         require("oil").setup({
             columns = { "icon", "size", "mtime" },
-            keymap = {
+            keymaps = {
                 ["<C-h>"] = false,
                 ["<C-p>"] = false,
                 ["<m-h>"] = "actions.select_split",
             },
             view_options = {
                 show_hidden = true
-            },
-            keymaps = {
-                ["<C-p>"] = false,
             },
         })
         -- Set the main Oil keymap

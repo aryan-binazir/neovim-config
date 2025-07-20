@@ -34,14 +34,10 @@ vim.g.lazygit_use_neovim_remote = 1
 vim.g.lazygit_use_custom_config_file_path = 0
 vim.g.lazygit_config_file_path = {}
 
--- Folding settings
 vim.wo.foldmethod = 'expr'
-vim.wo.foldexpr = 'nvim_treesitter#foldexpr()'
-vim.opt.foldenable = false    -- Disable folding at startup
-vim.opt.foldlevel = 99       -- High fold level means all folds open
-vim.opt.foldnestmax = 3      -- Maximum nesting of folds
-vim.opt.foldminlines = 1     -- Minimum lines for a fold
-vim.opt.foldcolumn = '0'     -- Don't show fold column
+vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldenable = false
+vim.opt.foldlevel = 99
 
 -- Set jade files to be viewed as pug files by treesitter
 vim.cmd [[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]]

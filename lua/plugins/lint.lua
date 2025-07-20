@@ -2,17 +2,11 @@ return {
     'mfussenegger/nvim-lint',
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
-        local lint = require 'lint'
+        local lint = require('lint')
 
         -- Helper function to check if a command exists
         local function command_exists(cmd)
-            local handle = io.popen('command -v ' .. cmd .. ' >/dev/null 2>&1 && echo "true" || echo "false"')
-            if handle then
-                local result = handle:read("*a")
-                handle:close()
-                return result:match("true") ~= nil
-            end
-            return false
+            return vim.fn.executable(cmd) == 1
         end
 
         -- Only enable linters that are installed

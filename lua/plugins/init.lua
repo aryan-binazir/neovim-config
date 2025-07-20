@@ -62,18 +62,11 @@ return {
         end,
     },
 
-    -- Harpoon for quick file navigation
-    {
-        "ThePrimeagen/harpoon",
-        branch = "harpoon2",
-        dependencies = { "nvim-lua/plenary.nvim" }
-    },
-
     -- UI enhancements
     {
         'windwp/nvim-autopairs',
         event = "InsertEnter",
-        config = true
+        opts = {}
     },
     {
         'nvim-lualine/lualine.nvim',

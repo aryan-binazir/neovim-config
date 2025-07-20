@@ -25,16 +25,20 @@ return {
         'hrsh7th/cmp-buffer',
     },
     config = function()
-        local cmp = require 'cmp'
-        local luasnip = require 'luasnip'
+        local cmp = require('cmp')
+        local luasnip = require('luasnip')
         luasnip.config.setup {}
 
         -- Global variable to track manual toggle state
         vim.g.completion_enabled = true
 
-        cmp.setup({
-            enabled = true
-        })
+        -- Function to check if completion should be enabled
+        local function should_complete()
+            local buftype = vim.bo.buftype
+            if buftype == "prompt" then return false end
+            -- if vim.bo.filetype == "markdown" then return false end
+            return vim.g.completion_enabled
+        end
 
         -- Function to toggle completion
         local function toggle_completion()
@@ -45,12 +49,7 @@ return {
             if ok then
                 vim.g.completion_enabled = not vim.g.completion_enabled
                 cmp.setup({
-                    enabled = function()
-                        local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
-                        if buftype == "prompt" then return false end
-                        -- if vim.bo.filetype == "markdown" then return false end
-                        return vim.g.completion_enabled
-                    end
+                    enabled = should_complete
                 })
                 vim.notify("CMP " .. (vim.g.completion_enabled and "Enabled" or "Disabled"))
             end
@@ -92,12 +91,7 @@ return {
                     return vim_item
                 end
             },
-            enabled = function()
-                local buftype = vim.api.nvim_buf_get_option(0, 'buftype')
-                if buftype == "prompt" then return false end
-                -- if vim.bo.filetype == "markdown" then return false end
-                return vim.g.completion_enabled
-            end
+            enabled = should_complete
         }
     end,
 }
