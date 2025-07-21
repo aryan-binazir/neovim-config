@@ -119,6 +119,21 @@ ls.add_snippets('javascript', {
       f(function(args) return args[1][1] end, { 1 })
     })),
 
+  -- Modern ES2020+ features
+  s('opt', fmt('{}?.{}', { i(1, 'obj'), i(2, 'prop') })),
+  s('optcall', fmt('{}?.{}?.({})', { i(1, 'obj'), i(2, 'method'), i(3) })),
+  s('nullish', fmt('{} ?? {}', { i(1, 'value'), i(2, 'defaultValue') })),
+  s('dynimp', fmt('const {} = await import("{}")', { i(1, 'module'), i(2, './module') })),
+  s('private', fmt('#{}', { i(1, 'fieldName') })),
+
+  -- Enhanced destructuring
+  s('destren', fmt('const {{ {}: {} }} = {}', { i(1, 'oldName'), i(2, 'newName'), i(3, 'obj') })),
+  s('destnest', fmt('const {{ {}: {{ {} }} }} = {}', { i(1, 'prop'), i(2, 'nested'), i(3, 'obj') })),
+  s('destdef', fmt('const {{ {} = {} }} = {}', { i(1, 'prop'), i(2, 'defaultValue'), i(3, 'obj') })),
+  s('destrest', fmt('const {{ {}, ...{} }} = {}', { i(1, 'first'), i(2, 'rest'), i(3, 'obj') })),
+  s('arrdes', fmt('const [{}, {}] = {}', { i(1, 'first'), i(2, 'second'), i(3, 'array') })),
+  s('arrrest', fmt('const [{}, ...{}] = {}', { i(1, 'first'), i(2, 'rest'), i(3, 'array') })),
+
   -- Common patterns
   s('desc', fmt('const {{ {} }} = {}', { i(1), i(2) })),
   s('nf', fmt('const {} = ({}) => null', { i(1, 'ComponentName'), i(2, 'props') })),

@@ -61,7 +61,7 @@ ls.add_snippets('python', {
 
   -- Common patterns
   s('main', {
-    t('if __name__ == "__main__":'), t({'', '    '}), i(1, 'main()')
+    t('if __name__ == \'__main__\':'), t({'', '    '}), i(1, 'main()')
   }),
   s('print', {
     t('print('), i(1), t(')')
@@ -78,10 +78,6 @@ ls.add_snippets('python', {
     t('('), i(1), t(',)')
   }),
 
-  -- String operations
-  s('fstr', {
-    t('f"'), i(1), t('"')
-  }),
 
   -- Testing
   s('test', {
