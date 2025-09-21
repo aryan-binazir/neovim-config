@@ -31,4 +31,26 @@ return {
       end, { desc = "Toggle SM" })
     end,
   },
+  {
+    "coder/claudecode.nvim",
+    dependencies = { "folke/snacks.nvim" },
+    config = true,
+    keys = {
+      { "<leader>a", nil, desc = "AI/Claude Code" },
+      { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+      { "<leader>aa", "<cmd>ClaudeCodeChat<cr>", desc = "Claude Chat" },
+      { "<leader>ar", "<cmd>ClaudeCodeRestart<cr>", desc = "Restart Claude" },
+      { "<leader>as", "<cmd>ClaudeCodeStop<cr>", desc = "Stop Claude" },
+      { "<leader>al", "<cmd>ClaudeCodeLog<cr>", desc = "Claude Log" },
+    },
+    opts = {
+      terminal_cmd = "/home/ar/.claude/local/claude --dangerously-skip-permissions",
+      git_repo_cwd = true,
+      terminal = {
+        provider = "snacks",
+        split_side = "right",
+        split_width_percentage = 50,
+      },
+    },
+  },
 }
