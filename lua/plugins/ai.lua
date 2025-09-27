@@ -34,7 +34,27 @@ return {
   {
     "coder/claudecode.nvim",
     dependencies = { "folke/snacks.nvim" },
-    config = true,
+    config = function()
+      require("claudecode").setup({
+        terminal_cmd = "~/.claude/local/claude --dangerously-skip-permissions",
+        git_repo_cwd = true,
+        terminal = {
+          provider = "snacks",
+          split_side = "right",
+          split_width_percentage = 50,
+        },
+      })
+
+      -- Terminal navigation mappings
+      vim.api.nvim_create_autocmd("TermOpen", {
+        pattern = "*claude*",
+        callback = function()
+          local opts = { buffer = 0, silent = true }
+          -- Quick escape to normal mode and switch windows
+          vim.keymap.set("t", "<C-\\><C-\\>", [[<C-\><C-n><C-w>w]], opts)
+        end,
+      })
+    end,
     keys = {
       { "<leader>a",  nil,                   desc = "AI/Claude Code" },
       { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
@@ -70,15 +90,6 @@ return {
       { "<leader>ar", "<cmd>ClaudeCodeRestart<cr>", desc = "Restart Claude" },
       { "<leader>as", "<cmd>ClaudeCodeStop<cr>",    desc = "Stop Claude" },
       { "<leader>al", "<cmd>ClaudeCodeLog<cr>",     desc = "Claude Log" },
-    },
-    opts = {
-      terminal_cmd = "~/.claude/local/claude --dangerously-skip-permissions",
-      git_repo_cwd = true,
-      terminal = {
-        provider = "snacks",
-        split_side = "right",
-        split_width_percentage = 50,
-      },
     },
   },
 }
