@@ -111,60 +111,16 @@ return {
 
             mason_lspconfig.setup {
                 ensure_installed = ensure_installed_servers,
-            }
-
-            for _, server_name in ipairs(ensure_installed_servers) do
-                -- Get the default config from vim.lsp.config
-                local default_config = vim.lsp.config[server_name]
-
-                if not default_config then
-                    vim.notify("Server config not found for: " .. server_name, vim.log.levels.WARN)
-                    goto continue
-                end
-
-                -- Build our custom config
-                local config = {
-                    name = server_name,
-                    cmd = default_config.cmd,
-                    filetypes = default_config.filetypes,
-                    root_dir = function(fname)
-                        local util = require('lspconfig.util')
-                        if server_name == 'gopls' then
-                            return util.root_pattern('go.mod', 'go.work', '.git')(fname)
-                        end
-                        if default_config.root_markers then
-                            return util.root_pattern(unpack(default_config.root_markers))(fname)
-                        end
-                        return util.find_git_ancestor(fname)
+                handlers = {
+                    function(server_name)
+                        require('lspconfig')[server_name].setup {
+                            capabilities = capabilities,
+                            on_attach = on_attach,
+                            settings = servers[server_name],
+                        }
                     end,
-                    capabilities = capabilities,
-                    on_attach = on_attach,
-                    settings = servers[server_name],
                 }
-
-                -- Special handling for gopls
-                if server_name == 'gopls' then
-                    config.single_file_support = false
-                end
-
-                -- Register config and set up autocommands
-                vim.lsp.config(server_name, config)
-
-                -- Set up autocmd to start the server
-                vim.api.nvim_create_autocmd("FileType", {
-                    pattern = default_config.filetypes,
-                    callback = function(args)
-                        vim.lsp.start(config, {
-                            bufnr = args.buf,
-                            reuse_client = function(client, conf)
-                                return client.name == conf.name
-                            end,
-                        })
-                    end,
-                })
-
-                ::continue::
-            end
+            }
         end,
     }
 }
