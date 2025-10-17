@@ -14,8 +14,8 @@ return {
       vim.api.nvim_create_autocmd("VimEnter", {
         callback = function()
           vim.defer_fn(function()
-            api.stop()
-            print("sd")
+            api.start()
+            print("se")
           end, 100)
         end,
       })
