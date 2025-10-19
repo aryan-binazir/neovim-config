@@ -38,5 +38,35 @@ return {
         provider = "none", -- no UI actions; server + tools remain available
       },
     },
-  }
+  },
+  -- {
+  --   "github/copilot.vim",
+  --   event = "InsertEnter",
+  --   config = function()
+  --     -- Accept full suggestion with Shift-Tab
+  --     vim.g.copilot_no_tab_map = true
+  --     vim.keymap.set("i", "<S-Tab>", 'copilot#Accept("\\<CR>")', {
+  --       expr = true,
+  --       replace_keycodes = false,
+  --       desc = "Accept Copilot suggestion",
+  --     })
+  --
+  --     -- Accept line with Ctrl-w
+  --     vim.keymap.set("i", "<C-w>", "<Plug>(copilot-accept-line)", { desc = "Accept Copilot line" })
+  --
+  --     -- Dismiss suggestion with Ctrl-e
+  --     vim.keymap.set("i", "<C-e>", "<Plug>(copilot-dismiss)", { desc = "Dismiss Copilot suggestion" })
+  --
+  --     -- Toggle Copilot (buffer-level)
+  --     vim.keymap.set("n", "<leader>cp", function()
+  --       if vim.b.copilot_enabled == false then
+  --         vim.b.copilot_enabled = true
+  --         print("ce")
+  --       else
+  --         vim.b.copilot_enabled = false
+  --         print("cd")
+  --       end
+  --     end, { desc = "Toggle Copilot" })
+  --   end,
+  -- },
 }
