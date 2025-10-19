@@ -69,4 +69,40 @@ return {
   --     end, { desc = "Toggle Copilot" })
   --   end,
   -- },
+  -- {
+  --   "yetone/avante.nvim",
+  --   event = "VeryLazy",
+  --   lazy = false,
+  --   version = false,
+  --   build = "make",
+  --   dependencies = {
+  --     "nvim-treesitter/nvim-treesitter",
+  --     "stevearc/dressing.nvim",
+  --     "nvim-lua/plenary.nvim",
+  --     "MunifTanjim/nui.nvim",
+  --     "nvim-tree/nvim-web-devicons",
+  --     "github/copilot.vim", -- already configured above
+  --   },
+  --   keys = {
+  --     { "<leader>am", "<cmd>AvanteModel<cr>", desc = "Avante: Switch Model" },
+  --   },
+  --   opts = {
+  --     provider = "copilot",
+  --     auto_suggestions_provider = "copilot",
+  --     hints = {
+  --       enabled = false,
+  --     },
+  --     selector = {
+  --       provider = "native", -- or "telescope" if you have it installed
+  --     },
+  --     providers = {
+  --       copilot = {
+  --         -- model = "gpt-4.1",
+  --         extra_request_body = {
+  --           temperature = 0,
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
 }
