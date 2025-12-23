@@ -22,6 +22,7 @@ return {
         local telescope = require('telescope')
         telescope.setup {
             defaults = {
+                debounce = 100,
                 mappings = {
                     i = {
                         ['<C-u>'] = false,
