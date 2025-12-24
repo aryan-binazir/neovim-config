@@ -20,6 +20,8 @@ ls.add_snippets('go', {
 		})
 	})),
 
+	s('ifterr', fmt('if err != nil {{\n\treturn terror.Wrap(err, "{}")\n}}', { i(1, 'Describe') })),
+
 	s('errcheck', fmt('if err := {}; err != nil {{\n\t{}\n}}', { i(1), i(2, 'return err') })),
 
 	-- Functions
