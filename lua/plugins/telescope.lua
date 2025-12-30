@@ -48,10 +48,21 @@ return {
                     }
                 },
                 preview = {
+                    treesitter = false,
                     hide_on_startup = false
                 }
             },
-            pickers = {},
+            pickers = {
+                buffers = {
+                    sort_lastused = true,
+                    sort_mru = true,
+                    mappings = {
+                        i = {
+                            ["<c-d>"] = "delete_buffer",
+                        }
+                    }
+                }
+            },
             extensions = {
                 ['ui-select'] = {
                     require('telescope.themes').get_dropdown(),
