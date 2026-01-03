@@ -24,8 +24,6 @@ vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent =
 -- Other Keymaps
 vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
     { noremap = true, silent = true, desc = "Toggle relative number" })
-vim.keymap.set('n', '<leader>py', ':!pyink --pyink-use-majority-quotes --line-length 79 %<CR>',
-    { noremap = true, silent = true, desc = "Pyink PEP8 Formatting" })
 vim.keymap.set('n', '<leader>sl', function() vim.cmd("Sleuth") end, { desc = '[SL]euth' })
 vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "Check external changes" })
 
