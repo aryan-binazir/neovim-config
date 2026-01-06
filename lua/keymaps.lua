@@ -55,6 +55,21 @@ vim.keymap.set('n', '<leader>yh', function()
     yank_paths(paths, 'harpoon paths')
 end, { desc = 'Yank all harpoon paths' })
 
+vim.keymap.set('v', '<leader>ys', function()
+    local start_line = vim.fn.line("v")
+    local end_line = vim.fn.line(".")
+    if start_line > end_line then
+        start_line, end_line = end_line, start_line
+    end
+    local path = vim.fn.expand('%:p')
+    local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+    local range = start_line == end_line and tostring(start_line) or (start_line .. '-' .. end_line)
+    local result = path .. ':' .. range .. '\n' .. table.concat(lines, '\n')
+    vim.fn.setreg('+', result)
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+    print('Yanked selection with context')
+end, { desc = 'Yank file path, lines, and code selection' })
+
 vim.keymap.set('n', '<leader>yo', function()
     local ok, oil = pcall(require, 'oil')
     if not ok then print('Oil not available') return end
