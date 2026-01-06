@@ -21,6 +21,11 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Go to diagnostics list' })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
 
+-- Yank file path
+vim.keymap.set('n', '<leader>yp', function()
+    vim.fn.setreg('+', vim.fn.expand('%:p'))
+end, { desc = 'Yank absolute file path' })
+
 -- Other Keymaps
 vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
     { noremap = true, silent = true, desc = "Toggle relative number" })
