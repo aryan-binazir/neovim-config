@@ -1,6 +1,6 @@
 require('options')
-require('keymaps')
-require('ai')
+require('keymaps_general')
+require('keymaps_ai')
 
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.uv.fs_stat(lazypath) then
