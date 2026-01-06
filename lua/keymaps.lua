@@ -3,6 +3,17 @@ vim.keymap.set({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Function to toggle diagnostics
+local function Toggle_diagnostics()
+	if vim.g.diagnostics_active then
+		vim.g.diagnostics_active = false
+		vim.diagnostic.enable(false)
+	else
+		vim.g.diagnostics_active = true
+		vim.diagnostic.enable()
+	end
+end
+
 -- Diagnostic keymaps
 vim.keymap.set("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
 vim.keymap.set("n", "<A-j>", vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
@@ -50,13 +61,3 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	pattern = "*",
 })
 
--- Function to toggle diagnostics
-function Toggle_diagnostics()
-	if vim.g.diagnostics_active then
-		vim.g.diagnostics_active = false
-		vim.diagnostic.enable(false)
-	else
-		vim.g.diagnostics_active = true
-		vim.diagnostic.enable()
-	end
-end
