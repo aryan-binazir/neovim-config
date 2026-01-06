@@ -21,10 +21,55 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open float
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Go to diagnostics list' })
 vim.keymap.set('n', '<leader>tt', Toggle_diagnostics, { noremap = true, silent = true, desc = "Toggle vim diagnostics" })
 
--- Yank file path
+-- Yank file paths (for AI workflows)
+local function yank_paths(paths, label)
+    vim.fn.setreg('+', table.concat(paths, '\n'))
+    print('Yanked ' .. #paths .. ' ' .. label)
+end
+
 vim.keymap.set('n', '<leader>yp', function()
-    vim.fn.setreg('+', vim.fn.expand('%:p'))
+    yank_paths({ vim.fn.expand('%:p') }, 'path')
 end, { desc = 'Yank absolute file path' })
+
+vim.keymap.set('n', '<leader>yb', function()
+    local paths = {}
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted then
+            local name = vim.api.nvim_buf_get_name(buf)
+            if name ~= '' then table.insert(paths, name) end
+        end
+    end
+    yank_paths(paths, 'buffer paths')
+end, { desc = 'Yank all buffer paths' })
+
+vim.keymap.set('n', '<leader>yh', function()
+    local ok, harpoon = pcall(require, 'harpoon')
+    if not ok then print('Harpoon not available') return end
+    local paths = {}
+    local cwd = vim.fn.getcwd() .. '/'
+    for _, item in ipairs(harpoon:list().items) do
+        if item.value and item.value ~= '' then
+            table.insert(paths, cwd .. item.value)
+        end
+    end
+    yank_paths(paths, 'harpoon paths')
+end, { desc = 'Yank all harpoon paths' })
+
+vim.keymap.set('n', '<leader>yo', function()
+    local ok, oil = pcall(require, 'oil')
+    if not ok then print('Oil not available') return end
+    local dir = oil.get_current_dir()
+    if not dir then print('Not in Oil buffer') return end
+    local bufnr = vim.api.nvim_get_current_buf()
+    local paths = {}
+    for lnum = 1, vim.api.nvim_buf_line_count(bufnr) do
+        local entry = oil.get_entry_on_line(bufnr, lnum)
+        if entry and entry.type == 'file' then
+            table.insert(paths, dir .. entry.name)
+        end
+    end
+    yank_paths(paths, 'Oil paths')
+end, { desc = 'Yank all file paths in Oil directory' })
 
 -- Other Keymaps
 vim.keymap.set('n', '<leader>tr', ':set relativenumber!<CR>',
