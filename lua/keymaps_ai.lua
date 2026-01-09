@@ -126,7 +126,7 @@ end, { desc = 'Yank all file paths in Oil directory' })
 vim.g.ai_pane_id = nil
 
 local function open_ai_split(cmd)
-    local pane_id = vim.fn.system('tmux split-window -h -p 35 -P -F "#{pane_id}" -c ' .. vim.fn.shellescape(vim.fn.getcwd()) .. " '$SHELL -ic " .. cmd .. "'")
+    local pane_id = vim.fn.system('tmux split-window -h -p 35 -P -F "#{pane_id}" -c ' .. vim.fn.shellescape(vim.fn.getcwd()) .. " 'bash -ic " .. cmd .. "'")
     vim.g.ai_pane_id = vim.trim(pane_id)
 end
 
