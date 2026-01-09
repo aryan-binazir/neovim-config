@@ -5,6 +5,7 @@ vim.g.maplocalleader = ' '
 vim.g["diagnostics_active"] = true
 
 -- General options
+vim.o.exrc = true  -- Allow project-local .nvim.lua files
 vim.o.hlsearch = false
 vim.wo.relativenumber = true
 vim.wo.number = true

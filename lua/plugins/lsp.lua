@@ -87,7 +87,7 @@ return {
             end
 
             local mason_lspconfig = require('mason-lspconfig')
-            local ensure_installed_servers = { "lua_ls", "gopls", "pyright", "eslint", "jsonls" }
+            local ensure_installed_servers = { "lua_ls", "gopls", "pyright", "eslint", "jsonls", "buf_ls", "biome", "golangci_lint_ls", "graphql", "ts_ls" }
 
             mason_lspconfig.setup {
                 ensure_installed = ensure_installed_servers,
