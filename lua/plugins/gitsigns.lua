@@ -17,25 +17,21 @@ return {
 				vim.keymap.set(mode, l, r, opts)
 			end
 
-			map({ "n", "v" }, "]c", function()
+			map({ "n", "v" }, "<leader>hj", function()
 				if vim.wo.diff then
-					return "]c"
-				end
-				vim.schedule(function()
+					vim.cmd("normal! ]c")
+				else
 					gs.next_hunk()
-				end)
-				return "<Ignore>"
-			end, { expr = true, desc = "Jump to next hunk" })
-
-			map({ "n", "v" }, "[c", function()
-				if vim.wo.diff then
-					return "[c"
 				end
-				vim.schedule(function()
+			end, { desc = "Jump to next hunk" })
+
+			map({ "n", "v" }, "<leader>hk", function()
+				if vim.wo.diff then
+					vim.cmd("normal! [c")
+				else
 					gs.prev_hunk()
-				end)
-				return "<Ignore>"
-			end, { expr = true, desc = "Jump to previous hunk" })
+				end
+			end, { desc = "Jump to previous hunk" })
 
 			-- Actions
 			-- visual mode
