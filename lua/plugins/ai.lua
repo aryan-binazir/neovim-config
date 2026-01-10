@@ -8,35 +8,6 @@ return {
 		},
 	},
 	-- {
-	--   "zbirenbaum/copilot.lua",
-	--   cmd = "Copilot",
-	--   event = "InsertEnter",
-	--   config = function()
-	--     require("copilot").setup({
-	--       suggestion = {
-	--         enabled = true,
-	--         auto_trigger = true,
-	--         keymap = {
-	--           accept = "<S-Tab>",
-	--           accept_word = "<C-w>",
-	--           accept_line = "<C-y>",
-	--           dismiss = "<C-e>",
-	--           next = "<C-n>",
-	--           prev = "<C-p>",
-	--         },
-	--       },
-	--       panel = { enabled = false },
-	--     })
-	--
-	--     vim.g.copilot_enabled = true
-	--     vim.keymap.set("n", "<leader>ta", function()
-	--       require("copilot.suggestion").toggle_auto_trigger()
-	--       vim.g.copilot_enabled = not vim.g.copilot_enabled
-	--       print(vim.g.copilot_enabled and "AI on" or "AI off")
-	--     end, { desc = "Toggle Copilot" })
-	--   end,
-	-- },
-	-- {
 	-- 	"supermaven-inc/supermaven-nvim",
 	-- 	config = function()
 	-- 		require("supermaven-nvim").setup({
@@ -67,5 +38,34 @@ return {
 	-- 			end
 	-- 		end, { desc = "Toggle SM" })
 	-- 	end,
+	-- },
+	-- {
+	--   "zbirenbaum/copilot.lua",
+	--   cmd = "Copilot",
+	--   event = "InsertEnter",
+	--   config = function()
+	--     require("copilot").setup({
+	--       suggestion = {
+	--         enabled = true,
+	--         auto_trigger = true,
+	--         keymap = {
+	--           accept = "<S-Tab>",
+	--           accept_word = "<C-w>",
+	--           accept_line = "<C-y>",
+	--           dismiss = "<C-e>",
+	--           next = "<C-n>",
+	--           prev = "<C-p>",
+	--         },
+	--       },
+	--       panel = { enabled = false },
+	--     })
+	--
+	--     vim.g.copilot_enabled = true
+	--     vim.keymap.set("n", "<leader>ta", function()
+	--       require("copilot.suggestion").toggle_auto_trigger()
+	--       vim.g.copilot_enabled = not vim.g.copilot_enabled
+	--       print(vim.g.copilot_enabled and "AI on" or "AI off")
+	--     end, { desc = "Toggle Copilot" })
+	--   end,
 	-- },
 }
