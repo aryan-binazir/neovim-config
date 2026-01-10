@@ -96,8 +96,8 @@ local function ai_pane_alive()
 	return vim.trim(check) ~= ""
 end
 
--- Yank selection and send to AI pane
-vim.keymap.set("v", "<leader>yx", function()
+-- Send selection to AI pane
+vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
 	-- Send to AI pane and focus it
 	if ai_pane_alive() then
@@ -106,7 +106,7 @@ vim.keymap.set("v", "<leader>yx", function()
 	else
 		print("AI pane closed. Use <leader>cc to open.")
 	end
-end, { desc = "Yank selection and send to AI pane" })
+end, { desc = "Send selection to AI pane" })
 
 -- Yank all file paths in Oil directory
 vim.keymap.set("n", "<leader>yo", function()
@@ -171,3 +171,23 @@ vim.keymap.set("n", "<leader>cf", function()
 		print("No AI pane open")
 	end
 end, { desc = "Focus AI pane" })
+
+vim.keymap.set("n", "<leader>cp", function()
+	if ai_pane_alive() then
+		local path = vim.fn.expand("%:p")
+		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path))
+		print("Sent path to AI pane")
+	else
+		print("AI pane closed. Use <leader>cc to open.")
+	end
+end, { desc = "Send file path to AI pane" })
+
+vim.keymap.set("n", "<leader>cq", function()
+	if ai_pane_alive() then
+		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+		vim.g.ai_pane_id = nil
+		print("AI pane closed")
+	else
+		print("No AI pane open")
+	end
+end, { desc = "Close AI pane" })
