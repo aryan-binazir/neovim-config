@@ -11,17 +11,8 @@ return {
 
 		-- Only enable linters that are installed
 		local linters = {}
-		if command_exists("eslint") then
-			linters.javascript = { "eslint" }
-			linters.typescript = { "eslint" }
-			linters.javascriptreact = { "eslint" }
-			linters.typescriptreact = { "eslint" }
-		end
 		if command_exists("markdownlint") then
 			linters.markdown = { "markdownlint" }
-		end
-		if command_exists("jsonlint") then
-			linters.json = { "jsonlint" }
 		end
 
 		lint.linters_by_ft = linters

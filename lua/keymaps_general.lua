@@ -33,9 +33,6 @@ vim.keymap.set(
 	":set relativenumber!<CR>",
 	{ noremap = true, silent = true, desc = "Toggle relative number" }
 )
-vim.keymap.set("n", "<leader>sl", function()
-	vim.cmd("Sleuth")
-end, { desc = "[SL]euth" })
 vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "Check external changes" })
 
 -- Location list specific mappings

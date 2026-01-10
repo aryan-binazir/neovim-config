@@ -1,8 +1,5 @@
 return {
 	-- Git related plugins
-	{ "tpope/vim-fugitive" },
-	{ "tpope/vim-rhubarb" },
-	{ "tpope/vim-sleuth" },
 	{
 		"kdheepak/lazygit.nvim",
 		cmd = {
@@ -39,9 +36,6 @@ return {
 			require("nvim-surround").setup({})
 		end,
 	},
-
-	-- "gc" to comment visual regions/lines
-	{ "numToStr/Comment.nvim", opts = {} },
 
 	-- Theme
 	{

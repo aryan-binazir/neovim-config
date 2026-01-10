@@ -59,11 +59,6 @@ return {
 				end,
 			})
 
-			-- Keep the on_attach for compatibility but it just triggers the autocmd
-			local on_attach = function(client, bufnr)
-				-- The LspAttach autocmd will handle everything
-			end
-
 			require("mason").setup()
 			require("mason-lspconfig").setup()
 
@@ -89,7 +84,6 @@ return {
 				"lua_ls",
 				"gopls",
 				"pyright",
-				"eslint",
 				"jsonls",
 				"buf_ls",
 				"biome",
@@ -104,7 +98,6 @@ return {
 					function(server_name)
 						local server_config = {
 							capabilities = capabilities,
-							on_attach = on_attach,
 							settings = servers[server_name] or {},
 						}
 
