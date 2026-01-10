@@ -5,7 +5,7 @@ return {
 			{ "williamboman/mason.nvim", config = true },
 			"williamboman/mason-lspconfig.nvim",
 			{ "j-hui/fidget.nvim", opts = {} },
-			"folke/neodev.nvim",
+			{ "folke/lazydev.nvim", ft = "lua", opts = {} },
 			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
@@ -75,8 +75,6 @@ return {
 					},
 				},
 			}
-
-			require("neodev").setup()
 
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")

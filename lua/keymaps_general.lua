@@ -15,8 +15,8 @@ local function Toggle_diagnostics()
 end
 
 -- Diagnostic keymaps
-vim.keymap.set("n", "<A-k>", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
-vim.keymap.set("n", "<A-j>", vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
+vim.keymap.set("n", "<A-k>", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Go to previous diagnostic message" })
+vim.keymap.set("n", "<A-j>", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "Go to next diagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Go to diagnostics list" })
 vim.keymap.set(
