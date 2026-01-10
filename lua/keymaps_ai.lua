@@ -164,14 +164,6 @@ vim.keymap.set("n", "<leader>co", function()
 	open_ai_split("opencode")
 end, { desc = "Open OpenCode in tmux split" })
 
-vim.keymap.set("n", "<leader>cf", function()
-	if ai_pane_alive() then
-		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
-	else
-		print("No AI pane open")
-	end
-end, { desc = "Focus AI pane" })
-
 vim.keymap.set("n", "<leader>cp", function()
 	if ai_pane_alive() then
 		local path = vim.fn.expand("%:p")
