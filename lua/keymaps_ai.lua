@@ -101,7 +101,7 @@ vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
 	-- Send to AI pane and focus it
 	if ai_pane_alive() then
-		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(result))
+		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(result .. " "))
 		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 	else
 		print("AI pane closed. Use <leader>cc to open.")
@@ -167,7 +167,7 @@ end, { desc = "Open OpenCode in tmux split" })
 vim.keymap.set("n", "<leader>cp", function()
 	if ai_pane_alive() then
 		local path = vim.fn.expand("%:p")
-		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path))
+		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path .. " "))
 		print("Sent path to AI pane")
 	else
 		print("AI pane closed. Use <leader>cc to open.")
