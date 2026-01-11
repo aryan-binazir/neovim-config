@@ -44,8 +44,5 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 	end,
 })
 
--- Set jade files to be viewed as pug files by treesitter
-vim.cmd([[ autocmd BufRead,BufNewFile *.jade set filetype=pug ]])
-
 -- For Obsidian plugin
 vim.opt.conceallevel = 2

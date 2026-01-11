@@ -52,14 +52,11 @@ return {
 			if cmp.visible() then
 				cmp.close()
 			end
-			local ok, _ = pcall(require, "cmp")
-			if ok then
-				vim.g.completion_enabled = not vim.g.completion_enabled
-				cmp.setup({
-					enabled = should_complete,
-				})
-				vim.notify("CMP " .. (vim.g.completion_enabled and "Enabled" or "Disabled"))
-			end
+			vim.g.completion_enabled = not vim.g.completion_enabled
+			cmp.setup({
+				enabled = should_complete,
+			})
+			vim.notify("CMP " .. (vim.g.completion_enabled and "Enabled" or "Disabled"))
 		end
 
 		-- Keymapping for completion toggle
