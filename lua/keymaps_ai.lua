@@ -168,7 +168,7 @@ vim.keymap.set("n", "<leader>cp", function()
 	if ai_pane_alive() then
 		local path = vim.fn.expand("%:p")
 		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path .. " "))
-		print("Sent path to AI pane")
+		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 	else
 		print("AI pane closed. Use <leader>cc to open.")
 	end
