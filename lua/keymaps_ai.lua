@@ -90,9 +90,12 @@ end, { desc = "Yank file path, lines, and code" })
 vim.g.ai_pane_id = nil
 
 local function ai_pane_alive()
-	if not vim.g.ai_pane_id then return false end
-	local check = vim.fn.system("tmux display-message -t "
-		.. vim.fn.shellescape(vim.g.ai_pane_id) .. " -p '#{pane_id}' 2>/dev/null")
+	if not vim.g.ai_pane_id then
+		return false
+	end
+	local check = vim.fn.system(
+		"tmux display-message -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " -p '#{pane_id}' 2>/dev/null"
+	)
 	return vim.trim(check) ~= ""
 end
 
@@ -101,10 +104,12 @@ vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
 	-- Send to AI pane and focus it
 	if ai_pane_alive() then
-		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(result .. " "))
+		vim.fn.system(
+			"tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(result .. " ")
+		)
 		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 	else
-		print("AI pane closed. Use <leader>cc to open.")
+		print("AI pane closed.")
 	end
 end, { desc = "Send selection to AI pane" })
 
@@ -138,7 +143,9 @@ local function open_ai_split(cmd)
 	local pane_id = vim.fn.system(
 		'tmux split-window -h -p 35 -P -F "#{pane_id}" -c '
 			.. vim.fn.shellescape(vim.fn.getcwd())
-			.. " '$SHELL -ic " .. cmd .. "'"
+			.. " '$SHELL -ic "
+			.. cmd
+			.. "'"
 	)
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
@@ -151,6 +158,10 @@ end
 vim.keymap.set("n", "<leader>cc", function()
 	open_ai_split("cc")
 end, { desc = "Open Claude Code in tmux split" })
+
+vim.keymap.set("n", "<leader>cd", function()
+	open_ai_split("codex")
+end, { desc = "Open Codex in tmux split" })
 
 vim.keymap.set("n", "<leader>cu", function()
 	open_ai_split("cur")
@@ -167,7 +178,9 @@ end, { desc = "Open OpenCode in tmux split" })
 vim.keymap.set("n", "<leader>cp", function()
 	if ai_pane_alive() then
 		local path = vim.fn.expand("%:p")
-		vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path .. " "))
+		vim.fn.system(
+			"tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path .. " ")
+		)
 		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 	else
 		print("AI pane closed. Use <leader>cc to open.")
