@@ -119,5 +119,6 @@ return {
 				find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
 			})
 		end, { desc = "Search Files C-p" })
+		vim.keymap.set("n", "<leader>gs", require("telescope.builtin").git_status, { desc = "[G]it [S]tatus" })
 	end,
 }
