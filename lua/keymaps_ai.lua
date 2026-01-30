@@ -6,6 +6,33 @@ local function yank_paths(paths, label)
 	print("Yanked " .. #paths .. " " .. label)
 end
 
+-- Helper for formatting line ranges
+local function format_range(start_line, end_line)
+	return start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
+end
+
+-- Helper for sending to AI pane
+local function send_to_ai_pane(text, focus)
+	if not vim.g.ai_pane_id then
+		return
+	end
+	vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(text))
+	if focus then
+		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+	end
+end
+
+-- Helper for printing send status
+local function print_send_status(status, message)
+	if status == "sent" then
+		print("LLM message sent: " .. message)
+	elseif status == "started" then
+		print("Opened cc and sent: " .. message)
+	elseif status == "failed" then
+		print("Failed to send message")
+	end
+end
+
 -- Yank absolute file path
 vim.keymap.set("n", "<leader>yp", function()
 	yank_paths({ vim.fn.expand("%:p") }, "path")
@@ -53,8 +80,7 @@ local function yank_selection(include_code, skip_register)
 	end
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.fn.expand("%:p")
-	local range = start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
-	local result = path .. ":" .. range
+	local result = path .. ":" .. format_range(start_line, end_line)
 	if include_code then
 		local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
 		result = result .. "\n" .. table.concat(lines, "\n")
@@ -102,12 +128,8 @@ end
 -- Send selection to AI pane
 vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
-	-- Send to AI pane and focus it
 	if ai_pane_alive() then
-		vim.fn.system(
-			"tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(result .. " ")
-		)
-		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+		send_to_ai_pane(result .. " ", true)
 	else
 		print("AI pane closed.")
 	end
@@ -136,9 +158,12 @@ vim.keymap.set("n", "<leader>yo", function()
 	yank_paths(paths, "Oil paths")
 end, { desc = "Yank all file paths in Oil directory" })
 
-local function open_ai_split(cmd)
+local function toggle_ai_split(cmd)
 	if ai_pane_alive() then
 		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+		vim.g.ai_pane_id = nil
+		print("AI pane closed")
+		return
 	end
 	local pane_id = vim.fn.system(
 		'tmux split-window -h -p 35 -P -F "#{pane_id}" -c '
@@ -156,32 +181,28 @@ local function open_ai_split(cmd)
 end
 
 vim.keymap.set("n", "<leader>cc", function()
-	open_ai_split("cc")
+	toggle_ai_split("cc")
 end, { desc = "Open Claude Code in tmux split" })
 
 vim.keymap.set("n", "<leader>cd", function()
-	open_ai_split("codex")
+	toggle_ai_split("codex")
 end, { desc = "Open Codex in tmux split" })
 
 vim.keymap.set("n", "<leader>cu", function()
-	open_ai_split("cur")
+	toggle_ai_split("cur")
 end, { desc = "Open Cursor-agent in tmux split" })
 
 vim.keymap.set("n", "<leader>cg", function()
-	open_ai_split("gemini")
+	toggle_ai_split("gemini")
 end, { desc = "Open Gemini in tmux split" })
 
 vim.keymap.set("n", "<leader>co", function()
-	open_ai_split("opencode")
+	toggle_ai_split("opencode")
 end, { desc = "Open OpenCode in tmux split" })
 
 vim.keymap.set("n", "<leader>cp", function()
 	if ai_pane_alive() then
-		local path = vim.fn.expand("%:p")
-		vim.fn.system(
-			"tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(path .. " ")
-		)
-		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+		send_to_ai_pane(vim.fn.expand("%:p") .. " ", true)
 	else
 		print("AI pane closed. Use <leader>cc to open.")
 	end
@@ -196,3 +217,115 @@ vim.keymap.set("n", "<leader>cq", function()
 		print("No AI pane open")
 	end
 end, { desc = "Close AI pane" })
+
+local scoped_prefix = "SCOPE: only this location; no other files; no refactors/formatting; minimal diff, then stop; ask if unclear. "
+
+local function scoped_prompt(location, message)
+	return scoped_prefix .. "Location: " .. location .. " Message: " .. message
+end
+
+local ai_pane_cmds = {
+	cc = true,
+	codex = true,
+	cur = true,
+	gemini = true,
+	opencode = true,
+}
+
+local function find_ai_pane_in_window()
+	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{pane_active}\t#{pane_current_command}" 2>/dev/null')
+	if vim.v.shell_error ~= 0 then
+		return nil
+	end
+	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
+		local parts = vim.split(line, "\t", { plain = true })
+		local pane_id = parts[1]
+		local active = parts[2]
+		local cmd = parts[3]
+		if active == "0" and ai_pane_cmds[cmd] and pane_id and pane_id ~= "" then
+			return pane_id
+		end
+	end
+	return nil
+end
+
+local function send_scoped_message(location, message)
+	local prompt = scoped_prompt(location, message)
+
+	local function make_send_prompt(target_pane)
+		return function()
+			if not target_pane or target_pane == "" then
+				return
+			end
+			local check = vim.fn.system(
+				"tmux display-message -t " .. vim.fn.shellescape(target_pane) .. " -p '#{pane_id}' 2>/dev/null"
+			)
+			if vim.trim(check) == "" then
+				print("AI pane closed before message sent")
+				return
+			end
+			vim.fn.system(
+				"tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " -l " .. vim.fn.shellescape(prompt)
+			)
+			vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " Enter")
+		end
+	end
+
+	if not ai_pane_alive() then
+		local existing = find_ai_pane_in_window()
+		if existing then
+			vim.g.ai_pane_id = existing
+		end
+	end
+
+	if ai_pane_alive() then
+		vim.defer_fn(make_send_prompt(vim.g.ai_pane_id), 300)
+		return "sent"
+	end
+
+	local pane_id = vim.fn.system(
+		'tmux split-window -h -p 35 -d -P -F "#{pane_id}" -c '
+			.. vim.fn.shellescape(vim.fn.getcwd())
+			.. " '$SHELL -ic cc'"
+	)
+	pane_id = vim.trim(pane_id)
+	if pane_id == "" then
+		print("Failed to create tmux split")
+		return "failed"
+	end
+	vim.g.ai_pane_id = pane_id
+	vim.defer_fn(make_send_prompt(pane_id), 2500)
+	return "started"
+end
+
+-- Quick scoped message: sends to existing AI pane, or opens cc in background
+vim.keymap.set("n", "<leader>cv", function()
+	local file = vim.fn.expand("%:p")
+	local line = vim.fn.line(".")
+	local message = vim.fn.input("LLM Message: ")
+	if message == "" then
+		return
+	end
+
+	print_send_status(send_scoped_message(file .. ":" .. line, message), message)
+end, { desc = "LLM scoped message (detached)" })
+
+-- Visual mode: scoped message with line range
+vim.keymap.set("v", "<leader>cv", function()
+	local start_line = vim.fn.line("v")
+	local end_line = vim.fn.line(".")
+	if start_line > end_line then
+		start_line, end_line = end_line, start_line
+	end
+	local file = vim.fn.expand("%:p")
+	local range = format_range(start_line, end_line)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+
+	vim.schedule(function()
+		local message = vim.fn.input("LLM Message: ")
+		if message == "" then
+			return
+		end
+		print_send_status(send_scoped_message(file .. ":" .. range, message), message)
+	end)
+end, { desc = "LLM scoped message with selection (detached)" })
