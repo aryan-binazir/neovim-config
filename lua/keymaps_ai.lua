@@ -185,7 +185,7 @@ vim.keymap.set("n", "<leader>cc", function()
 end, { desc = "Open Claude Code in tmux split" })
 
 vim.keymap.set("n", "<leader>cd", function()
-	toggle_ai_split("codex")
+	toggle_ai_split("cdx")
 end, { desc = "Open Codex in tmux split" })
 
 vim.keymap.set("n", "<leader>cu", function()
@@ -218,7 +218,8 @@ vim.keymap.set("n", "<leader>cq", function()
 	end
 end, { desc = "Close AI pane" })
 
-local scoped_prefix = "SCOPE: only this location; no other files; no refactors/formatting; minimal diff, then stop; ask if unclear. "
+local scoped_prefix =
+	"SCOPE: only this location; no other files; no refactors/formatting; minimal diff, then stop; ask if unclear. "
 
 local function scoped_prompt(location, message)
 	return scoped_prefix .. "Location: " .. location .. " Message: " .. message
