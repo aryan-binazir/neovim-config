@@ -252,6 +252,13 @@ end
 
 local function send_scoped_message(location, message)
 	local prompt = scoped_prompt(location, message)
+	local submit_delay_ms = 75
+
+	local function send_submit_key(target_pane)
+		vim.defer_fn(function()
+			vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " C-m")
+		end, submit_delay_ms)
+	end
 
 	local function make_send_prompt(target_pane)
 		return function()
@@ -268,7 +275,7 @@ local function send_scoped_message(location, message)
 			vim.fn.system(
 				"tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " -l " .. vim.fn.shellescape(prompt)
 			)
-			vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " Enter")
+			send_submit_key(target_pane)
 		end
 	end
 
