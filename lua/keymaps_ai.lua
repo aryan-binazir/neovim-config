@@ -181,15 +181,15 @@ local function toggle_ai_split(cmd)
 end
 
 vim.keymap.set("n", "<leader>cc", function()
-	toggle_ai_split("cc")
+	toggle_ai_split("acc")
 end, { desc = "Open Claude Code in tmux split" })
 
 vim.keymap.set("n", "<leader>cd", function()
-	toggle_ai_split("cdx")
+	toggle_ai_split("acd")
 end, { desc = "Open Codex in tmux split" })
 
 vim.keymap.set("n", "<leader>cu", function()
-	toggle_ai_split("cur")
+	toggle_ai_split("acu")
 end, { desc = "Open Cursor-agent in tmux split" })
 
 vim.keymap.set("n", "<leader>cg", function()
@@ -197,7 +197,7 @@ vim.keymap.set("n", "<leader>cg", function()
 end, { desc = "Open Gemini in tmux split" })
 
 vim.keymap.set("n", "<leader>co", function()
-	toggle_ai_split("opencode")
+	toggle_ai_split("aco")
 end, { desc = "Open OpenCode in tmux split" })
 
 vim.keymap.set("n", "<leader>cp", function()
@@ -226,11 +226,11 @@ local function scoped_prompt(location, message)
 end
 
 local ai_pane_cmds = {
-	cc = true,
-	codex = true,
-	cur = true,
+	acc = true,
+	acd = true,
+	acu = true,
 	gemini = true,
-	opencode = true,
+	aco = true,
 }
 
 local function find_ai_pane_in_window()
@@ -294,7 +294,7 @@ local function send_scoped_message(location, message)
 	local pane_id = vim.fn.system(
 		'tmux split-window -h -p 35 -d -P -F "#{pane_id}" -c '
 			.. vim.fn.shellescape(vim.fn.getcwd())
-			.. " '$SHELL -ic cc'"
+			.. " '$SHELL -ic acc'"
 	)
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
