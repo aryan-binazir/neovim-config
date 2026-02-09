@@ -193,7 +193,7 @@ vim.keymap.set("n", "<leader>cu", function()
 end, { desc = "Open Cursor-agent in tmux split" })
 
 vim.keymap.set("n", "<leader>cg", function()
-	toggle_ai_split("gemini")
+	toggle_ai_split("acg")
 end, { desc = "Open Gemini in tmux split" })
 
 vim.keymap.set("n", "<leader>co", function()
@@ -229,9 +229,22 @@ local ai_pane_cmds = {
 	acc = true,
 	acd = true,
 	acu = true,
-	gemini = true,
+	acg = true,
 	aco = true,
 }
+
+local function pane_current_command(pane_id)
+	if not pane_id or pane_id == "" then
+		return nil
+	end
+	local cmd = vim.fn.system(
+		"tmux display-message -t " .. vim.fn.shellescape(pane_id) .. " -p '#{pane_current_command}' 2>/dev/null"
+	)
+	if vim.v.shell_error ~= 0 then
+		return nil
+	end
+	return vim.trim(cmd)
+end
 
 local function find_ai_pane_in_window()
 	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{pane_active}\t#{pane_current_command}" 2>/dev/null')
@@ -253,11 +266,34 @@ end
 local function send_scoped_message(location, message)
 	local prompt = scoped_prompt(location, message)
 	local submit_delay_ms = 75
+	local confirm_patterns = { "press enter", "confirm", "are you sure" }
 
-	local function send_submit_key(target_pane)
+	local function send_submit_key(target_pane, count)
+		local repeats = count or 1
 		vim.defer_fn(function()
-			vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " C-m")
+			for _ = 1, repeats do
+				vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " C-m")
+			end
 		end, submit_delay_ms)
+	end
+
+	local function pane_needs_confirm(target_pane)
+		if pane_current_command(target_pane) ~= "acd" then
+			return false
+		end
+		local output = vim.fn.system(
+			"tmux capture-pane -t " .. vim.fn.shellescape(target_pane) .. " -p -S -10 2>/dev/null"
+		)
+		if vim.v.shell_error ~= 0 then
+			return false
+		end
+		local normalized = string.lower(output)
+		for _, pattern in ipairs(confirm_patterns) do
+			if string.find(normalized, pattern, 1, true) then
+				return true
+			end
+		end
+		return false
 	end
 
 	local function make_send_prompt(target_pane)
@@ -275,7 +311,12 @@ local function send_scoped_message(location, message)
 			vim.fn.system(
 				"tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " -l " .. vim.fn.shellescape(prompt)
 			)
-			send_submit_key(target_pane)
+			send_submit_key(target_pane, 1)
+			vim.defer_fn(function()
+				if pane_needs_confirm(target_pane) then
+					send_submit_key(target_pane, 1)
+				end
+			end, 150)
 		end
 	end
 
