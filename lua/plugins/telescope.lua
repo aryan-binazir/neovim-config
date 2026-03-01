@@ -61,6 +61,7 @@ return {
 					mappings = {
 						i = {
 							["<c-d>"] = "delete_buffer",
+						["<C-p>"] = require("telescope.actions.layout").toggle_preview,
 						},
 					},
 				},
