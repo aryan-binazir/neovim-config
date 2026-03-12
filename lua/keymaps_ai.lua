@@ -16,7 +16,7 @@ local function send_to_ai_pane(text, focus)
 	if not vim.g.ai_pane_id then
 		return
 	end
-	vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " " .. vim.fn.shellescape(text))
+	vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " -l " .. vim.fn.shellescape(text))
 	if focus then
 		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 	end
@@ -63,7 +63,8 @@ vim.keymap.set("n", "<leader>yh", function()
 	local cwd = vim.fn.getcwd() .. "/"
 	for _, item in ipairs(harpoon:list().items) do
 		if item.value and item.value ~= "" then
-			table.insert(paths, cwd .. item.value)
+			local path = item.value:sub(1, 1) == "/" and item.value or (cwd .. item.value)
+			table.insert(paths, path)
 		end
 	end
 	yank_paths(paths, "harpoon paths")
@@ -105,15 +106,19 @@ end
 -- Yank selection reference (path:lines only)
 vim.keymap.set("v", "<leader>ys", function()
 	yank_selection(false)
-end, { desc = "Yank file path and line numbers" })
+end, { desc = "Yank file path and line numbers (full lines)" })
 
 -- Yank selection with code (path:lines + code content)
 vim.keymap.set("v", "<leader>yc", function()
 	yank_selection(true)
-end, { desc = "Yank file path, lines, and code" })
+end, { desc = "Yank file path, lines, and code (full lines)" })
 
 -- AI tools in tmux splits
 vim.g.ai_pane_id = nil
+
+local function tmux_available()
+	return vim.fn.executable("tmux") == 1
+end
 
 local function ai_pane_alive()
 	if not vim.g.ai_pane_id then
@@ -127,6 +132,10 @@ end
 
 -- Send selection to AI pane
 vim.keymap.set("v", "<leader>cx", function()
+	if not tmux_available() then
+		print("tmux not available")
+		return
+	end
 	local result = yank_selection(false, true)
 	if ai_pane_alive() then
 		send_to_ai_pane(result .. " ", true)
@@ -159,6 +168,10 @@ vim.keymap.set("n", "<leader>yo", function()
 end, { desc = "Yank all file paths in Oil directory" })
 
 local function toggle_ai_split(cmd)
+	if not tmux_available() then
+		print("tmux not available")
+		return
+	end
 	if ai_pane_alive() then
 		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 		vim.g.ai_pane_id = nil
@@ -254,9 +267,8 @@ local function find_ai_pane_in_window()
 	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
 		local parts = vim.split(line, "\t", { plain = true })
 		local pane_id = parts[1]
-		local active = parts[2]
 		local cmd = parts[3]
-		if active == "0" and ai_pane_cmds[cmd] and pane_id and pane_id ~= "" then
+		if ai_pane_cmds[cmd] and pane_id and pane_id ~= "" then
 			return pane_id
 		end
 	end
