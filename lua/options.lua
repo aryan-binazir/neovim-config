@@ -10,6 +10,10 @@ vim.o.hlsearch = false
 vim.wo.relativenumber = true
 vim.wo.number = true
 vim.o.mouse = "a"
+-- Fall back to OSC52 when no X11/Wayland clipboard is available on Linux.
+if vim.fn.has("linux") == 1 and vim.env.WAYLAND_DISPLAY == nil and vim.env.DISPLAY == nil then
+	vim.g.clipboard = "osc52"
+end
 vim.o.clipboard = "unnamedplus"
 vim.o.breakindent = true
 vim.o.tabstop = 4
