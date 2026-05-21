@@ -115,6 +115,8 @@ end, { desc = "Yank file path, lines, and code (full lines)" })
 
 -- AI tools in tmux splits
 vim.g.ai_pane_id = nil
+local ai_pane_marker = "@nvim_ai_pane"
+local ai_pane_cmd_option = "@nvim_ai_cmd"
 
 local function tmux_available()
 	return vim.fn.executable("tmux") == 1
@@ -130,6 +132,28 @@ local function ai_pane_alive()
 	return vim.trim(check) ~= ""
 end
 
+local function tmux_set_pane_option(pane_id, option, value)
+	vim.fn.system(
+		"tmux set-option -p -t "
+			.. vim.fn.shellescape(pane_id)
+			.. " "
+			.. vim.fn.shellescape(option)
+			.. " "
+			.. vim.fn.shellescape(value)
+			.. " 2>/dev/null"
+	)
+end
+
+local function mark_ai_pane(pane_id, cmd)
+	if not pane_id or pane_id == "" then
+		return
+	end
+	tmux_set_pane_option(pane_id, ai_pane_marker, "1")
+	tmux_set_pane_option(pane_id, ai_pane_cmd_option, cmd)
+end
+
+local ensure_ai_pane
+
 -- Send selection to AI pane
 vim.keymap.set("v", "<leader>cx", function()
 	if not tmux_available() then
@@ -137,7 +161,7 @@ vim.keymap.set("v", "<leader>cx", function()
 		return
 	end
 	local result = yank_selection(false, true)
-	if ai_pane_alive() then
+	if ensure_ai_pane() then
 		send_to_ai_pane(result .. " ", true)
 	else
 		print("AI pane closed.")
@@ -172,7 +196,7 @@ local function toggle_ai_split(cmd)
 		print("tmux not available")
 		return
 	end
-	if ai_pane_alive() then
+	if ensure_ai_pane() then
 		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 		vim.g.ai_pane_id = nil
 		print("AI pane closed")
@@ -190,6 +214,7 @@ local function toggle_ai_split(cmd)
 		print("Failed to create tmux split")
 		return
 	end
+	mark_ai_pane(pane_id, cmd)
 	vim.g.ai_pane_id = pane_id
 end
 
@@ -201,20 +226,12 @@ vim.keymap.set("n", "<leader>cd", function()
 	toggle_ai_split("acd")
 end, { desc = "Open Codex in tmux split" })
 
-vim.keymap.set("n", "<leader>cu", function()
-	toggle_ai_split("acu")
-end, { desc = "Open Cursor-agent in tmux split" })
-
-vim.keymap.set("n", "<leader>cg", function()
-	toggle_ai_split("acg")
-end, { desc = "Open Gemini in tmux split" })
-
 vim.keymap.set("n", "<leader>co", function()
 	toggle_ai_split("aco")
 end, { desc = "Open OpenCode in tmux split" })
 
 vim.keymap.set("n", "<leader>cp", function()
-	if ai_pane_alive() then
+	if ensure_ai_pane() then
 		send_to_ai_pane(vim.fn.expand("%:p") .. " ", true)
 	else
 		print("AI pane closed. Use <leader>cc to open.")
@@ -222,7 +239,7 @@ vim.keymap.set("n", "<leader>cp", function()
 end, { desc = "Send file path to AI pane" })
 
 vim.keymap.set("n", "<leader>cq", function()
-	if ai_pane_alive() then
+	if ensure_ai_pane() then
 		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
 		vim.g.ai_pane_id = nil
 		print("AI pane closed")
@@ -241,8 +258,6 @@ end
 local ai_pane_cmds = {
 	acc = true,
 	acd = true,
-	acu = true,
-	acg = true,
 	aco = true,
 }
 
@@ -260,19 +275,41 @@ local function pane_current_command(pane_id)
 end
 
 local function find_ai_pane_in_window()
-	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{pane_active}\t#{pane_current_command}" 2>/dev/null')
+	local out = vim.fn.system(
+		'tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}\t#{pane_current_command}" 2>/dev/null'
+	)
 	if vim.v.shell_error ~= 0 then
 		return nil
 	end
+
+	local fallback = nil
 	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
 		local parts = vim.split(line, "\t", { plain = true })
 		local pane_id = parts[1]
+		local marked = parts[2]
 		local cmd = parts[3]
-		if ai_pane_cmds[cmd] and pane_id and pane_id ~= "" then
+		if marked == "1" and pane_id and pane_id ~= "" then
 			return pane_id
 		end
+		if not fallback and ai_pane_cmds[cmd] and pane_id and pane_id ~= "" then
+			fallback = pane_id
+		end
 	end
-	return nil
+	return fallback
+end
+
+ensure_ai_pane = function()
+	if ai_pane_alive() then
+		return true
+	end
+
+	local existing = find_ai_pane_in_window()
+	if existing then
+		vim.g.ai_pane_id = existing
+		return true
+	end
+
+	return false
 end
 
 local function send_scoped_message(location, message)
@@ -332,14 +369,7 @@ local function send_scoped_message(location, message)
 		end
 	end
 
-	if not ai_pane_alive() then
-		local existing = find_ai_pane_in_window()
-		if existing then
-			vim.g.ai_pane_id = existing
-		end
-	end
-
-	if ai_pane_alive() then
+	if ensure_ai_pane() then
 		vim.defer_fn(make_send_prompt(vim.g.ai_pane_id), 300)
 		return "sent"
 	end
@@ -354,6 +384,7 @@ local function send_scoped_message(location, message)
 		print("Failed to create tmux split")
 		return "failed"
 	end
+	mark_ai_pane(pane_id, "acc")
 	vim.g.ai_pane_id = pane_id
 	vim.defer_fn(make_send_prompt(pane_id), 2500)
 	return "started"
