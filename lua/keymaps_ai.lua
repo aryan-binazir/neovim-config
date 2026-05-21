@@ -248,8 +248,11 @@ vim.keymap.set("n", "<leader>cq", function()
 	end
 end, { desc = "Close AI pane" })
 
-local scoped_prefix =
-	"SCOPE: only this location; no other files; no refactors/formatting; minimal diff, then stop; ask if unclear. "
+local scoped_prefix = "SCOPE: read the given location first, then make the smallest change that "
+	.. "solves the request. No unrelated refactors or formatting. Prefer keeping "
+	.. "the change to this location; touch other files only if strictly required. "
+	.. "If the request is ambiguous or would change behavior, ask before editing. "
+	.. "Stop when done. "
 
 local function scoped_prompt(location, message)
 	return scoped_prefix .. "Location: " .. location .. " Message: " .. message
@@ -377,7 +380,7 @@ local function send_scoped_message(location, message)
 end
 
 -- Quick scoped message: sends to existing AI pane, or opens cc in background
-vim.keymap.set("n", "<leader>cv", function()
+vim.keymap.set("n", "<leader>cf", function()
 	local file = vim.fn.expand("%:p")
 	local line = vim.fn.line(".")
 	local message = vim.fn.input("LLM Message: ")
@@ -386,10 +389,10 @@ vim.keymap.set("n", "<leader>cv", function()
 	end
 
 	print_send_status(send_scoped_message(file .. ":" .. line, message), message)
-end, { desc = "LLM scoped message (detached)" })
+end, { desc = "LLM fix message (detached)" })
 
 -- Visual mode: scoped message with line range
-vim.keymap.set("v", "<leader>cv", function()
+vim.keymap.set("v", "<leader>cf", function()
 	local start_line = vim.fn.line("v")
 	local end_line = vim.fn.line(".")
 	if start_line > end_line then
@@ -406,4 +409,4 @@ vim.keymap.set("v", "<leader>cv", function()
 		end
 		print_send_status(send_scoped_message(file .. ":" .. range, message), message)
 	end)
-end, { desc = "LLM scoped message with selection (detached)" })
+end, { desc = "LLM fix message with selection (detached)" })
