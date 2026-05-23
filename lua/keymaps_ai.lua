@@ -415,6 +415,12 @@ local function cf_prune_log_files()
 			active_logs[job.log_path] = true
 		end
 	end
+	if cf_list_state and cf_list_state.mode == "log" and cf_list_state.selected_job_id then
+		local viewed_job = cf_find_job(cf_list_state.selected_job_id)
+		if viewed_job then
+			active_logs[viewed_job.log_path] = true
+		end
+	end
 
 	local files = vim.fn.globpath(cf_jobs_dir, "*.log", false, true)
 	table.sort(files, function(a, b)
@@ -613,9 +619,11 @@ cf_render_list = function()
 			end
 		end
 	elseif not line_to_job[target_row] then
-		for row, _ in pairs(line_to_job) do
-			target_row = row
-			break
+		for row = 1, #lines do
+			if line_to_job[row] then
+				target_row = row
+				break
+			end
 		end
 	end
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
@@ -630,7 +638,10 @@ cf_open_job_log = function(job)
 		return
 	end
 	if vim.fn.filereadable(job.log_path) ~= 1 then
-		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+		if not job.log_missing_warned then
+			job.log_missing_warned = true
+			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+		end
 		return
 	end
 	if not cf_list_state then
