@@ -27,7 +27,7 @@ local function print_send_status(status, message)
 	if status == "sent" then
 		print("LLM message sent: " .. message)
 	elseif status == "started" then
-		print("Opened cc and sent: " .. message)
+		print("Opened Codex and sent: " .. message)
 	elseif status == "failed" then
 		print("Failed to send message")
 	end
@@ -366,20 +366,20 @@ local function send_scoped_message(location, message)
 	local pane_id = vim.fn.system(
 		'tmux split-window -h -p 35 -d -P -F "#{pane_id}" -c '
 			.. vim.fn.shellescape(vim.fn.getcwd())
-			.. " '$SHELL -ic accd'"
+			.. " '$SHELL -ic acdd'"
 	)
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
 		print("Failed to create tmux split")
 		return "failed"
 	end
-	mark_ai_pane(pane_id, "accd")
+	mark_ai_pane(pane_id, "acdd")
 	vim.g.ai_pane_id = pane_id
 	vim.defer_fn(make_send_prompt(pane_id), 2500)
 	return "started"
 end
 
--- Quick scoped message: sends to existing AI pane, or opens cc in background
+-- Quick scoped message: sends to existing AI pane, or opens Codex in background
 vim.keymap.set("n", "<leader>cf", function()
 	local file = vim.fn.expand("%:p")
 	local line = vim.fn.line(".")
