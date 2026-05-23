@@ -345,7 +345,7 @@ local function cf_set_progress(job, status, message, percent)
 	job.progress_id = vim.api.nvim_echo({ { message } }, false, opts)
 end
 
-local function cf_append_block(lines, text)
+local function cf_append_lines(lines, text)
 	if not text or text == "" then
 		table.insert(lines, "(empty)")
 		return
@@ -355,7 +355,7 @@ local function cf_append_block(lines, text)
 	end
 end
 
-local function cf_write_log(job, result)
+local function cf_start_log(job)
 	vim.fn.mkdir(cf_log_dir, "p")
 	if vim.fn.filereadable(cf_last_log) == 1 then
 		vim.fn.rename(cf_last_log, cf_prev_log)
@@ -376,15 +376,31 @@ local function cf_write_log(job, result)
 		"",
 		"Prompt:",
 	}
-	cf_append_block(lines, job.prompt)
+	cf_append_lines(lines, job.prompt)
 	table.insert(lines, "")
-	table.insert(lines, "STDOUT:")
-	cf_append_block(lines, result.stdout)
-	table.insert(lines, "")
-	table.insert(lines, "STDERR:")
-	cf_append_block(lines, result.stderr)
+	table.insert(lines, "Output:")
 
 	vim.fn.writefile(lines, cf_last_log)
+end
+
+local function cf_append_log(stream, data)
+	if not data or data == "" then
+		return
+	end
+	vim.schedule(function()
+		vim.fn.writefile({ "", "[" .. stream .. "]", data }, cf_last_log, "a")
+	end)
+end
+
+local function cf_finish_log(result)
+	local lines = {
+		"",
+		"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
+		"Timed out: " .. tostring(result.code == 124),
+		"Exit code: " .. tostring(result.code),
+		"Signal: " .. tostring(result.signal),
+	}
+	vim.fn.writefile(lines, cf_last_log, "a")
 end
 
 local function cf_open_log()
@@ -451,12 +467,19 @@ local function cf_run(location, message, bufnr)
 		started_at = os.date("%Y-%m-%d %H:%M:%S"),
 	}
 	cf_active_job = job
+	cf_start_log(job)
 	cf_set_progress(job, "running", job.tool .. " running: " .. location, nil)
 
 	local ok_system, handle = pcall(vim.system, cmd, {
 		cwd = repo_root,
 		text = true,
 		stdin = false,
+		stdout = function(_, data)
+			cf_append_log("stdout", data)
+		end,
+		stderr = function(_, data)
+			cf_append_log("stderr", data)
+		end,
 		timeout = cf_timeout_ms,
 	}, function(result)
 		vim.schedule(function()
@@ -464,7 +487,7 @@ local function cf_run(location, message, bufnr)
 				return
 			end
 			cf_active_job = nil
-			cf_write_log(job, result)
+			cf_finish_log(result)
 
 			local status
 			local progress_status = "failed"
