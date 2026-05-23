@@ -704,7 +704,10 @@ cf_render_log = function()
 		return
 	end
 	if vim.fn.filereadable(job.log_path) ~= 1 then
-		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+		if not job.log_missing_warned then
+			job.log_missing_warned = true
+			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+		end
 		return
 	end
 	local stat = vim.uv.fs_stat(job.log_path)
