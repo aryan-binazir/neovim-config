@@ -22,17 +22,6 @@ local function send_to_ai_pane(text, focus)
 	end
 end
 
--- Helper for printing send status
-local function print_send_status(status, message)
-	if status == "sent" then
-		print("LLM message sent: " .. message)
-	elseif status == "started" then
-		print("Opened Codex and sent: " .. message)
-	elseif status == "failed" then
-		print("Failed to send message")
-	end
-end
-
 -- Yank absolute file path
 vim.keymap.set("n", "<leader>yp", function()
 	yank_paths({ vim.fn.expand("%:p") }, "path")
@@ -248,30 +237,6 @@ vim.keymap.set("n", "<leader>cq", function()
 	end
 end, { desc = "Close AI pane" })
 
-local scoped_prefix = "SCOPE: read the given location first, then make the smallest change that "
-	.. "solves the request. No unrelated refactors or formatting. Prefer keeping "
-	.. "the change to this location; touch other files only if strictly required. "
-	.. "If the request is ambiguous or would change behavior, ask before editing. "
-	.. "Stop when done. "
-
-local function scoped_prompt(location, message)
-	return scoped_prefix .. "Location: " .. location .. " Message: " .. message
-end
-
--- Read the agent alias (acc/acd/aco) stored on the pane when it was opened.
-local function pane_ai_cmd(pane_id)
-	if not pane_id or pane_id == "" then
-		return nil
-	end
-	local cmd = vim.fn.system(
-		"tmux display-message -t " .. vim.fn.shellescape(pane_id) .. " -p '#{@nvim_ai_cmd}' 2>/dev/null"
-	)
-	if vim.v.shell_error ~= 0 then
-		return nil
-	end
-	return vim.trim(cmd)
-end
-
 -- Find a pane this config marked, so it survives nvim closing and reopening.
 local function find_ai_pane_in_window()
 	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
@@ -301,98 +266,274 @@ ensure_ai_pane = function()
 	return false
 end
 
-local function send_scoped_message(location, message)
-	local prompt = scoped_prompt(location, message)
-	local submit_delay_ms = 75
-	local confirm_patterns = { "press enter", "confirm", "are you sure" }
+local cf_tool = "codex" -- "codex" | "claude"
+local cf_timeout_ms = 15 * 60 * 1000
+local cf_active_job = nil
+local cf_log_dir = vim.fn.stdpath("cache") .. "/llm-exec"
+local cf_last_log = cf_log_dir .. "/last.log"
+local cf_prev_log = cf_log_dir .. "/prev.log"
 
-	local function send_submit_key(target_pane, count)
-		local repeats = count or 1
-		vim.defer_fn(function()
-			for _ = 1, repeats do
-				vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " C-m")
-			end
-		end, submit_delay_ms)
-	end
-
-	local function pane_needs_confirm(target_pane)
-		if pane_ai_cmd(target_pane) ~= "acdd" then
-			return false
-		end
-		local output = vim.fn.system(
-			"tmux capture-pane -t " .. vim.fn.shellescape(target_pane) .. " -p -S -10 2>/dev/null"
-		)
-		if vim.v.shell_error ~= 0 then
-			return false
-		end
-		local normalized = string.lower(output)
-		for _, pattern in ipairs(confirm_patterns) do
-			if string.find(normalized, pattern, 1, true) then
-				return true
-			end
-		end
-		return false
-	end
-
-	local function make_send_prompt(target_pane)
-		return function()
-			if not target_pane or target_pane == "" then
-				return
-			end
-			local check = vim.fn.system(
-				"tmux display-message -t " .. vim.fn.shellescape(target_pane) .. " -p '#{pane_id}' 2>/dev/null"
-			)
-			if vim.trim(check) == "" then
-				print("AI pane closed before message sent")
-				return
-			end
-			vim.fn.system(
-				"tmux send-keys -t " .. vim.fn.shellescape(target_pane) .. " -l " .. vim.fn.shellescape(prompt)
-			)
-			send_submit_key(target_pane, 1)
-			vim.defer_fn(function()
-				if pane_needs_confirm(target_pane) then
-					send_submit_key(target_pane, 1)
-				end
-			end, 150)
-		end
-	end
-
-	if ensure_ai_pane() then
-		vim.defer_fn(make_send_prompt(vim.g.ai_pane_id), 300)
-		return "sent"
-	end
-
-	local pane_id = vim.fn.system(
-		'tmux split-window -h -p 35 -d -P -F "#{pane_id}" -c '
-			.. vim.fn.shellescape(vim.fn.getcwd())
-			.. " '$SHELL -ic acdd'"
-	)
-	pane_id = vim.trim(pane_id)
-	if pane_id == "" then
-		print("Failed to create tmux split")
-		return "failed"
-	end
-	mark_ai_pane(pane_id, "acdd")
-	vim.g.ai_pane_id = pane_id
-	vim.defer_fn(make_send_prompt(pane_id), 2500)
-	return "started"
+local function cf_location_label(file, range)
+	return file .. ":" .. range
 end
 
--- Quick scoped message: sends to existing AI pane, or opens Codex in background
+local function cf_prompt(location, message)
+	return table.concat({
+		"You are running as a one-shot editor task from Neovim.",
+		"",
+		"Read the given location first, then make the smallest useful change that satisfies the request.",
+		"Prefer editing the given location or its immediate surrounding code when that is enough.",
+		"If the request requires edits elsewhere, make the necessary edits.",
+		"",
+		"If you edit files outside the given location, add a brief note near the originally given location explaining:",
+		"- which other files you touched",
+		"- why those edits were necessary",
+		"",
+		"Avoid unrelated refactors, broad cleanup, or formatting-only churn.",
+		"Do not ask follow-up questions.",
+		"Stop when the requested change is complete.",
+		"",
+		"Location: " .. location,
+		"Request: " .. message,
+	}, "\n")
+end
+
+local function cf_repo_root(file)
+	local dir = vim.fs.dirname(file)
+	return vim.fs.root(dir, ".git") or vim.fn.getcwd()
+end
+
+local function cf_command(tool, repo_root, prompt)
+	if tool == "codex" then
+		return {
+			"codex",
+			"exec",
+			"--cd",
+			repo_root,
+			"--sandbox",
+			"workspace-write",
+			"--ask-for-approval",
+			"never",
+			"--color",
+			"never",
+			prompt,
+		}
+	end
+	if tool == "claude" then
+		return {
+			"claude",
+			"-p",
+			"--permission-mode",
+			"bypassPermissions",
+			prompt,
+		}
+	end
+	return nil, "Unknown cf_tool: " .. tostring(tool)
+end
+
+local function cf_set_progress(job, status, message, percent)
+	local opts = {
+		kind = "progress",
+		source = "nvim",
+		status = status,
+		title = job.title,
+		percent = percent,
+	}
+	if job.progress_id then
+		opts.id = job.progress_id
+	end
+	job.progress_id = vim.api.nvim_echo({ { message } }, false, opts)
+end
+
+local function cf_append_block(lines, text)
+	if not text or text == "" then
+		table.insert(lines, "(empty)")
+		return
+	end
+	for _, line in ipairs(vim.split(text, "\n", { plain = true })) do
+		table.insert(lines, line)
+	end
+end
+
+local function cf_write_log(job, result)
+	vim.fn.mkdir(cf_log_dir, "p")
+	if vim.fn.filereadable(cf_last_log) == 1 then
+		vim.fn.rename(cf_last_log, cf_prev_log)
+	end
+
+	local command = vim.deepcopy(job.cmd)
+	command[#command] = "[prompt]"
+	local lines = {
+		"Tool: " .. job.tool,
+		"Repo: " .. job.repo_root,
+		"Location: " .. job.location,
+		"Started: " .. job.started_at,
+		"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
+		"Timed out: " .. tostring(result.code == 124),
+		"Exit code: " .. tostring(result.code),
+		"Signal: " .. tostring(result.signal),
+		"Command: " .. table.concat(command, " "),
+		"",
+		"Prompt:",
+	}
+	cf_append_block(lines, job.prompt)
+	table.insert(lines, "")
+	table.insert(lines, "STDOUT:")
+	cf_append_block(lines, result.stdout)
+	table.insert(lines, "")
+	table.insert(lines, "STDERR:")
+	cf_append_block(lines, result.stderr)
+
+	vim.fn.writefile(lines, cf_last_log)
+end
+
+local function cf_open_log()
+	if vim.fn.filereadable(cf_last_log) ~= 1 then
+		vim.notify("No LLM exec log found", vim.log.levels.WARN)
+		return
+	end
+	vim.cmd("tabedit " .. vim.fn.fnameescape(cf_last_log))
+end
+
+local function cf_write_buffer(bufnr)
+	if not vim.api.nvim_buf_is_valid(bufnr) then
+		return false, "Current buffer is no longer valid"
+	end
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	if file == "" then
+		return false, "Current buffer has no file name"
+	end
+	if vim.bo[bufnr].buftype ~= "" then
+		return false, "Current buffer is not a normal file"
+	end
+	if not vim.bo[bufnr].modified then
+		return true, nil
+	end
+	local ok, err = pcall(function()
+		vim.api.nvim_buf_call(bufnr, function()
+			vim.cmd("silent write")
+		end)
+	end)
+	if not ok then
+		return false, tostring(err)
+	end
+	return true, nil
+end
+
+local function cf_run(location, message, bufnr)
+	if cf_active_job then
+		vim.notify("LLM exec already running from this Neovim session", vim.log.levels.WARN)
+		return
+	end
+
+	local ok, err = cf_write_buffer(bufnr)
+	if not ok then
+		vim.notify("LLM exec not started: " .. err, vim.log.levels.ERROR)
+		return
+	end
+
+	local file = vim.api.nvim_buf_get_name(bufnr)
+	local repo_root = cf_repo_root(file)
+	local prompt = cf_prompt(location, message)
+	local cmd, cmd_err = cf_command(cf_tool, repo_root, prompt)
+	if not cmd then
+		vim.notify(cmd_err, vim.log.levels.ERROR)
+		return
+	end
+
+	local job = {
+		tool = cf_tool,
+		title = "cf " .. cf_tool,
+		location = location,
+		repo_root = repo_root,
+		prompt = prompt,
+		cmd = cmd,
+		started_at = os.date("%Y-%m-%d %H:%M:%S"),
+	}
+	cf_active_job = job
+	cf_set_progress(job, "running", cf_tool .. " running: " .. location, nil)
+
+	local ok_system, handle = pcall(vim.system, cmd, {
+		cwd = repo_root,
+		text = true,
+		stdin = false,
+		timeout = cf_timeout_ms,
+	}, function(result)
+		vim.schedule(function()
+			if cf_active_job ~= job then
+				return
+			end
+			cf_active_job = nil
+			cf_write_log(job, result)
+
+			if result.code == 0 then
+				cf_set_progress(job, "success", cf_tool .. " done: " .. location, 100)
+				vim.notify(cf_tool .. " done: " .. location)
+				vim.cmd("checktime")
+				return
+			end
+
+			local status
+			local progress_status = "failed"
+			if job.cancelled then
+				status = "cancelled"
+				progress_status = "cancel"
+			elseif result.code == 124 then
+				status = "timed out"
+			else
+				status = "failed"
+			end
+			cf_set_progress(job, progress_status, cf_tool .. " " .. status .. ": " .. location, 100)
+			vim.notify(cf_tool .. " " .. status .. "; use <leader>cl for log", vim.log.levels.ERROR)
+		end)
+	end)
+
+	if not ok_system then
+		cf_active_job = nil
+		cf_set_progress(job, "failed", cf_tool .. " failed to start", 100)
+		vim.notify("Failed to start " .. cf_tool .. ": " .. tostring(handle), vim.log.levels.ERROR)
+		return
+	end
+	job.handle = handle
+end
+
+local function cf_cancel()
+	if not cf_active_job then
+		vim.notify("No LLM exec job running")
+		return
+	end
+	local job = cf_active_job
+	job.cancelled = true
+	if job.handle then
+		job.handle:kill(15)
+	end
+	cf_set_progress(job, "cancel", cf_tool .. " cancelled: " .. job.location, 100)
+	vim.notify(cf_tool .. " cancelled; use <leader>cl for log", vim.log.levels.WARN)
+end
+
+vim.keymap.set("n", "<leader>cl", cf_open_log, { desc = "Open last LLM exec log" })
+vim.keymap.set("n", "<leader>cK", cf_cancel, { desc = "Cancel LLM exec job" })
+
+-- Quick scoped message: runs a one-shot editor task through cf_tool.
 vim.keymap.set("n", "<leader>cf", function()
+	local bufnr = vim.api.nvim_get_current_buf()
 	local file = vim.fn.expand("%:p")
+	if file == "" then
+		vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
+		return
+	end
 	local line = vim.fn.line(".")
 	local message = vim.fn.input("LLM Message: ")
 	if message == "" then
 		return
 	end
 
-	print_send_status(send_scoped_message(file .. ":" .. line, message), message)
-end, { desc = "LLM fix message (detached)" })
+	cf_run(cf_location_label(file, tostring(line)), message, bufnr)
+end, { desc = "Run scoped LLM fix" })
 
 -- Visual mode: scoped message with line range
 vim.keymap.set("v", "<leader>cf", function()
+	local bufnr = vim.api.nvim_get_current_buf()
 	local start_line = vim.fn.line("v")
 	local end_line = vim.fn.line(".")
 	if start_line > end_line then
@@ -407,6 +548,6 @@ vim.keymap.set("v", "<leader>cf", function()
 		if message == "" then
 			return
 		end
-		print_send_status(send_scoped_message(file .. ":" .. range, message), message)
+		cf_run(cf_location_label(file, range), message, bufnr)
 	end)
-end, { desc = "LLM fix message with selection (detached)" })
+end, { desc = "Run scoped LLM fix with selection" })
