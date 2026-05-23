@@ -438,9 +438,7 @@ end
 local function cf_prune_log_files()
 	local active_logs = {}
 	for _, job in ipairs(cf_jobs) do
-		if job.status == "running" or job.status == "cancelling" then
-			active_logs[job.log_path] = true
-		end
+		active_logs[job.log_path] = true
 	end
 	if cf_list_state and cf_list_state.mode == "log" and cf_list_state.selected_job_id then
 		local viewed_job = cf_find_job(cf_list_state.selected_job_id)
@@ -640,14 +638,14 @@ cf_render_list = function()
 	cf_set_lines(cf_list_state.buf, lines)
 
 	local target_row = current_row or 5
-	if selected_id and (not current_row or row_job_id or not line_to_job[target_row]) then
+	if selected_id and not current_row then
 		for row, id in pairs(line_to_job) do
 			if id == selected_id then
 				target_row = row
 				break
 			end
 		end
-	elseif not line_to_job[target_row] then
+	elseif not current_row and not line_to_job[target_row] then
 		for row = 1, #lines do
 			if line_to_job[row] then
 				target_row = row
@@ -658,7 +656,9 @@ cf_render_list = function()
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(cf_list_state.buf))
 		target_row = math.min(target_row, max_row)
-		vim.api.nvim_win_set_cursor(cf_list_state.win, { target_row, 0 })
+		if target_row ~= current_row then
+			vim.api.nvim_win_set_cursor(cf_list_state.win, { target_row, 0 })
+		end
 	end
 end
 
@@ -801,8 +801,10 @@ end
 
 local function cf_open_list()
 	local buf = cf_list_buf()
-	local width = math.min(120, math.max(72, math.floor(vim.o.columns * 0.8)))
-	local height = math.min(24, math.max(12, math.floor(vim.o.lines * 0.55)))
+	local max_width = math.max(1, vim.o.columns - 4)
+	local max_height = math.max(1, vim.o.lines - 4)
+	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
+	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
 	local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
 	local col = math.max(0, math.floor((vim.o.columns - width) / 2))
 	local win
@@ -995,8 +997,8 @@ local function cf_run(location, snippet, message, bufnr)
 			"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
 			"Failed to start: " .. tostring(handle),
 		}, job.log_path, "a")
-		cf_set_progress(job, "failed", job.tool .. " failed to start", 100)
-		vim.notify("Failed to start " .. job.tool .. ": " .. tostring(handle), vim.log.levels.ERROR)
+		cf_set_progress(job, "failed", job.tool .. " failed to start; <leader>cl for log", 100)
+		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
 		if cf_render_list then
 			cf_render_list()
 		end
