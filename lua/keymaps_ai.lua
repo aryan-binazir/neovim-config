@@ -276,6 +276,7 @@ local cf_jobs_dir = cf_log_dir .. "/jobs"
 local cf_jobs = {}
 local cf_next_job_id = 1
 local cf_max_jobs = 50
+local cf_max_log_files = 100
 local cf_list_state = nil
 
 local function cf_location_label(file, range)
@@ -380,7 +381,17 @@ end
 
 local function cf_prune_jobs()
 	while #cf_jobs > cf_max_jobs do
-		table.remove(cf_jobs, 1)
+		local removed = false
+		for i, job in ipairs(cf_jobs) do
+			if job.status ~= "running" and job.status ~= "cancelling" then
+				table.remove(cf_jobs, i)
+				removed = true
+				break
+			end
+		end
+		if not removed then
+			return
+		end
 	end
 end
 
@@ -397,8 +408,30 @@ local function cf_latest_job()
 	return cf_jobs[#cf_jobs]
 end
 
+local function cf_prune_log_files()
+	local active_logs = {}
+	for _, job in ipairs(cf_jobs) do
+		if job.status == "running" or job.status == "cancelling" then
+			active_logs[job.log_path] = true
+		end
+	end
+
+	local files = vim.fn.globpath(cf_jobs_dir, "*.log", false, true)
+	table.sort(files, function(a, b)
+		return vim.fn.getftime(a) < vim.fn.getftime(b)
+	end)
+
+	while #files > cf_max_log_files do
+		local path = table.remove(files, 1)
+		if not active_logs[path] then
+			vim.fn.delete(path)
+		end
+	end
+end
+
 local function cf_start_log(job)
 	vim.fn.mkdir(cf_jobs_dir, "p")
+	cf_prune_log_files()
 
 	local command = vim.deepcopy(job.cmd)
 	command[#command] = "[prompt]"
@@ -536,9 +569,14 @@ cf_render_list = function()
 	end
 
 	local selected_id = cf_list_state.selected_job_id
+	local current_row = nil
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
-		local row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
-		selected_id = cf_list_state.line_to_job and cf_list_state.line_to_job[row] or selected_id
+		current_row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
+		local row_job_id = cf_list_state.line_to_job and cf_list_state.line_to_job[current_row]
+		if row_job_id then
+			selected_id = row_job_id
+			cf_list_state.selected_job_id = row_job_id
+		end
 	end
 
 	local lines = {
@@ -561,7 +599,7 @@ cf_render_list = function()
 	cf_list_state.line_to_job = line_to_job
 	cf_set_lines(cf_list_state.buf, lines)
 
-	local target_row = 5
+	local target_row = current_row or 5
 	if selected_id then
 		for row, id in pairs(line_to_job) do
 			if id == selected_id then
@@ -606,17 +644,22 @@ cf_render_log = function()
 		return
 	end
 	local cursor_row = 1
+	local was_at_bottom = true
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		cursor_row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
+		was_at_bottom = cursor_row >= vim.api.nvim_buf_line_count(cf_list_state.buf) - 2
 	end
-	local lines = vim.fn.readfile(job.log_path)
-	table.insert(lines, 1, "LLM job #" .. job.id .. " log")
-	table.insert(lines, 2, "q/<Esc> back to jobs")
-	table.insert(lines, 3, "")
+	local lines = {
+		"LLM job #" .. job.id .. " log",
+		"q/<Esc> back to jobs",
+		"",
+	}
+	vim.list_extend(lines, vim.fn.readfile(job.log_path, "", 1000))
 	cf_set_lines(cf_list_state.buf, lines)
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(cf_list_state.buf))
-		vim.api.nvim_win_set_cursor(cf_list_state.win, { math.min(cursor_row, max_row), 0 })
+		local target_row = was_at_bottom and max_row or math.min(cursor_row, max_row)
+		vim.api.nvim_win_set_cursor(cf_list_state.win, { target_row, 0 })
 	end
 end
 
@@ -669,27 +712,30 @@ local function cf_open_list()
 	cf_list_state.buf = buf
 	cf_list_state.win = win
 	cf_list_state.mode = "list"
-	cf_list_state.selected_job_id = cf_latest_job() and cf_latest_job().id or nil
+	cf_list_state.selected_job_id = cf_list_state.selected_job_id or (cf_latest_job() and cf_latest_job().id) or nil
 
-	local opts = { buffer = buf, silent = true, nowait = true }
-	vim.keymap.set("n", "q", cf_back_or_close, opts)
-	vim.keymap.set("n", "<Esc>", cf_back_or_close, opts)
-	vim.keymap.set("n", "r", cf_refresh_current, opts)
-	vim.keymap.set("n", "<CR>", function()
-		cf_open_job_log(cf_selected_job())
-	end, opts)
-	vim.keymap.set("n", "d", function()
-		cf_cancel_job(cf_selected_job())
-	end, opts)
-	vim.api.nvim_create_autocmd("BufWipeout", {
-		buffer = buf,
-		once = true,
-		callback = function()
-			if cf_list_state and cf_list_state.buf == buf then
-				cf_close_list()
-			end
-		end,
-	})
+	if not vim.b[buf].llm_job_list_mapped then
+		vim.b[buf].llm_job_list_mapped = true
+		local opts = { buffer = buf, silent = true, nowait = true }
+		vim.keymap.set("n", "q", cf_back_or_close, opts)
+		vim.keymap.set("n", "<Esc>", cf_back_or_close, opts)
+		vim.keymap.set("n", "r", cf_refresh_current, opts)
+		vim.keymap.set("n", "<CR>", function()
+			cf_open_job_log(cf_selected_job())
+		end, opts)
+		vim.keymap.set("n", "d", function()
+			cf_cancel_job(cf_selected_job())
+		end, opts)
+		vim.api.nvim_create_autocmd("BufWipeout", {
+			buffer = buf,
+			once = true,
+			callback = function()
+				if cf_list_state and cf_list_state.buf == buf then
+					cf_close_list()
+				end
+			end,
+		})
+	end
 	if not cf_list_state.timer then
 		cf_list_state.timer = vim.uv.new_timer()
 		cf_list_state.timer:start(
@@ -838,8 +884,8 @@ local function cf_run(location, snippet, message, bufnr)
 	job.handle = handle
 end
 
-local function cf_snippet(start_line, end_line)
-	local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+local function cf_snippet(bufnr, start_line, end_line)
+	local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
 	local numbered = {}
 	for i, line in ipairs(lines) do
 		table.insert(numbered, string.format("%d: %s", start_line + i - 1, line))
@@ -851,7 +897,7 @@ local function cf_current_line_snippet()
 	local line = vim.fn.line(".")
 	local start_line = math.max(1, line - 10)
 	local end_line = math.min(vim.api.nvim_buf_line_count(0), line + 10)
-	local snippet = cf_snippet(start_line, end_line)
+	local snippet = cf_snippet(0, start_line, end_line)
 	return line, snippet
 end
 
@@ -896,7 +942,7 @@ vim.keymap.set("v", "<leader>cf", function()
 		if message == "" then
 			return
 		end
-		local snippet = cf_snippet(start_line, end_line)
+		local snippet = cf_snippet(bufnr, start_line, end_line)
 		cf_run(cf_location_label(file, range), snippet, message, bufnr)
 	end)
 end, { desc = "Run scoped LLM fix with selection" })
