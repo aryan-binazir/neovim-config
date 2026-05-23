@@ -361,9 +361,36 @@ local function cf_append_lines(lines, text)
 		table.insert(lines, "(empty)")
 		return
 	end
+	text = tostring(text):gsub("\r\n", "\n"):gsub("\r", "\n")
 	for _, line in ipairs(vim.split(text, "\n", { plain = true })) do
 		table.insert(lines, line)
 	end
+end
+
+local function cf_text_lines(text, opts)
+	if not text then
+		return {}
+	end
+	text = tostring(text)
+	if text == "" then
+		return (opts and opts.drop_trailing_empty) and {} or { "" }
+	end
+	text = text:gsub("\r\n", "\n"):gsub("\r", "\n")
+	local lines = vim.split(text, "\n", { plain = true })
+	if opts and opts.drop_trailing_empty then
+		while lines[#lines] == "" do
+			table.remove(lines)
+		end
+	end
+	return lines
+end
+
+local function cf_normalize_lines(lines)
+	local normalized = {}
+	for _, line in ipairs(lines) do
+		vim.list_extend(normalized, cf_text_lines(line))
+	end
+	return normalized
 end
 
 local function cf_slug(text)
@@ -468,7 +495,9 @@ local function cf_append_log(job, stream, data)
 	end
 	vim.schedule(function()
 		if vim.fn.filereadable(job.log_path) == 1 then
-			vim.fn.writefile({ "", "[" .. stream .. "]", data }, job.log_path, "a")
+			local lines = { "", "[" .. stream .. "]" }
+			vim.list_extend(lines, cf_text_lines(data))
+			vim.fn.writefile(lines, job.log_path, "a")
 		end
 	end)
 end
@@ -566,7 +595,7 @@ end
 
 local function cf_set_lines(buf, lines)
 	vim.bo[buf].modifiable = true
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, cf_normalize_lines(lines))
 	vim.bo[buf].modifiable = false
 end
 
@@ -683,10 +712,7 @@ local function cf_append_log_lines(buf, text)
 	if not text or text == "" then
 		return
 	end
-	local lines = vim.split(text, "\n", { plain = true })
-	if lines[#lines] == "" then
-		table.remove(lines)
-	end
+	local lines = cf_text_lines(text, { drop_trailing_empty = true })
 	if #lines == 0 then
 		return
 	end
