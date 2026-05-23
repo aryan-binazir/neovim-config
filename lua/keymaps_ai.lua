@@ -421,10 +421,14 @@ local function cf_prune_log_files()
 		return vim.fn.getftime(a) < vim.fn.getftime(b)
 	end)
 
-	while #files > cf_max_log_files do
-		local path = table.remove(files, 1)
-		if not active_logs[path] then
+	local i = 1
+	while #files > cf_max_log_files and i <= #files do
+		local path = files[i]
+		if active_logs[path] then
+			i = i + 1
+		else
 			vim.fn.delete(path)
+			table.remove(files, i)
 		end
 	end
 end
@@ -634,7 +638,50 @@ cf_open_job_log = function(job)
 	end
 	cf_list_state.mode = "log"
 	cf_list_state.selected_job_id = job.id
+	cf_list_state.log_cache = nil
 	cf_render_log()
+end
+
+local function cf_log_header(job)
+	return {
+		"LLM job #" .. job.id .. " log",
+		"q/<Esc> back to jobs",
+		"",
+	}
+end
+
+local function cf_log_mtime(stat)
+	if not stat or not stat.mtime then
+		return ""
+	end
+	return tostring(stat.mtime.sec) .. "." .. tostring(stat.mtime.nsec or 0)
+end
+
+local function cf_read_log_delta(path, offset)
+	local file = io.open(path, "rb")
+	if not file then
+		return nil
+	end
+	file:seek("set", offset)
+	local data = file:read("*a")
+	file:close()
+	return data
+end
+
+local function cf_append_log_lines(buf, text)
+	if not text or text == "" then
+		return
+	end
+	local lines = vim.split(text, "\n", { plain = true })
+	if lines[#lines] == "" then
+		table.remove(lines)
+	end
+	if #lines == 0 then
+		return
+	end
+	vim.bo[buf].modifiable = true
+	vim.api.nvim_buf_set_lines(buf, -1, -1, false, lines)
+	vim.bo[buf].modifiable = false
 end
 
 cf_render_log = function()
@@ -649,19 +696,42 @@ cf_render_log = function()
 		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
 		return
 	end
+	local stat = vim.uv.fs_stat(job.log_path)
+	if not stat then
+		return
+	end
 	local cursor_row = 1
 	local was_at_bottom = true
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		cursor_row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
 		was_at_bottom = cursor_row >= vim.api.nvim_buf_line_count(cf_list_state.buf) - 2
 	end
-	local lines = {
-		"LLM job #" .. job.id .. " log",
-		"q/<Esc> back to jobs",
-		"",
+	local mtime = cf_log_mtime(stat)
+	local cache = cf_list_state.log_cache
+	local can_append = cache
+		and cache.job_id == job.id
+		and cache.path == job.log_path
+		and stat.size >= cache.size
+		and vim.api.nvim_buf_is_valid(cf_list_state.buf)
+
+	if can_append and stat.size == cache.size and mtime == cache.mtime then
+		return
+	end
+
+	if can_append then
+		local delta = cf_read_log_delta(job.log_path, cache.size)
+		cf_append_log_lines(cf_list_state.buf, delta)
+	else
+		local lines = cf_log_header(job)
+		vim.list_extend(lines, vim.fn.readfile(job.log_path))
+		cf_set_lines(cf_list_state.buf, lines)
+	end
+	cf_list_state.log_cache = {
+		job_id = job.id,
+		path = job.log_path,
+		size = stat.size,
+		mtime = mtime,
 	}
-	vim.list_extend(lines, vim.fn.readfile(job.log_path))
-	cf_set_lines(cf_list_state.buf, lines)
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(cf_list_state.buf))
 		local target_row = was_at_bottom and max_row or math.min(cursor_row, max_row)
@@ -683,6 +753,7 @@ local function cf_back_or_close()
 	end
 	if cf_list_state.mode == "log" then
 		cf_list_state.mode = "list"
+		cf_list_state.log_cache = nil
 		cf_render_list()
 		return
 	end
