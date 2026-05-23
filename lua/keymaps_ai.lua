@@ -431,7 +431,6 @@ end
 
 local function cf_start_log(job)
 	vim.fn.mkdir(cf_jobs_dir, "p")
-	cf_prune_log_files()
 
 	local command = vim.deepcopy(job.cmd)
 	command[#command] = "[prompt]"
@@ -450,6 +449,7 @@ local function cf_start_log(job)
 	table.insert(lines, "Output:")
 
 	vim.fn.writefile(lines, job.log_path)
+	cf_prune_log_files()
 end
 
 local function cf_append_log(job, stream, data)
@@ -570,9 +570,10 @@ cf_render_list = function()
 
 	local selected_id = cf_list_state.selected_job_id
 	local current_row = nil
+	local row_job_id = nil
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		current_row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
-		local row_job_id = cf_list_state.line_to_job and cf_list_state.line_to_job[current_row]
+		row_job_id = cf_list_state.line_to_job and cf_list_state.line_to_job[current_row]
 		if row_job_id then
 			selected_id = row_job_id
 			cf_list_state.selected_job_id = row_job_id
@@ -600,7 +601,7 @@ cf_render_list = function()
 	cf_set_lines(cf_list_state.buf, lines)
 
 	local target_row = current_row or 5
-	if selected_id then
+	if selected_id and (not current_row or row_job_id) then
 		for row, id in pairs(line_to_job) do
 			if id == selected_id then
 				target_row = row
@@ -654,7 +655,7 @@ cf_render_log = function()
 		"q/<Esc> back to jobs",
 		"",
 	}
-	vim.list_extend(lines, vim.fn.readfile(job.log_path, "", 1000))
+	vim.list_extend(lines, vim.fn.readfile(job.log_path))
 	cf_set_lines(cf_list_state.buf, lines)
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(cf_list_state.buf))
@@ -874,6 +875,11 @@ local function cf_run(location, snippet, message, bufnr)
 	if not ok_system then
 		job.status = "failed"
 		job.finished_at_ts = os.time()
+		vim.fn.writefile({
+			"",
+			"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
+			"Failed to start: " .. tostring(handle),
+		}, job.log_path, "a")
 		cf_set_progress(job, "failed", job.tool .. " failed to start", 100)
 		vim.notify("Failed to start " .. job.tool .. ": " .. tostring(handle), vim.log.levels.ERROR)
 		if cf_render_list then
