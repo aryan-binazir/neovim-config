@@ -601,12 +601,17 @@ cf_render_list = function()
 	cf_set_lines(cf_list_state.buf, lines)
 
 	local target_row = current_row or 5
-	if selected_id and (not current_row or row_job_id) then
+	if selected_id and (not current_row or row_job_id or not line_to_job[target_row]) then
 		for row, id in pairs(line_to_job) do
 			if id == selected_id then
 				target_row = row
 				break
 			end
+		end
+	elseif not line_to_job[target_row] then
+		for row, _ in pairs(line_to_job) do
+			target_row = row
+			break
 		end
 	end
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
