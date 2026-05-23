@@ -969,8 +969,8 @@ local function cf_run(location, snippet, message, bufnr)
 				job.status = "killed"
 			elseif result.code == 0 then
 				job.status = "done"
-				cf_set_progress(job, "success", job.tool .. " done: " .. location, 100)
-				vim.notify(job.tool .. " done: " .. location)
+				cf_set_progress(job, "success", job.tool .. " done; <leader>cl for log", 100)
+				vim.notify(job.tool .. " done; <leader>cl for log")
 				vim.cmd("checktime")
 				if cf_render_list then
 					cf_render_list()
@@ -980,8 +980,8 @@ local function cf_run(location, snippet, message, bufnr)
 				status = "failed"
 				job.status = "failed"
 			end
-			cf_set_progress(job, progress_status, job.tool .. " " .. status .. ": " .. location, 100)
-			vim.notify(job.tool .. " " .. status .. "; use <leader>cl for jobs", notify_level)
+			cf_set_progress(job, progress_status, job.tool .. " " .. status .. "; <leader>cl for log", 100)
+			vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", notify_level)
 			if cf_render_list then
 				cf_render_list()
 			end
