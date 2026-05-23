@@ -266,7 +266,10 @@ ensure_ai_pane = function()
 	return false
 end
 
-local cf_tool = "codex" -- "codex" | "claude"
+local cf_tool = vim.g.cf_tool or "codex" -- "codex" | "claude"
+if cf_tool ~= "codex" and cf_tool ~= "claude" then
+	cf_tool = "codex"
+end
 local cf_timeout_ms = 15 * 60 * 1000
 local cf_active_job = nil
 local cf_log_dir = vim.fn.stdpath("cache") .. "/llm-exec"
@@ -368,10 +371,6 @@ local function cf_start_log(job)
 		"Repo: " .. job.repo_root,
 		"Location: " .. job.location,
 		"Started: " .. job.started_at,
-		"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
-		"Timed out: " .. tostring(result.code == 124),
-		"Exit code: " .. tostring(result.code),
-		"Signal: " .. tostring(result.signal),
 		"Command: " .. table.concat(command, " "),
 		"",
 		"Prompt:",
@@ -492,10 +491,11 @@ local function cf_run(location, message, bufnr)
 			local status
 			local progress_status = "failed"
 			local notify_level = vim.log.levels.ERROR
-			if job.cancelled then
+			if job.cancel_requested and (result.code ~= 0 or (result.signal and result.signal ~= 0)) then
 				status = "cancelled"
 				progress_status = "cancel"
 				notify_level = vim.log.levels.WARN
+				job.cancelled = true
 			elseif result.code == 124 then
 				status = "timed out"
 			elseif result.signal and result.signal ~= 0 then
@@ -528,12 +528,12 @@ local function cf_cancel()
 		return
 	end
 	local job = cf_active_job
-	job.cancelled = true
+	job.cancel_requested = true
 	if job.handle then
 		job.handle:kill(15)
 	end
-	cf_set_progress(job, "cancel", job.tool .. " cancelled: " .. job.location, 100)
-	vim.notify(job.tool .. " cancelled; use <leader>cl for log", vim.log.levels.WARN)
+	cf_set_progress(job, "running", job.tool .. " cancelling: " .. job.location, nil)
+	vim.notify(job.tool .. " cancelling...", vim.log.levels.WARN)
 end
 
 vim.keymap.set("n", "<leader>cl", cf_open_log, { desc = "Open last LLM exec log" })
