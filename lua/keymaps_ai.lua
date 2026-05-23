@@ -575,7 +575,7 @@ local function cf_cancel_job(job)
 	if job.handle then
 		job.handle:kill(15)
 	end
-	cf_set_progress(job, "running", job.tool .. " cancelling: " .. job.location, nil)
+	cf_set_progress(job, "running", job.tool .. " cancelling job #" .. job.id, nil)
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
 	if cf_render_list then
 		cf_render_list()
@@ -608,9 +608,11 @@ cf_render_list = function()
 	local selected_id = cf_list_state.selected_job_id
 	local current_row = nil
 	local row_job_id = nil
+	local prefer_selected = cf_list_state.prefer_selected_job
+	cf_list_state.prefer_selected_job = nil
 	if cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		current_row = vim.api.nvim_win_get_cursor(cf_list_state.win)[1]
-		row_job_id = cf_list_state.line_to_job and cf_list_state.line_to_job[current_row]
+		row_job_id = not prefer_selected and cf_list_state.line_to_job and cf_list_state.line_to_job[current_row]
 		if row_job_id then
 			selected_id = row_job_id
 			cf_list_state.selected_job_id = row_job_id
@@ -638,7 +640,7 @@ cf_render_list = function()
 	cf_set_lines(cf_list_state.buf, lines)
 
 	local target_row = current_row or 5
-	if selected_id and not current_row then
+	if selected_id and (prefer_selected or row_job_id or not current_row) then
 		for row, id in pairs(line_to_job) do
 			if id == selected_id then
 				target_row = row
@@ -794,6 +796,7 @@ local function cf_back_to_list()
 	if cf_list_state.mode == "log" then
 		cf_list_state.mode = "list"
 		cf_list_state.log_cache = nil
+		cf_list_state.prefer_selected_job = true
 		cf_render_list()
 		return
 	end
@@ -808,6 +811,7 @@ local function cf_open_list()
 	local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
 	local col = math.max(0, math.floor((vim.o.columns - width) / 2))
 	local win
+	local opened_new_win = false
 	if cf_list_state and cf_list_state.win and vim.api.nvim_win_is_valid(cf_list_state.win) then
 		win = cf_list_state.win
 		vim.api.nvim_set_current_win(win)
@@ -823,6 +827,7 @@ local function cf_open_list()
 			title = " LLM jobs ",
 			title_pos = "center",
 		})
+		opened_new_win = true
 	end
 	vim.wo[win].wrap = false
 	vim.wo[win].cursorline = true
@@ -831,6 +836,7 @@ local function cf_open_list()
 	cf_list_state.win = win
 	cf_list_state.mode = "list"
 	cf_list_state.selected_job_id = cf_list_state.selected_job_id or (cf_latest_job() and cf_latest_job().id) or nil
+	cf_list_state.prefer_selected_job = opened_new_win or cf_list_state.prefer_selected_job
 
 	if not vim.b[buf].llm_job_list_mapped then
 		vim.b[buf].llm_job_list_mapped = true
@@ -956,7 +962,7 @@ local function cf_run(location, snippet, message, bufnr)
 			local status
 			local progress_status = "failed"
 			local notify_level = vim.log.levels.ERROR
-			if job.cancel_requested and (result.code ~= 0 or (result.signal and result.signal ~= 0)) then
+			if job.cancel_requested then
 				status = "cancelled"
 				job.status = "cancelled"
 				progress_status = "cancel"
