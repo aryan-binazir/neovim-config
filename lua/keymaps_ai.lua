@@ -685,7 +685,7 @@ end
 local function cf_log_header(job)
 	return {
 		"LLM job #" .. job.id .. " log",
-		"q/<Esc> back to jobs",
+		"q close   <Esc> jobs",
 		"",
 	}
 end
@@ -787,7 +787,7 @@ cf_refresh_current = function()
 	end
 end
 
-local function cf_back_or_close()
+local function cf_back_to_list()
 	if not cf_list_state then
 		return
 	end
@@ -797,7 +797,6 @@ local function cf_back_or_close()
 		cf_render_list()
 		return
 	end
-	cf_close_list()
 end
 
 local function cf_open_list()
@@ -834,8 +833,8 @@ local function cf_open_list()
 	if not vim.b[buf].llm_job_list_mapped then
 		vim.b[buf].llm_job_list_mapped = true
 		local opts = { buffer = buf, silent = true, nowait = true }
-		vim.keymap.set("n", "q", cf_back_or_close, opts)
-		vim.keymap.set("n", "<Esc>", cf_back_or_close, opts)
+		vim.keymap.set("n", "q", cf_close_list, opts)
+		vim.keymap.set("n", "<Esc>", cf_back_to_list, opts)
 		vim.keymap.set("n", "r", cf_refresh_current, opts)
 		vim.keymap.set("n", "<CR>", function()
 			cf_open_job_log(cf_selected_job())
