@@ -274,7 +274,7 @@ local cf_last_log = cf_log_dir .. "/last.log"
 local cf_prev_log = cf_log_dir .. "/prev.log"
 
 local function cf_location_label(file, range)
-	return file .. ":" .. range
+	return (file .. ":" .. range):gsub("%c", " ")
 end
 
 local function cf_prompt(location, message)
@@ -300,20 +300,20 @@ end
 
 local function cf_repo_root(file)
 	local dir = vim.fs.dirname(file)
-	return vim.fs.root(dir, ".git") or vim.fn.getcwd()
+	return vim.fs.root(dir, ".git") or dir or vim.fn.getcwd()
 end
 
 local function cf_command(tool, repo_root, prompt)
 	if tool == "codex" then
 		return {
 			"codex",
+			"--ask-for-approval",
+			"never",
 			"exec",
 			"--cd",
 			repo_root,
 			"--sandbox",
 			"workspace-write",
-			"--ask-for-approval",
-			"never",
 			"--color",
 			"never",
 			prompt,
@@ -451,7 +451,7 @@ local function cf_run(location, message, bufnr)
 		started_at = os.date("%Y-%m-%d %H:%M:%S"),
 	}
 	cf_active_job = job
-	cf_set_progress(job, "running", cf_tool .. " running: " .. location, nil)
+	cf_set_progress(job, "running", job.tool .. " running: " .. location, nil)
 
 	local ok_system, handle = pcall(vim.system, cmd, {
 		cwd = repo_root,
@@ -466,32 +466,34 @@ local function cf_run(location, message, bufnr)
 			cf_active_job = nil
 			cf_write_log(job, result)
 
-			if result.code == 0 then
-				cf_set_progress(job, "success", cf_tool .. " done: " .. location, 100)
-				vim.notify(cf_tool .. " done: " .. location)
-				vim.cmd("checktime")
-				return
-			end
-
 			local status
 			local progress_status = "failed"
+			local notify_level = vim.log.levels.ERROR
 			if job.cancelled then
 				status = "cancelled"
 				progress_status = "cancel"
+				notify_level = vim.log.levels.WARN
 			elseif result.code == 124 then
 				status = "timed out"
+			elseif result.signal and result.signal ~= 0 then
+				status = "killed"
+			elseif result.code == 0 then
+				cf_set_progress(job, "success", job.tool .. " done: " .. location, 100)
+				vim.notify(job.tool .. " done: " .. location)
+				vim.cmd("checktime")
+				return
 			else
 				status = "failed"
 			end
-			cf_set_progress(job, progress_status, cf_tool .. " " .. status .. ": " .. location, 100)
-			vim.notify(cf_tool .. " " .. status .. "; use <leader>cl for log", vim.log.levels.ERROR)
+			cf_set_progress(job, progress_status, job.tool .. " " .. status .. ": " .. location, 100)
+			vim.notify(job.tool .. " " .. status .. "; use <leader>cl for log", notify_level)
 		end)
 	end)
 
 	if not ok_system then
 		cf_active_job = nil
-		cf_set_progress(job, "failed", cf_tool .. " failed to start", 100)
-		vim.notify("Failed to start " .. cf_tool .. ": " .. tostring(handle), vim.log.levels.ERROR)
+		cf_set_progress(job, "failed", job.tool .. " failed to start", 100)
+		vim.notify("Failed to start " .. job.tool .. ": " .. tostring(handle), vim.log.levels.ERROR)
 		return
 	end
 	job.handle = handle
@@ -507,8 +509,8 @@ local function cf_cancel()
 	if job.handle then
 		job.handle:kill(15)
 	end
-	cf_set_progress(job, "cancel", cf_tool .. " cancelled: " .. job.location, 100)
-	vim.notify(cf_tool .. " cancelled; use <leader>cl for log", vim.log.levels.WARN)
+	cf_set_progress(job, "cancel", job.tool .. " cancelled: " .. job.location, 100)
+	vim.notify(job.tool .. " cancelled; use <leader>cl for log", vim.log.levels.WARN)
 end
 
 vim.keymap.set("n", "<leader>cl", cf_open_log, { desc = "Open last LLM exec log" })
@@ -540,6 +542,11 @@ vim.keymap.set("v", "<leader>cf", function()
 		start_line, end_line = end_line, start_line
 	end
 	local file = vim.fn.expand("%:p")
+	if file == "" then
+		vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
+		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+		return
+	end
 	local range = format_range(start_line, end_line)
 	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 
