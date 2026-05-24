@@ -232,8 +232,10 @@ end
 local function start_log(job)
 	vim.fn.mkdir(jobs_dir, "p")
 
-	local command = vim.deepcopy(job.cmd)
-	command[#command] = "[prompt]"
+	local command = {}
+	for i, arg in ipairs(job.cmd) do
+		command[i] = arg == job.prompt and "[prompt]" or arg
+	end
 	local lines = {
 		"Job: " .. job.id,
 		"Tool: " .. job.tool,
@@ -290,6 +292,22 @@ end
 
 local function notify_job(job, status, level)
 	vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", level)
+end
+
+local function completion_status(job, result)
+	if job.cancel_requested then
+		return "cancelled", "cancelled", vim.log.levels.WARN, false
+	end
+	if result.code == 124 then
+		return "timed out", "timed_out", vim.log.levels.ERROR, false
+	end
+	if result.signal and result.signal ~= 0 then
+		return "killed", "killed", vim.log.levels.ERROR, false
+	end
+	if result.code == 0 then
+		return "done", "done", nil, true
+	end
+	return "failed", "failed", vim.log.levels.ERROR, false
 end
 
 local function close_list()
@@ -727,29 +745,8 @@ function M.run(location, snippet, message, bufnr)
 			job.signal = result.signal
 			finish_log(job, result)
 
-			local status
-			local notify_level = vim.log.levels.ERROR
-			local checktime = false
-			if job.cancel_requested then
-				status = "cancelled"
-				job.status = "cancelled"
-				notify_level = vim.log.levels.WARN
-				job.cancelled = true
-			elseif result.code == 124 then
-				status = "timed out"
-				job.status = "timed_out"
-			elseif result.signal and result.signal ~= 0 then
-				status = "killed"
-				job.status = "killed"
-			elseif result.code == 0 then
-				status = "done"
-				job.status = "done"
-				notify_level = nil
-				checktime = true
-			else
-				status = "failed"
-				job.status = "failed"
-			end
+			local status, job_status, notify_level, checktime = completion_status(job, result)
+			job.status = job_status
 			update_activity_progress()
 			notify_job(job, status, notify_level)
 			if checktime then
