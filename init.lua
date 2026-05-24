@@ -1,3 +1,30 @@
+local config_root = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h")
+local local_config = config_root .. "/local.lua"
+
+if vim.fn.filereadable(local_config) ~= 1 then
+	error("Missing local.lua. Copy local.lua.example to local.lua and edit per machine.")
+end
+
+dofile(local_config)
+
+local required_local_values = {
+	{ name = "cf_tool", kind = "string" },
+	{ name = "cf_timeout_ms", kind = "number" },
+	{ name = "obsidian_path", kind = "string" },
+	{ name = "supermaven_enabled", kind = "boolean" },
+}
+
+for _, required in ipairs(required_local_values) do
+	local value = vim.g[required.name]
+	if type(value) ~= required.kind then
+		error("local.lua must set vim.g." .. required.name .. " as " .. required.kind)
+	end
+end
+
+if vim.g.cf_tool ~= "codex" and vim.g.cf_tool ~= "claude" then
+	error('local.lua must set vim.g.cf_tool to "codex" or "claude"')
+end
+
 require("options")
 require("keymaps_general")
 require("keymaps_ai")

@@ -1,6 +1,6 @@
 local M = {}
 
-local timeout_ms = 15 * 60 * 1000
+local timeout_ms = vim.g.cf_timeout_ms
 local log_dir = vim.fn.stdpath("cache") .. "/llm-exec"
 local jobs_dir = log_dir .. "/jobs"
 local jobs = {}
@@ -10,9 +10,10 @@ local max_log_files = 100
 local list_state = nil
 
 local function current_tool()
-	local tool = vim.g.cf_tool or "codex"
+	local tool = vim.g.cf_tool
 	if tool ~= "codex" and tool ~= "claude" then
-		return "codex"
+		vim.notify("Invalid vim.g.cf_tool: " .. tostring(tool), vim.log.levels.ERROR)
+		return nil
 	end
 	return tool
 end
@@ -636,6 +637,9 @@ function M.run(location, snippet, message, bufnr)
 	local root = repo_root(file)
 	local prompt = build_prompt(location, snippet, message)
 	local tool = current_tool()
+	if not tool then
+		return
+	end
 	local cmd, cmd_err = build_command(tool, root, prompt)
 	if not cmd then
 		vim.notify(cmd_err, vim.log.levels.ERROR)
