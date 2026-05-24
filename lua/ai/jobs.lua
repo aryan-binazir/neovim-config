@@ -8,11 +8,20 @@ local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
 local activity_timer = nil
+local default_config = {
+	tool = "codex",
+	timeout_ms = 15 * 60 * 1000,
+}
+local config = vim.deepcopy(default_config)
+
+function M.setup(opts)
+	config = vim.tbl_deep_extend("force", vim.deepcopy(default_config), opts or {})
+end
 
 local function current_tool()
-	local tool = vim.g.cf_tool
+	local tool = config.tool
 	if tool ~= "codex" and tool ~= "claude" then
-		vim.notify("Invalid vim.g.cf_tool: " .. tostring(tool), vim.log.levels.ERROR)
+		vim.notify("Invalid LLM tool: " .. tostring(tool), vim.log.levels.ERROR)
 		return nil
 	end
 	return tool
@@ -71,7 +80,7 @@ local function build_command(tool, root, prompt)
 			prompt,
 		}
 	end
-	return nil, "Unknown cf_tool: " .. tostring(tool)
+	return nil, "Unknown LLM tool: " .. tostring(tool)
 end
 
 local function running_job_count()
@@ -82,6 +91,20 @@ local function running_job_count()
 		end
 	end
 	return count
+end
+
+function M.running_count()
+	return running_job_count()
+end
+
+function M.statusline_component()
+	local running = running_job_count()
+	if running == 0 then
+		return ""
+	end
+	local frames = { "◐", "◓", "◑", "◒" }
+	local index = math.floor(vim.uv.now() / 150) % #frames + 1
+	return running > 1 and (frames[index] .. running) or frames[index]
 end
 
 local function stop_activity_timer()
@@ -102,7 +125,7 @@ local function start_activity_timer()
 		0,
 		150,
 		vim.schedule_wrap(function()
-			if (vim.g.llm_jobs_running or 0) == 0 then
+			if running_job_count() == 0 then
 				stop_activity_timer()
 				return
 			end
@@ -716,7 +739,7 @@ function M.run(location, snippet, message, bufnr)
 	local file = vim.api.nvim_buf_get_name(bufnr)
 	local root = repo_root(file)
 	local prompt = build_prompt(location, snippet, message)
-	local timeout_ms = vim.g.cf_timeout_ms
+	local timeout_ms = config.timeout_ms
 	local tool = current_tool()
 	if not tool then
 		return

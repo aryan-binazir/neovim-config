@@ -8,8 +8,6 @@ end
 dofile(local_config)
 
 local required_local_values = {
-	{ name = "cf_tool", kind = "string" },
-	{ name = "cf_timeout_ms", kind = "number" },
 	{ name = "obsidian_path", kind = "string" },
 	{ name = "supermaven_enabled", kind = "boolean" },
 }
@@ -21,13 +19,9 @@ for _, required in ipairs(required_local_values) do
 	end
 end
 
-if vim.g.cf_tool ~= "codex" and vim.g.cf_tool ~= "claude" then
-	error('local.lua must set vim.g.cf_tool to "codex" or "claude"')
-end
-
 require("options")
 require("keymaps_general")
-require("keymaps_ai")
+require("ai").setup(vim.g.ai or {})
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then

@@ -1,5 +1,3 @@
--- AI workflow keymaps
-
 -- Helper for yanking paths
 local function yank_paths(paths, label)
 	vim.fn.setreg("+", table.concat(paths, "\n"))
@@ -31,6 +29,14 @@ local function current_file_or_notify()
 		return nil
 	end
 	return file
+end
+
+local function current_line_reference()
+	local file = current_file_or_notify()
+	if not file then
+		return nil
+	end
+	return file .. ":" .. vim.fn.line(".")
 end
 
 local function optional_require(name, label)
@@ -181,21 +187,34 @@ local function close_ai_pane()
 	print("AI pane closed")
 end
 
-local ensure_ai_pane
+-- Find a pane this config marked, so it survives nvim closing and reopening.
+local function find_marked_ai_pane()
+	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
+	if vim.v.shell_error ~= 0 then
+		return nil
+	end
+	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
+		local parts = vim.split(line, "\t", { plain = true })
+		if parts[2] == "1" and parts[1] and parts[1] ~= "" then
+			return parts[1]
+		end
+	end
+	return nil
+end
 
--- Send selection to AI pane
-vim.keymap.set("v", "<leader>cx", function()
-	if not tmux_available() then
-		print("tmux not available")
-		return
+local function ensure_ai_pane()
+	if ai_pane_alive() then
+		return true
 	end
-	local result = yank_selection(false, true)
-	if ensure_ai_pane() then
-		send_to_ai_pane(result .. " ", true)
-	else
-		print("AI pane closed.")
+
+	local existing = find_marked_ai_pane()
+	if existing then
+		vim.g.ai_pane_id = existing
+		return true
 	end
-end, { desc = "Send selection to AI pane" })
+
+	return false
+end
 
 -- Yank all file paths in Oil directory
 vim.keymap.set("n", "<leader>yo", function()
@@ -219,14 +238,10 @@ vim.keymap.set("n", "<leader>yo", function()
 	yank_paths(paths, "Oil paths")
 end, { desc = "Yank all file paths in Oil directory" })
 
-local function toggle_ai_split(cmd)
+local function open_ai_split(cmd)
 	if not tmux_available() then
 		print("tmux not available")
-		return
-	end
-	if ensure_ai_pane() then
-		close_ai_pane()
-		return
+		return false
 	end
 	local pane_id = vim.fn.system({
 		"tmux",
@@ -244,21 +259,61 @@ local function toggle_ai_split(cmd)
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
 		print("Failed to create tmux split")
-		return
+		return false
 	end
 	mark_ai_pane(pane_id)
 	vim.g.ai_pane_id = pane_id
+	return true
 end
 
-for _, mapping in ipairs({
+local function toggle_ai_split(cmd)
+	if ensure_ai_pane() then
+		close_ai_pane()
+		return
+	end
+	open_ai_split(cmd)
+end
+
+local function ensure_or_open_ai_pane(cmd)
+	if ensure_ai_pane() then
+		return true
+	end
+	return open_ai_split(cmd)
+end
+
+local ai_split_commands = {
 	{ lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "Open Claude Code in tmux split" },
 	{
 		lhs = "<leader>cd",
 		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
 		desc = "Open Codex in tmux split",
 	},
-	{ lhs = "<leader>co", cmd = "opencode", desc = "Open OpenCode in tmux split" },
-}) do
+}
+local default_ai_split_cmd = ai_split_commands[1].cmd
+
+-- Send selection to AI pane
+vim.keymap.set("n", "<leader>cx", function()
+	local result = current_line_reference()
+	if not result then
+		return
+	end
+	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+		send_to_ai_pane(result .. " ", true)
+	else
+		print("AI pane closed.")
+	end
+end, { desc = "Send current line to AI pane" })
+
+vim.keymap.set("v", "<leader>cx", function()
+	local result = yank_selection(false, true)
+	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+		send_to_ai_pane(result .. " ", true)
+	else
+		print("AI pane closed.")
+	end
+end, { desc = "Send selection to AI pane" })
+
+for _, mapping in ipairs(ai_split_commands) do
 	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
 	vim.keymap.set("n", lhs, function()
 		toggle_ai_split(cmd)
@@ -266,10 +321,10 @@ for _, mapping in ipairs({
 end
 
 vim.keymap.set("n", "<leader>cp", function()
-	if ensure_ai_pane() then
+	if ensure_or_open_ai_pane(default_ai_split_cmd) then
 		send_to_ai_pane(vim.fn.expand("%:p") .. " ", true)
 	else
-		print("AI pane closed. Use <leader>cc to open.")
+		print("AI pane closed.")
 	end
 end, { desc = "Send file path to AI pane" })
 
@@ -281,36 +336,7 @@ vim.keymap.set("n", "<leader>cq", function()
 	end
 end, { desc = "Close AI pane" })
 
--- Find a pane this config marked, so it survives nvim closing and reopening.
-local function find_marked_ai_pane()
-	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
-	if vim.v.shell_error ~= 0 then
-		return nil
-	end
-	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
-		local parts = vim.split(line, "\t", { plain = true })
-		if parts[2] == "1" and parts[1] and parts[1] ~= "" then
-			return parts[1]
-		end
-	end
-	return nil
-end
-
-ensure_ai_pane = function()
-	if ai_pane_alive() then
-		return true
-	end
-
-	local existing = find_marked_ai_pane()
-	if existing then
-		vim.g.ai_pane_id = existing
-		return true
-	end
-
-	return false
-end
-
-local llm_jobs = require("llm_jobs")
+local llm_jobs = require("ai.jobs")
 
 local function llm_location_label(file, range)
 	return (file .. ":" .. range):gsub("%c", " ")
@@ -335,7 +361,7 @@ end
 
 vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "Open LLM job list" })
 
--- Quick scoped message: runs a one-shot editor task through cf_tool.
+-- Quick scoped message: runs a one-shot editor task through the configured LLM tool.
 vim.keymap.set("n", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local file = current_file_or_notify()
