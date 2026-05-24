@@ -7,9 +7,7 @@ end
 
 dofile(local_config)
 
-local required_local_values = {
-	{ name = "supermaven_enabled", kind = "boolean" },
-}
+local required_local_values = {}
 
 for _, required in ipairs(required_local_values) do
 	local value = vim.g[required.name]

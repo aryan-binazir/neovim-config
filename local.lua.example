@@ -3,7 +3,6 @@ vim.g.ai = {
 	timeout_ms = 15 * 60 * 1000,
 }
 vim.g.obsidian_path = "~/Obsidian/" -- Set to "" to disable Obsidian on this machine.
-vim.g.supermaven_enabled = false
 
 local node_host_prog = vim.fn.exepath("neovim-node-host")
 if node_host_prog ~= "" then
