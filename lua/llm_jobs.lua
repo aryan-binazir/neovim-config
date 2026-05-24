@@ -1,6 +1,5 @@
 local M = {}
 
-local timeout_ms = vim.g.cf_timeout_ms
 local log_dir = vim.fn.stdpath("cache") .. "/llm-exec"
 local jobs_dir = log_dir .. "/jobs"
 local jobs = {}
@@ -85,6 +84,15 @@ local function running_job_count()
 	return count
 end
 
+local function stop_activity_timer()
+	if not activity_timer then
+		return
+	end
+	activity_timer:stop()
+	activity_timer:close()
+	activity_timer = nil
+end
+
 local function start_activity_timer()
 	if activity_timer then
 		return
@@ -95,11 +103,7 @@ local function start_activity_timer()
 		150,
 		vim.schedule_wrap(function()
 			if (vim.g.llm_jobs_running or 0) == 0 then
-				if activity_timer then
-					activity_timer:stop()
-					activity_timer:close()
-					activity_timer = nil
-				end
+				stop_activity_timer()
 				return
 			end
 			vim.cmd("redrawstatus")
@@ -112,26 +116,11 @@ local function update_activity_progress()
 	vim.g.llm_jobs_running = count
 	vim.cmd("redrawstatus")
 	if count == 0 then
-		if activity_timer then
-			activity_timer:stop()
-			activity_timer:close()
-			activity_timer = nil
-		end
+		stop_activity_timer()
 		return
 	end
 
 	start_activity_timer()
-end
-
-local function append_lines(lines, text)
-	if not text or text == "" then
-		table.insert(lines, "(empty)")
-		return
-	end
-	text = tostring(text):gsub("\r\n", "\n"):gsub("\r", "\n")
-	for _, line in ipairs(vim.split(text, "\n", { plain = true })) do
-		table.insert(lines, line)
-	end
 end
 
 local function text_lines(text, opts)
@@ -150,6 +139,14 @@ local function text_lines(text, opts)
 		end
 	end
 	return lines
+end
+
+local function append_lines(lines, text)
+	if not text or text == "" then
+		table.insert(lines, "(empty)")
+		return
+	end
+	vim.list_extend(lines, text_lines(text))
 end
 
 local function normalize_lines(lines)
@@ -234,8 +231,10 @@ end
 local function start_log(job)
 	vim.fn.mkdir(jobs_dir, "p")
 
-	local command = vim.deepcopy(job.cmd)
-	command[#command] = "[prompt]"
+	local command = {}
+	for i, arg in ipairs(job.cmd) do
+		command[i] = arg == job.prompt and "[prompt]" or arg
+	end
 	local lines = {
 		"Job: " .. job.id,
 		"Tool: " .. job.tool,
@@ -290,6 +289,26 @@ local function job_label(job)
 	return string.format("#%-3d %-10s %-6s %s %s", job.id, job.status, job.tool, format_elapsed(job), job.location)
 end
 
+local function notify_job(job, status, level)
+	vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", level)
+end
+
+local function completion_status(job, result)
+	if job.cancel_requested then
+		return "cancelled", "cancelled", vim.log.levels.WARN, false
+	end
+	if result.code == 124 then
+		return "timed out", "timed_out", vim.log.levels.ERROR, false
+	end
+	if result.signal and result.signal ~= 0 then
+		return "killed", "killed", vim.log.levels.ERROR, false
+	end
+	if result.code == 0 then
+		return "done", "done", nil, true
+	end
+	return "failed", "failed", vim.log.levels.ERROR, false
+end
+
 local function close_list()
 	if not list_state then
 		return
@@ -317,10 +336,35 @@ local function list_buf()
 	return buf
 end
 
+local function list_window_config()
+	local max_width = math.max(1, vim.o.columns - 4)
+	local max_height = math.max(1, vim.o.lines - 4)
+	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
+	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
+	return {
+		relative = "editor",
+		width = width,
+		height = height,
+		row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1),
+		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+		style = "minimal",
+		border = "single",
+		title = " LLM jobs ",
+		title_pos = "center",
+	}
+end
+
 local render_list
 local render_log
 local open_job_log
 local refresh_current
+local readable_log
+
+local function safe_render_list()
+	if render_list then
+		render_list()
+	end
+end
 
 local function cancel_job(job)
 	if not job then
@@ -337,9 +381,7 @@ local function cancel_job(job)
 	end
 	update_activity_progress()
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
-	if render_list then
-		render_list()
-	end
+	safe_render_list()
 end
 
 local function selected_job()
@@ -428,11 +470,7 @@ open_job_log = function(job)
 	if not job then
 		return
 	end
-	if vim.fn.filereadable(job.log_path) ~= 1 then
-		if not job.log_missing_warned then
-			job.log_missing_warned = true
-			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
-		end
+	if not readable_log(job) then
 		return
 	end
 	if not list_state then
@@ -459,6 +497,21 @@ local function log_mtime(stat)
 	return tostring(stat.mtime.sec) .. "." .. tostring(stat.mtime.nsec or 0)
 end
 
+local function warn_missing_log(job)
+	if not job.log_missing_warned then
+		job.log_missing_warned = true
+		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+	end
+end
+
+readable_log = function(job)
+	if vim.fn.filereadable(job.log_path) == 1 then
+		return true
+	end
+	warn_missing_log(job)
+	return false
+end
+
 local function read_log_delta(path, offset)
 	local file = io.open(path, "rb")
 	if not file then
@@ -483,6 +536,30 @@ local function append_log_lines(buf, text)
 	vim.bo[buf].modifiable = false
 end
 
+local function replace_log_lines(buf, job)
+	local lines = log_header(job)
+	vim.list_extend(lines, vim.fn.readfile(job.log_path))
+	set_lines(buf, lines)
+end
+
+local function update_log_cache(job, stat, mtime)
+	list_state.log_cache = {
+		job_id = job.id,
+		path = job.log_path,
+		size = stat.size,
+		mtime = mtime,
+	}
+end
+
+local function update_log_buffer(job, cache, can_append)
+	if can_append then
+		local delta = read_log_delta(job.log_path, cache.size)
+		append_log_lines(list_state.buf, delta)
+	else
+		replace_log_lines(list_state.buf, job)
+	end
+end
+
 render_log = function()
 	if not list_state or list_state.mode ~= "log" then
 		return
@@ -491,11 +568,7 @@ render_log = function()
 	if not job then
 		return
 	end
-	if vim.fn.filereadable(job.log_path) ~= 1 then
-		if not job.log_missing_warned then
-			job.log_missing_warned = true
-			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
-		end
+	if not readable_log(job) then
 		return
 	end
 	local stat = vim.uv.fs_stat(job.log_path)
@@ -520,20 +593,8 @@ render_log = function()
 		return
 	end
 
-	if can_append then
-		local delta = read_log_delta(job.log_path, cache.size)
-		append_log_lines(list_state.buf, delta)
-	else
-		local lines = log_header(job)
-		vim.list_extend(lines, vim.fn.readfile(job.log_path))
-		set_lines(list_state.buf, lines)
-	end
-	list_state.log_cache = {
-		job_id = job.id,
-		path = job.log_path,
-		size = stat.size,
-		mtime = mtime,
-	}
+	update_log_buffer(job, cache, can_append)
+	update_log_cache(job, stat, mtime)
 	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
 		local target_row = was_at_bottom and max_row or math.min(cursor_row, max_row)
@@ -545,7 +606,7 @@ refresh_current = function()
 	if list_state and list_state.mode == "log" then
 		render_log()
 	else
-		render_list()
+		safe_render_list()
 	end
 end
 
@@ -557,36 +618,20 @@ local function back_to_list()
 		list_state.mode = "list"
 		list_state.log_cache = nil
 		list_state.prefer_selected_job = true
-		render_list()
+		safe_render_list()
 		return
 	end
 end
 
 function M.open_list()
 	local buf = list_buf()
-	local max_width = math.max(1, vim.o.columns - 4)
-	local max_height = math.max(1, vim.o.lines - 4)
-	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
-	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
-	local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
-	local col = math.max(0, math.floor((vim.o.columns - width) / 2))
 	local win
 	local opened_new_win = false
 	if list_state and list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
 		win = list_state.win
 		vim.api.nvim_set_current_win(win)
 	else
-		win = vim.api.nvim_open_win(buf, true, {
-			relative = "editor",
-			width = width,
-			height = height,
-			row = row,
-			col = col,
-			style = "minimal",
-			border = "single",
-			title = " LLM jobs ",
-			title_pos = "center",
-		})
+		win = vim.api.nvim_open_win(buf, true, list_window_config())
 		opened_new_win = true
 	end
 	vim.wo[win].wrap = false
@@ -633,7 +678,7 @@ function M.open_list()
 			end)
 		)
 	end
-	render_list()
+	safe_render_list()
 end
 
 local function write_buffer(bufnr)
@@ -671,6 +716,7 @@ function M.run(location, snippet, message, bufnr)
 	local file = vim.api.nvim_buf_get_name(bufnr)
 	local root = repo_root(file)
 	local prompt = build_prompt(location, snippet, message)
+	local timeout_ms = vim.g.cf_timeout_ms
 	local tool = current_tool()
 	if not tool then
 		return
@@ -701,9 +747,7 @@ function M.run(location, snippet, message, bufnr)
 	prune_jobs()
 	start_log(job)
 	update_activity_progress()
-	if render_list then
-		render_list()
-	end
+	safe_render_list()
 
 	local ok_system, handle = pcall(vim.system, cmd, {
 		cwd = root,
@@ -723,37 +767,14 @@ function M.run(location, snippet, message, bufnr)
 			job.signal = result.signal
 			finish_log(job, result)
 
-			local status
-			local notify_level = vim.log.levels.ERROR
-			if job.cancel_requested then
-				status = "cancelled"
-				job.status = "cancelled"
-				notify_level = vim.log.levels.WARN
-				job.cancelled = true
-			elseif result.code == 124 then
-				status = "timed out"
-				job.status = "timed_out"
-			elseif result.signal and result.signal ~= 0 then
-				status = "killed"
-				job.status = "killed"
-			elseif result.code == 0 then
-				job.status = "done"
-				update_activity_progress()
-				vim.notify(job.tool .. " done; <leader>cl for log")
-				vim.cmd("checktime")
-				if render_list then
-					render_list()
-				end
-				return
-			else
-				status = "failed"
-				job.status = "failed"
-			end
+			local status, job_status, notify_level, checktime = completion_status(job, result)
+			job.status = job_status
 			update_activity_progress()
-			vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", notify_level)
-			if render_list then
-				render_list()
+			notify_job(job, status, notify_level)
+			if checktime then
+				vim.cmd("checktime")
 			end
+			safe_render_list()
 		end)
 	end)
 
@@ -767,9 +788,7 @@ function M.run(location, snippet, message, bufnr)
 		}, job.log_path, "a")
 		update_activity_progress()
 		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
-		if render_list then
-			render_list()
-		end
+		safe_render_list()
 		return
 	end
 	job.handle = handle
