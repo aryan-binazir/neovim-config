@@ -239,7 +239,7 @@ local function toggle_ai_split(cmd)
 		"#{pane_id}",
 		"-c",
 		vim.fn.getcwd(),
-		"$SHELL -ic " .. cmd,
+		"$SHELL -ic " .. vim.fn.shellescape(cmd),
 	})
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
@@ -251,9 +251,13 @@ local function toggle_ai_split(cmd)
 end
 
 for _, mapping in ipairs({
-	{ lhs = "<leader>cc", cmd = "accd", desc = "Open Claude Code in tmux split" },
-	{ lhs = "<leader>cd", cmd = "acdd", desc = "Open Codex in tmux split" },
-	{ lhs = "<leader>co", cmd = "aco", desc = "Open OpenCode in tmux split" },
+	{ lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "Open Claude Code in tmux split" },
+	{
+		lhs = "<leader>cd",
+		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
+		desc = "Open Codex in tmux split",
+	},
+	{ lhs = "<leader>co", cmd = "opencode", desc = "Open OpenCode in tmux split" },
 }) do
 	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
 	vim.keymap.set("n", lhs, function()
