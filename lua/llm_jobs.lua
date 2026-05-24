@@ -75,20 +75,6 @@ local function build_command(tool, root, prompt)
 	return nil, "Unknown cf_tool: " .. tostring(tool)
 end
 
-local function set_progress(job, status, message, percent)
-	local opts = {
-		kind = "progress",
-		source = "nvim",
-		status = status,
-		title = job.title,
-		percent = percent,
-	}
-	if job.progress_id then
-		opts.id = job.progress_id
-	end
-	job.progress_id = vim.api.nvim_echo({ { message } }, false, opts)
-end
-
 local function running_job_count()
 	local count = 0
 	for _, job in ipairs(jobs) do
@@ -349,7 +335,6 @@ local function cancel_job(job)
 	if job.handle then
 		job.handle:kill(15)
 	end
-	set_progress(job, "running", job.tool .. " cancelling job #" .. job.id, nil)
 	update_activity_progress()
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
 	if render_list then
@@ -715,7 +700,6 @@ function M.run(location, snippet, message, bufnr)
 	table.insert(jobs, job)
 	prune_jobs()
 	start_log(job)
-	set_progress(job, "running", job.tool .. " running: " .. location, nil)
 	update_activity_progress()
 	if render_list then
 		render_list()
@@ -740,12 +724,10 @@ function M.run(location, snippet, message, bufnr)
 			finish_log(job, result)
 
 			local status
-			local progress_status = "failed"
 			local notify_level = vim.log.levels.ERROR
 			if job.cancel_requested then
 				status = "cancelled"
 				job.status = "cancelled"
-				progress_status = "cancel"
 				notify_level = vim.log.levels.WARN
 				job.cancelled = true
 			elseif result.code == 124 then
@@ -756,7 +738,6 @@ function M.run(location, snippet, message, bufnr)
 				job.status = "killed"
 			elseif result.code == 0 then
 				job.status = "done"
-				set_progress(job, "success", job.tool .. " done; <leader>cl for log", 100)
 				update_activity_progress()
 				vim.notify(job.tool .. " done; <leader>cl for log")
 				vim.cmd("checktime")
@@ -768,7 +749,6 @@ function M.run(location, snippet, message, bufnr)
 				status = "failed"
 				job.status = "failed"
 			end
-			set_progress(job, progress_status, job.tool .. " " .. status .. "; <leader>cl for log", 100)
 			update_activity_progress()
 			vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", notify_level)
 			if render_list then
@@ -785,7 +765,6 @@ function M.run(location, snippet, message, bufnr)
 			"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
 			"Failed to start: " .. tostring(handle),
 		}, job.log_path, "a")
-		set_progress(job, "failed", job.tool .. " failed to start; <leader>cl for log", 100)
 		update_activity_progress()
 		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
 		if render_list then
