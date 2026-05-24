@@ -1,6 +1,6 @@
 vim.g.ai = {
 	tool = "codex", -- "codex" or "claude"
-	timeout_ms = 15 * 60 * 1000,
+	timeout_ms = 5 * 60 * 1000,
 }
 vim.g.obsidian_path = "~/Obsidian/" -- Set to "" to disable Obsidian on this machine.
 
