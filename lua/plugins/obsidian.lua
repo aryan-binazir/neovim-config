@@ -10,7 +10,7 @@ return {
 	-- 	workspaces = {
 	-- 		{
 	-- 			name = "personal",
-	-- 			path = "~/Obsidian/",
+	-- 			path = vim.g.obsidian_path,
 	-- 		},
 	-- 	},
 	-- },

@@ -1,0 +1,4 @@
+vim.g.cf_tool = "codex" -- "codex" or "claude"
+vim.g.cf_timeout_ms = 15 * 60 * 1000
+vim.g.obsidian_path = "~/Obsidian/"
+vim.g.supermaven_enabled = false
