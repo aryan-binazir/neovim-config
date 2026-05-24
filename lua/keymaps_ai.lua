@@ -139,7 +139,6 @@ end, { desc = "Yank file path, lines, and code (full lines)" })
 -- AI tools in tmux splits
 vim.g.ai_pane_id = nil
 local ai_pane_marker = "@nvim_ai_pane"
-local ai_pane_cmd_option = "@nvim_ai_cmd"
 
 local function tmux_available()
 	return vim.fn.executable("tmux") == 1
@@ -166,12 +165,11 @@ local function tmux_set_pane_option(pane_id, option, value)
 	)
 end
 
-local function mark_ai_pane(pane_id, cmd)
+local function mark_ai_pane(pane_id)
 	if not pane_id or pane_id == "" then
 		return
 	end
 	tmux_set_pane_option(pane_id, ai_pane_marker, "1")
-	tmux_set_pane_option(pane_id, ai_pane_cmd_option, cmd)
 end
 
 local function close_ai_pane()
@@ -248,7 +246,7 @@ local function toggle_ai_split(cmd)
 		print("Failed to create tmux split")
 		return
 	end
-	mark_ai_pane(pane_id, cmd)
+	mark_ai_pane(pane_id)
 	vim.g.ai_pane_id = pane_id
 end
 
@@ -280,7 +278,7 @@ vim.keymap.set("n", "<leader>cq", function()
 end, { desc = "Close AI pane" })
 
 -- Find a pane this config marked, so it survives nvim closing and reopening.
-local function find_ai_pane_in_window()
+local function find_marked_ai_pane()
 	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
 	if vim.v.shell_error ~= 0 then
 		return nil
@@ -299,7 +297,7 @@ ensure_ai_pane = function()
 		return true
 	end
 
-	local existing = find_ai_pane_in_window()
+	local existing = find_marked_ai_pane()
 	if existing then
 		vim.g.ai_pane_id = existing
 		return true

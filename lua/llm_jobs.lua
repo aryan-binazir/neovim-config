@@ -1,6 +1,5 @@
 local M = {}
 
-local timeout_ms = vim.g.cf_timeout_ms
 local log_dir = vim.fn.stdpath("cache") .. "/llm-exec"
 local jobs_dir = log_dir .. "/jobs"
 local jobs = {}
@@ -337,10 +336,29 @@ local function list_buf()
 	return buf
 end
 
+local function list_window_config()
+	local max_width = math.max(1, vim.o.columns - 4)
+	local max_height = math.max(1, vim.o.lines - 4)
+	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
+	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
+	return {
+		relative = "editor",
+		width = width,
+		height = height,
+		row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1),
+		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
+		style = "minimal",
+		border = "single",
+		title = " LLM jobs ",
+		title_pos = "center",
+	}
+end
+
 local render_list
 local render_log
 local open_job_log
 local refresh_current
+local readable_log
 
 local function safe_render_list()
 	if render_list then
@@ -452,11 +470,7 @@ open_job_log = function(job)
 	if not job then
 		return
 	end
-	if vim.fn.filereadable(job.log_path) ~= 1 then
-		if not job.log_missing_warned then
-			job.log_missing_warned = true
-			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
-		end
+	if not readable_log(job) then
 		return
 	end
 	if not list_state then
@@ -483,6 +497,21 @@ local function log_mtime(stat)
 	return tostring(stat.mtime.sec) .. "." .. tostring(stat.mtime.nsec or 0)
 end
 
+local function warn_missing_log(job)
+	if not job.log_missing_warned then
+		job.log_missing_warned = true
+		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
+	end
+end
+
+readable_log = function(job)
+	if vim.fn.filereadable(job.log_path) == 1 then
+		return true
+	end
+	warn_missing_log(job)
+	return false
+end
+
 local function read_log_delta(path, offset)
 	local file = io.open(path, "rb")
 	if not file then
@@ -507,6 +536,30 @@ local function append_log_lines(buf, text)
 	vim.bo[buf].modifiable = false
 end
 
+local function replace_log_lines(buf, job)
+	local lines = log_header(job)
+	vim.list_extend(lines, vim.fn.readfile(job.log_path))
+	set_lines(buf, lines)
+end
+
+local function update_log_cache(job, stat, mtime)
+	list_state.log_cache = {
+		job_id = job.id,
+		path = job.log_path,
+		size = stat.size,
+		mtime = mtime,
+	}
+end
+
+local function update_log_buffer(job, cache, can_append)
+	if can_append then
+		local delta = read_log_delta(job.log_path, cache.size)
+		append_log_lines(list_state.buf, delta)
+	else
+		replace_log_lines(list_state.buf, job)
+	end
+end
+
 render_log = function()
 	if not list_state or list_state.mode ~= "log" then
 		return
@@ -515,11 +568,7 @@ render_log = function()
 	if not job then
 		return
 	end
-	if vim.fn.filereadable(job.log_path) ~= 1 then
-		if not job.log_missing_warned then
-			job.log_missing_warned = true
-			vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
-		end
+	if not readable_log(job) then
 		return
 	end
 	local stat = vim.uv.fs_stat(job.log_path)
@@ -544,20 +593,8 @@ render_log = function()
 		return
 	end
 
-	if can_append then
-		local delta = read_log_delta(job.log_path, cache.size)
-		append_log_lines(list_state.buf, delta)
-	else
-		local lines = log_header(job)
-		vim.list_extend(lines, vim.fn.readfile(job.log_path))
-		set_lines(list_state.buf, lines)
-	end
-	list_state.log_cache = {
-		job_id = job.id,
-		path = job.log_path,
-		size = stat.size,
-		mtime = mtime,
-	}
+	update_log_buffer(job, cache, can_append)
+	update_log_cache(job, stat, mtime)
 	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
 		local target_row = was_at_bottom and max_row or math.min(cursor_row, max_row)
@@ -588,29 +625,13 @@ end
 
 function M.open_list()
 	local buf = list_buf()
-	local max_width = math.max(1, vim.o.columns - 4)
-	local max_height = math.max(1, vim.o.lines - 4)
-	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
-	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
-	local row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1)
-	local col = math.max(0, math.floor((vim.o.columns - width) / 2))
 	local win
 	local opened_new_win = false
 	if list_state and list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
 		win = list_state.win
 		vim.api.nvim_set_current_win(win)
 	else
-		win = vim.api.nvim_open_win(buf, true, {
-			relative = "editor",
-			width = width,
-			height = height,
-			row = row,
-			col = col,
-			style = "minimal",
-			border = "single",
-			title = " LLM jobs ",
-			title_pos = "center",
-		})
+		win = vim.api.nvim_open_win(buf, true, list_window_config())
 		opened_new_win = true
 	end
 	vim.wo[win].wrap = false
@@ -695,6 +716,7 @@ function M.run(location, snippet, message, bufnr)
 	local file = vim.api.nvim_buf_get_name(bufnr)
 	local root = repo_root(file)
 	local prompt = build_prompt(location, snippet, message)
+	local timeout_ms = vim.g.cf_timeout_ms
 	local tool = current_tool()
 	if not tool then
 		return
