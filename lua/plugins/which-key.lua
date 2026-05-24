@@ -46,11 +46,20 @@ local approved_leader_prefixes = {
 	y = true,
 }
 
+local approved_non_leader_mappings = {
+	["<C-g>"] = true,
+	["<C-n>"] = true,
+}
+
 local function approved_leader_mapping(mapping)
 	local lhs = mapping.lhs or ""
+	if approved_non_leader_mappings[lhs] then
+		return true
+	end
+
 	local suffix = lhs:match("^<leader>(.+)$") or lhs:match("^<Leader>(.+)$") or lhs:match("^%s(.+)$")
 	if not suffix then
-		return true
+		return false
 	end
 
 	local first_key = suffix:match("^<([^>]+)>") or suffix:sub(1, 1)
@@ -66,6 +75,8 @@ return {
 			group = "",
 		},
 		triggers = {
+			{ "<C-g>", mode = { "n", "v" } },
+			{ "<C-n>", mode = { "n", "v" } },
 			{ "<leader>", mode = { "n", "v" } },
 			{ "<leader>/", mode = { "n", "v" } },
 			{ "<leader><space>", mode = { "n", "v" } },
@@ -97,6 +108,8 @@ return {
 			},
 		},
 		spec = {
+			{ "<C-g>", desc = "harpoon menu", icon = icons.harpoon_files },
+			{ "<C-n>", desc = "previous harpoon file", icon = icons.harpoon_files },
 			{ "<leader>/", desc = "search current buffer", icon = icons.search },
 			{ "<leader><space>", desc = "find buffers", icon = icons.buffers },
 			{ "<leader>?", desc = "recent files", icon = icons.recent },
