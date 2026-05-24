@@ -56,6 +56,9 @@ return {
 	event = "VeryLazy",
 	opts = {
 		filter = approved_leader_mapping,
+		icons = {
+			group = "",
+		},
 		triggers = {
 			{ "<leader>", mode = { "n", "v" } },
 			{ "<leader>/", mode = { "n", "v" } },
