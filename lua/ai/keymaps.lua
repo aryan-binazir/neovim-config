@@ -31,6 +31,14 @@ local function current_file_or_notify()
 	return file
 end
 
+local function current_line_reference()
+	local file = current_file_or_notify()
+	if not file then
+		return nil
+	end
+	return file .. ":" .. vim.fn.line(".")
+end
+
 local function optional_require(name, label)
 	local ok, module = pcall(require, name)
 	if not ok then
@@ -285,6 +293,18 @@ local ai_split_commands = {
 local default_ai_split_cmd = ai_split_commands[1].cmd
 
 -- Send selection to AI pane
+vim.keymap.set("n", "<leader>cx", function()
+	local result = current_line_reference()
+	if not result then
+		return
+	end
+	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+		send_to_ai_pane(result .. " ", true)
+	else
+		print("AI pane closed.")
+	end
+end, { desc = "Send current line to AI pane" })
+
 vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
 	if ensure_or_open_ai_pane(default_ai_split_cmd) then
