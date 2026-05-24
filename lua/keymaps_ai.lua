@@ -11,14 +11,53 @@ local function format_range(start_line, end_line)
 	return start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
 end
 
+local function visual_range()
+	local start_line = vim.fn.line("v")
+	local end_line = vim.fn.line(".")
+	if start_line > end_line then
+		start_line, end_line = end_line, start_line
+	end
+	return start_line, end_line
+end
+
+local function feed_escape()
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+end
+
+local function current_file_or_notify()
+	local file = vim.fn.expand("%:p")
+	if file == "" then
+		vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
+		return nil
+	end
+	return file
+end
+
+local function optional_require(name, label)
+	local ok, module = pcall(require, name)
+	if not ok then
+		print(label .. " not available")
+		return nil
+	end
+	return module
+end
+
+local function ai_pane_target()
+	if not vim.g.ai_pane_id then
+		return nil
+	end
+	return vim.fn.shellescape(vim.g.ai_pane_id)
+end
+
 -- Helper for sending to AI pane
 local function send_to_ai_pane(text, focus)
-	if not vim.g.ai_pane_id then
+	local target = ai_pane_target()
+	if not target then
 		return
 	end
-	vim.fn.system("tmux send-keys -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " -l " .. vim.fn.shellescape(text))
+	vim.fn.system("tmux send-keys -t " .. target .. " -l " .. vim.fn.shellescape(text))
 	if focus then
-		vim.fn.system("tmux select-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
+		vim.fn.system("tmux select-pane -t " .. target)
 	end
 end
 
@@ -43,9 +82,8 @@ end, { desc = "Yank all buffer paths" })
 
 -- Yank all harpoon paths
 vim.keymap.set("n", "<leader>yh", function()
-	local ok, harpoon = pcall(require, "harpoon")
-	if not ok then
-		print("Harpoon not available")
+	local harpoon = optional_require("harpoon", "Harpoon")
+	if not harpoon then
 		return
 	end
 	local paths = {}
@@ -63,11 +101,7 @@ end, { desc = "Yank all harpoon paths" })
 local yank_ns = vim.api.nvim_create_namespace("yank_selection_highlight")
 
 local function yank_selection(include_code, skip_register)
-	local start_line = vim.fn.line("v")
-	local end_line = vim.fn.line(".")
-	if start_line > end_line then
-		start_line, end_line = end_line, start_line
-	end
+	local start_line, end_line = visual_range()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.fn.expand("%:p")
 	local result = path .. ":" .. format_range(start_line, end_line)
@@ -78,7 +112,7 @@ local function yank_selection(include_code, skip_register)
 	if not skip_register then
 		vim.fn.setreg("+", result)
 	end
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+	feed_escape()
 	-- Highlight the yanked range
 	vim.defer_fn(function()
 		vim.highlight.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
@@ -112,12 +146,11 @@ local function tmux_available()
 end
 
 local function ai_pane_alive()
-	if not vim.g.ai_pane_id then
+	local target = ai_pane_target()
+	if not target then
 		return false
 	end
-	local check = vim.fn.system(
-		"tmux display-message -t " .. vim.fn.shellescape(vim.g.ai_pane_id) .. " -p '#{pane_id}' 2>/dev/null"
-	)
+	local check = vim.fn.system("tmux display-message -t " .. target .. " -p '#{pane_id}' 2>/dev/null")
 	return vim.trim(check) ~= ""
 end
 
@@ -141,6 +174,15 @@ local function mark_ai_pane(pane_id, cmd)
 	tmux_set_pane_option(pane_id, ai_pane_cmd_option, cmd)
 end
 
+local function close_ai_pane()
+	local target = ai_pane_target()
+	if target then
+		vim.fn.system("tmux kill-pane -t " .. target)
+	end
+	vim.g.ai_pane_id = nil
+	print("AI pane closed")
+end
+
 local ensure_ai_pane
 
 -- Send selection to AI pane
@@ -159,9 +201,8 @@ end, { desc = "Send selection to AI pane" })
 
 -- Yank all file paths in Oil directory
 vim.keymap.set("n", "<leader>yo", function()
-	local ok, oil = pcall(require, "oil")
-	if not ok then
-		print("Oil not available")
+	local oil = optional_require("oil", "Oil")
+	if not oil then
 		return
 	end
 	local dir = oil.get_current_dir()
@@ -186,9 +227,7 @@ local function toggle_ai_split(cmd)
 		return
 	end
 	if ensure_ai_pane() then
-		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
-		vim.g.ai_pane_id = nil
-		print("AI pane closed")
+		close_ai_pane()
 		return
 	end
 	local pane_id = vim.fn.system(
@@ -207,17 +246,16 @@ local function toggle_ai_split(cmd)
 	vim.g.ai_pane_id = pane_id
 end
 
-vim.keymap.set("n", "<leader>cc", function()
-	toggle_ai_split("accd")
-end, { desc = "Open Claude Code in tmux split" })
-
-vim.keymap.set("n", "<leader>cd", function()
-	toggle_ai_split("acdd")
-end, { desc = "Open Codex in tmux split" })
-
-vim.keymap.set("n", "<leader>co", function()
-	toggle_ai_split("aco")
-end, { desc = "Open OpenCode in tmux split" })
+for _, mapping in ipairs({
+	{ lhs = "<leader>cc", cmd = "accd", desc = "Open Claude Code in tmux split" },
+	{ lhs = "<leader>cd", cmd = "acdd", desc = "Open Codex in tmux split" },
+	{ lhs = "<leader>co", cmd = "aco", desc = "Open OpenCode in tmux split" },
+}) do
+	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
+	vim.keymap.set("n", lhs, function()
+		toggle_ai_split(cmd)
+	end, { desc = desc })
+end
 
 vim.keymap.set("n", "<leader>cp", function()
 	if ensure_ai_pane() then
@@ -229,9 +267,7 @@ end, { desc = "Send file path to AI pane" })
 
 vim.keymap.set("n", "<leader>cq", function()
 	if ensure_ai_pane() then
-		vim.fn.system("tmux kill-pane -t " .. vim.fn.shellescape(vim.g.ai_pane_id))
-		vim.g.ai_pane_id = nil
-		print("AI pane closed")
+		close_ai_pane()
 	else
 		print("No AI pane open")
 	end
@@ -294,9 +330,8 @@ vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "Open LLM job lis
 -- Quick scoped message: runs a one-shot editor task through cf_tool.
 vim.keymap.set("n", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
-	local file = vim.fn.expand("%:p")
-	if file == "" then
-		vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
+	local file = current_file_or_notify()
+	if not file then
 		return
 	end
 	local line, snippet = cf_current_line_snippet()
@@ -311,19 +346,14 @@ end, { desc = "Run scoped LLM fix" })
 -- Visual mode: scoped message with line range
 vim.keymap.set("v", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
-	local start_line = vim.fn.line("v")
-	local end_line = vim.fn.line(".")
-	if start_line > end_line then
-		start_line, end_line = end_line, start_line
-	end
-	local file = vim.fn.expand("%:p")
-	if file == "" then
-		vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
-		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+	local start_line, end_line = visual_range()
+	local file = current_file_or_notify()
+	if not file then
+		feed_escape()
 		return
 	end
 	local range = format_range(start_line, end_line)
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+	feed_escape()
 
 	vim.schedule(function()
 		local message = vim.fn.input("LLM Message: ")
