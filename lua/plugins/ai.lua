@@ -20,14 +20,6 @@ return {
 			})
 
 			local api = require("supermaven-nvim.api")
-			vim.api.nvim_create_autocmd("VimEnter", {
-				callback = function()
-					vim.defer_fn(function()
-						api.start()
-					end, 100)
-				end,
-			})
-
 			vim.keymap.set("n", "<leader>sm", function()
 				if api.is_running() then
 					api.stop()
