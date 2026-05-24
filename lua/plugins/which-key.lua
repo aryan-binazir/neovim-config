@@ -11,7 +11,7 @@ local icons = {
 	search = { icon = "󰍉", color = "blue" },
 	send = { icon = "󰍉", color = "cyan" },
 	terminal = { icon = "", color = "blue" },
-	toggle = { icon = "󰔡", color = "purple" },
+	toggle = { icon = "●", color = "purple" },
 	yank = { icon = "󰅍", color = "green" },
 }
 
