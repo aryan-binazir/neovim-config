@@ -8,6 +8,7 @@ local next_job_id = 1
 local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
+local activity_progress_id = nil
 
 local function current_tool()
 	local tool = vim.g.cf_tool
@@ -86,6 +87,43 @@ local function set_progress(job, status, message, percent)
 		opts.id = job.progress_id
 	end
 	job.progress_id = vim.api.nvim_echo({ { message } }, false, opts)
+end
+
+local function running_job_count()
+	local count = 0
+	for _, job in ipairs(jobs) do
+		if job.status == "running" or job.status == "cancelling" then
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local function update_activity_progress()
+	local count = running_job_count()
+	if count == 0 then
+		if activity_progress_id then
+			vim.api.nvim_echo({ { "LLM jobs idle" } }, false, {
+				id = activity_progress_id,
+				kind = "progress",
+				source = "nvim",
+				status = "success",
+				title = "LLM jobs",
+				percent = 100,
+			})
+			activity_progress_id = nil
+		end
+		return
+	end
+
+	local message = count == 1 and "1 LLM job running" or (count .. " LLM jobs running")
+	activity_progress_id = vim.api.nvim_echo({ { message } }, false, {
+		id = activity_progress_id,
+		kind = "progress",
+		source = "nvim",
+		status = "running",
+		title = "LLM jobs",
+	})
 end
 
 local function append_lines(lines, text)
@@ -301,6 +339,7 @@ local function cancel_job(job)
 		job.handle:kill(15)
 	end
 	set_progress(job, "running", job.tool .. " cancelling job #" .. job.id, nil)
+	update_activity_progress()
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
 	if render_list then
 		render_list()
@@ -666,6 +705,7 @@ function M.run(location, snippet, message, bufnr)
 	prune_jobs()
 	start_log(job)
 	set_progress(job, "running", job.tool .. " running: " .. location, nil)
+	update_activity_progress()
 	if render_list then
 		render_list()
 	end
@@ -706,6 +746,7 @@ function M.run(location, snippet, message, bufnr)
 			elseif result.code == 0 then
 				job.status = "done"
 				set_progress(job, "success", job.tool .. " done; <leader>cl for log", 100)
+				update_activity_progress()
 				vim.notify(job.tool .. " done; <leader>cl for log")
 				vim.cmd("checktime")
 				if render_list then
@@ -717,6 +758,7 @@ function M.run(location, snippet, message, bufnr)
 				job.status = "failed"
 			end
 			set_progress(job, progress_status, job.tool .. " " .. status .. "; <leader>cl for log", 100)
+			update_activity_progress()
 			vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", notify_level)
 			if render_list then
 				render_list()
@@ -733,6 +775,7 @@ function M.run(location, snippet, message, bufnr)
 			"Failed to start: " .. tostring(handle),
 		}, job.log_path, "a")
 		set_progress(job, "failed", job.tool .. " failed to start; <leader>cl for log", 100)
+		update_activity_progress()
 		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
 		if render_list then
 			render_list()
