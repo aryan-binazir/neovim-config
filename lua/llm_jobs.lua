@@ -9,6 +9,7 @@ local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
 local activity_progress_id = nil
+local activity_timer = nil
 
 local function current_tool()
 	local tool = vim.g.cf_tool
@@ -99,16 +100,44 @@ local function running_job_count()
 	return count
 end
 
+local function start_activity_timer()
+	if activity_timer then
+		return
+	end
+	activity_timer = vim.uv.new_timer()
+	activity_timer:start(
+		0,
+		150,
+		vim.schedule_wrap(function()
+			if (vim.g.llm_jobs_running or 0) == 0 then
+				if activity_timer then
+					activity_timer:stop()
+					activity_timer:close()
+					activity_timer = nil
+				end
+				return
+			end
+			vim.cmd("redrawstatus")
+		end)
+	)
+end
+
 local function update_activity_progress()
 	local count = running_job_count()
+	vim.g.llm_jobs_running = count
+	vim.cmd("redrawstatus")
 	if count == 0 then
+		if activity_timer then
+			activity_timer:stop()
+			activity_timer:close()
+			activity_timer = nil
+		end
 		if activity_progress_id then
-			vim.api.nvim_echo({ { "LLM jobs idle" } }, false, {
+			vim.api.nvim_echo({ { "" } }, false, {
 				id = activity_progress_id,
 				kind = "progress",
 				source = "nvim",
 				status = "success",
-				title = "LLM jobs",
 				percent = 100,
 			})
 			activity_progress_id = nil
@@ -116,13 +145,12 @@ local function update_activity_progress()
 		return
 	end
 
-	local message = count == 1 and "1 LLM job running" or (count .. " LLM jobs running")
-	activity_progress_id = vim.api.nvim_echo({ { message } }, false, {
+	start_activity_timer()
+	activity_progress_id = vim.api.nvim_echo({ { "" } }, false, {
 		id = activity_progress_id,
 		kind = "progress",
 		source = "nvim",
 		status = "running",
-		title = "LLM jobs",
 	})
 end
 

@@ -74,6 +74,26 @@ return {
 				-- component_separators = { left = '', right = '' },
 				section_separators = { left = "", right = "" },
 			},
+			sections = {
+				lualine_a = { "mode" },
+				lualine_b = {
+					"branch",
+					"diff",
+					"diagnostics",
+					function()
+						if (vim.g.llm_jobs_running or 0) == 0 then
+							return ""
+						end
+						local frames = { "◐", "◓", "◑", "◒" }
+						local index = math.floor(vim.uv.now() / 150) % #frames + 1
+						return frames[index]
+					end,
+				},
+				lualine_c = { "filename" },
+				lualine_x = { "encoding", "fileformat", "filetype" },
+				lualine_y = { "progress" },
+				lualine_z = { "location" },
+			},
 		},
 	},
 
