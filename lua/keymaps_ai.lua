@@ -228,12 +228,19 @@ local function toggle_ai_split(cmd)
 		close_ai_pane()
 		return
 	end
-	local pane_id = vim.fn.system(
-		'tmux split-window -h -l 35% -P -F "#{pane_id}" -c '
-			.. vim.fn.shellescape(vim.fn.getcwd())
-			.. " "
-			.. vim.fn.shellescape("$SHELL -ic " .. vim.fn.shellescape(cmd))
-	)
+	local pane_id = vim.fn.system({
+		"tmux",
+		"split-window",
+		"-h",
+		"-l",
+		"35%",
+		"-P",
+		"-F",
+		"#{pane_id}",
+		"-c",
+		vim.fn.getcwd(),
+		"$SHELL -ic " .. vim.fn.shellescape(cmd),
+	})
 	pane_id = vim.trim(pane_id)
 	if pane_id == "" then
 		print("Failed to create tmux split")
