@@ -2,6 +2,7 @@ vim.g.ai = {
 	tool = "codex", -- "codex" or "claude"
 	timeout_ms = 5 * 60 * 1000,
 }
+vim.g.claudecode_enabled = true -- Set to false to skip installing Claude Code integration.
 vim.g.obsidian_path = "~/Obsidian/" -- Set to "" to disable Obsidian on this machine.
 
 local node_host_prog = vim.fn.exepath("neovim-node-host")
