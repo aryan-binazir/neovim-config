@@ -13,8 +13,8 @@ return {
 			"nvim-lua/plenary.nvim",
 		},
 		keys = {
-			{ "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
-			{ "<leader>lc", "<cmd>LazyGitCurrentFile<cr>", desc = "LazyGit Current File" },
+			{ "<leader>lg", "<cmd>LazyGit<cr>", desc = "lazygit" },
+			{ "<leader>lc", "<cmd>LazyGitCurrentFile<cr>", desc = "lazygit current file" },
 		},
 		config = function()
 			-- Add keymap to quit Lazygit floating window

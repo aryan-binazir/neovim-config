@@ -32,7 +32,7 @@ return {
 		-- Add a command to manually trigger linting
 		vim.api.nvim_create_user_command("Lint", function()
 			lint.try_lint()
-		end, { desc = "Trigger linting for current file" })
+		end, { desc = "trigger linting for current file" })
 
 		-- Add a command to check linter status
 		vim.api.nvim_create_user_command("LintStatus", function()
@@ -42,6 +42,6 @@ return {
 			else
 				print("Configured linters for " .. ft .. ": " .. table.concat(linters[ft], ", "))
 			end
-		end, { desc = "Show linter status for current filetype" })
+		end, { desc = "show linter status for current filetype" })
 	end,
 }

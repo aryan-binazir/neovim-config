@@ -23,7 +23,7 @@ return {
 				else
 					gs.next_hunk()
 				end
-			end, { desc = "Jump to next hunk" })
+			end, { desc = "jump to next hunk" })
 
 			map({ "n", "v" }, "<leader>hk", function()
 				if vim.wo.diff then
@@ -31,7 +31,7 @@ return {
 				else
 					gs.prev_hunk()
 				end
-			end, { desc = "Jump to previous hunk" })
+			end, { desc = "jump to previous hunk" })
 
 			-- Actions
 			-- visual mode
@@ -44,9 +44,9 @@ return {
 			-- normal mode
 			map("n", "<leader>hs", gs.stage_hunk, { desc = "git stage hunk" })
 			map("n", "<leader>hr", gs.reset_hunk, { desc = "git reset hunk" })
-			map("n", "<leader>hS", gs.stage_buffer, { desc = "git Stage buffer" })
+			map("n", "<leader>hS", gs.stage_buffer, { desc = "git stage buffer" })
 			map("n", "<leader>hu", gs.undo_stage_hunk, { desc = "undo stage hunk" })
-			map("n", "<leader>hR", gs.reset_buffer, { desc = "git Reset buffer" })
+			map("n", "<leader>hR", gs.reset_buffer, { desc = "git reset buffer" })
 			map("n", "<leader>hp", gs.preview_hunk, { desc = "preview git hunk" })
 			map("n", "<leader>hb", function()
 				gs.blame_line({ full = false })

@@ -78,48 +78,48 @@ return {
 		pcall(telescope.load_extension, "ui-select")
 
 		-- Telescope keymaps
-		vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>", { desc = "Telescope [U]ndo" })
+		vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>", { desc = "telescope undo" })
 		vim.keymap.set(
 			"n",
 			"<leader>?",
 			require("telescope.builtin").oldfiles,
-			{ desc = "[?] Find recently opened files" }
+			{ desc = "find recently opened files" }
 		)
 		vim.keymap.set(
 			"n",
 			"<leader><space>",
 			require("telescope.builtin").buffers,
-			{ desc = "[ ] Find existing buffers" }
+			{ desc = "find existing buffers" }
 		)
 		vim.keymap.set("n", "<leader>/", function()
 			require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
 				winblend = 10,
 				previewer = false,
 			}))
-		end, { desc = "[/] Fuzzily search in current buffer" })
+		end, { desc = "fuzzily search in current buffer" })
 		vim.keymap.set("n", "<leader>s/", function()
 			require("telescope.builtin").live_grep({
 				grep_open_files = true,
 				prompt_title = "Live Grep in Open Files",
 			})
-		end, { desc = "[S]earch [/] in Open Files" })
-		vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = "[S]earch [R]esume" })
-		vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "[S]earch [H]elp" })
+		end, { desc = "search in open files" })
+		vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = "search resume" })
+		vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "search help" })
 		vim.keymap.set(
 			"n",
 			"<leader>sw",
 			require("telescope.builtin").grep_string,
-			{ desc = "[S]earch current [W]ord" }
+			{ desc = "search current word" }
 		)
-		vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "[S]earch [D]iagnostics" })
-		vim.keymap.set("n", "<C-f>", require("telescope.builtin").live_grep, { desc = "Search by Grep C-f" })
+		vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "search diagnostics" })
+		vim.keymap.set("n", "<C-f>", require("telescope.builtin").live_grep, { desc = "search by grep c-f" })
 		vim.keymap.set("n", "<C-p>", function()
 			require("telescope.builtin").find_files({
 				hidden = true,
 				no_ignore = true,
 				find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
 			})
-		end, { desc = "Search Files C-p" })
-		vim.keymap.set("n", "<leader>gs", require("telescope.builtin").git_status, { desc = "[G]it [S]tatus" })
+		end, { desc = "search files c-p" })
+		vim.keymap.set("n", "<leader>gs", require("telescope.builtin").git_status, { desc = "git status" })
 	end,
 }

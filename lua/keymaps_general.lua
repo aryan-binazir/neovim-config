@@ -15,15 +15,15 @@ local function Toggle_diagnostics()
 end
 
 -- Diagnostic keymaps
-vim.keymap.set("n", "<leader>dk", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Go to previous diagnostic message" })
-vim.keymap.set("n", "<leader>dj", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "Go to next diagnostic message" })
-vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Go to diagnostics list" })
+vim.keymap.set("n", "<leader>dk", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "go to previous diagnostic message" })
+vim.keymap.set("n", "<leader>dj", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "go to next diagnostic message" })
+vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "open floating diagnostic message" })
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "go to diagnostics list" })
 vim.keymap.set(
 	"n",
 	"<leader>tt",
 	Toggle_diagnostics,
-	{ silent = true, desc = "Toggle vim diagnostics" }
+	{ silent = true, desc = "toggle vim diagnostics" }
 )
 
 -- Other Keymaps
@@ -31,9 +31,9 @@ vim.keymap.set(
 	"n",
 	"<leader>tr",
 	":set relativenumber!<CR>",
-	{ silent = true, desc = "Toggle relative number" }
+	{ silent = true, desc = "toggle relative number" }
 )
-vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "Check external changes" })
+vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "check external changes" })
 
 -- Location list specific mappings
 vim.api.nvim_create_autocmd("FileType", {
@@ -44,7 +44,7 @@ vim.api.nvim_create_autocmd("FileType", {
 			local line = vim.api.nvim_win_get_cursor(0)[1]
 			-- Execute the location list jump
 			vim.cmd(line .. "ll")
-		end, { buffer = true, desc = "Jump to location list item" })
+		end, { buffer = true, desc = "jump to location list item" })
 	end,
 })
 

@@ -28,7 +28,7 @@ return {
 					api.start()
 					vim.notify("Supermaven enabled")
 				end
-			end, { desc = "Toggle SM" })
+			end, { desc = "toggle supermaven" })
 		end,
 	},
 }

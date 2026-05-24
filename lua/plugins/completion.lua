@@ -60,7 +60,7 @@ return {
 		end
 
 		-- Keymapping for completion toggle
-		vim.keymap.set("n", "<Leader>tc", toggle_completion, { desc = "Toggle completion" })
+		vim.keymap.set("n", "<Leader>tc", toggle_completion, { desc = "toggle completion" })
 
 		cmp.setup({
 			snippet = {
