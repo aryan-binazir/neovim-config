@@ -288,7 +288,6 @@ local ai_split_commands = {
 		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
 		desc = "Open Codex in tmux split",
 	},
-	{ lhs = "<leader>co", cmd = "opencode", desc = "Open OpenCode in tmux split" },
 }
 local default_ai_split_cmd = ai_split_commands[1].cmd
 
