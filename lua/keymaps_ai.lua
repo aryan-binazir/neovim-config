@@ -229,7 +229,7 @@ local function toggle_ai_split(cmd)
 		return
 	end
 	local pane_id = vim.fn.system(
-		'tmux split-window -h -p 35 -P -F "#{pane_id}" -c '
+		'tmux split-window -h -l 35% -P -F "#{pane_id}" -c '
 			.. vim.fn.shellescape(vim.fn.getcwd())
 			.. " "
 			.. vim.fn.shellescape("$SHELL -ic " .. vim.fn.shellescape(cmd))
