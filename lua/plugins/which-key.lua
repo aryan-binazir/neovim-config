@@ -14,7 +14,30 @@ return {
 	event = "VeryLazy",
 	opts = {
 		triggers = {
-			{ "<leader>", mode = { "n", "v" } },
+			{ "<leader>c", mode = { "n", "v" } },
+			{ "<leader>d", mode = { "n", "v" } },
+			{ "<leader>f", mode = { "n", "v", "o" } },
+			{ "<leader>h", mode = { "n", "v" } },
+			{ "<leader>s", mode = { "n", "v" } },
+			{ "<leader>t", mode = { "n", "v" } },
+			{ "<leader>w", mode = { "n", "v" } },
+			{ "<leader>y", mode = { "n", "v" } },
+		},
+		plugins = {
+			marks = false,
+			registers = false,
+			spelling = {
+				enabled = false,
+			},
+			presets = {
+				operators = false,
+				motions = false,
+				text_objects = false,
+				windows = false,
+				nav = false,
+				z = false,
+				g = false,
+			},
 		},
 		spec = {
 			{ "<leader>c", group = "code / ai", icon = icons.ai },
