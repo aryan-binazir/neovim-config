@@ -6,6 +6,8 @@ local.lua
 
 # Agent scratch files
 _scratch/
+.codex/
+.claude/
 
 # luarocks build files
 *.src.rock
