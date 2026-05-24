@@ -103,12 +103,11 @@ local function update_activity_progress()
 	local count = running_job_count()
 	if count == 0 then
 		if activity_progress_id then
-			vim.api.nvim_echo({ { "LLM jobs idle" } }, false, {
+			vim.api.nvim_echo({ { "" } }, false, {
 				id = activity_progress_id,
 				kind = "progress",
 				source = "nvim",
 				status = "success",
-				title = "LLM jobs",
 				percent = 100,
 			})
 			activity_progress_id = nil
@@ -116,13 +115,11 @@ local function update_activity_progress()
 		return
 	end
 
-	local message = count == 1 and "1 LLM job running" or (count .. " LLM jobs running")
-	activity_progress_id = vim.api.nvim_echo({ { message } }, false, {
+	activity_progress_id = vim.api.nvim_echo({ { "" } }, false, {
 		id = activity_progress_id,
 		kind = "progress",
 		source = "nvim",
 		status = "running",
-		title = "LLM jobs",
 	})
 end
 
