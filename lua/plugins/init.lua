@@ -81,12 +81,13 @@ return {
 					"diff",
 					"diagnostics",
 					function()
-						if (vim.g.llm_jobs_running or 0) == 0 then
+						local running = vim.g.llm_jobs_running or 0
+						if running == 0 then
 							return ""
 						end
 						local frames = { "◐", "◓", "◑", "◒" }
 						local index = math.floor(vim.uv.now() / 150) % #frames + 1
-						return frames[index]
+						return running > 1 and (frames[index] .. running) or frames[index]
 					end,
 				},
 				lualine_c = { "filename" },

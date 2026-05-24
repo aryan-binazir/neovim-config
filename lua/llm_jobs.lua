@@ -8,7 +8,6 @@ local next_job_id = 1
 local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
-local activity_progress_id = nil
 local activity_timer = nil
 
 local function current_tool()
@@ -132,26 +131,10 @@ local function update_activity_progress()
 			activity_timer:close()
 			activity_timer = nil
 		end
-		if activity_progress_id then
-			vim.api.nvim_echo({ { "" } }, false, {
-				id = activity_progress_id,
-				kind = "progress",
-				source = "nvim",
-				status = "success",
-				percent = 100,
-			})
-			activity_progress_id = nil
-		end
 		return
 	end
 
 	start_activity_timer()
-	activity_progress_id = vim.api.nvim_echo({ { "" } }, false, {
-		id = activity_progress_id,
-		kind = "progress",
-		source = "nvim",
-		status = "running",
-	})
 end
 
 local function append_lines(lines, text)
