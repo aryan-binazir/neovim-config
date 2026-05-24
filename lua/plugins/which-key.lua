@@ -48,6 +48,7 @@ local approved_leader_prefixes = {
 
 local approved_non_leader_mappings = {
 	["<C-g>"] = true,
+	["<C-m>"] = true,
 	["<C-n>"] = true,
 }
 
@@ -76,6 +77,7 @@ return {
 		},
 		triggers = {
 			{ "<C-g>", mode = { "n", "v" } },
+			{ "<C-m>", mode = { "n", "v" } },
 			{ "<C-n>", mode = { "n", "v" } },
 			{ "<leader>", mode = { "n", "v" } },
 			{ "<leader>/", mode = { "n", "v" } },
@@ -109,7 +111,8 @@ return {
 		},
 		spec = {
 			{ "<C-g>", desc = "harpoon menu", icon = icons.harpoon_files },
-			{ "<C-n>", desc = "previous harpoon file", icon = icons.harpoon_files },
+			{ "<C-m>", desc = "next harpoon", icon = icons.harpoon_files },
+			{ "<C-n>", desc = "previous harpoon", icon = icons.harpoon_files },
 			{ "<leader>/", desc = "search current buffer", icon = icons.search },
 			{ "<leader><space>", desc = "find buffers", icon = icons.buffers },
 			{ "<leader>?", desc = "recent files", icon = icons.recent },
