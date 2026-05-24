@@ -1,5 +1,3 @@
-local M = {}
-
 -- Helper for yanking paths
 local function yank_paths(paths, label)
 	vim.fn.setreg("+", table.concat(paths, "\n"))
@@ -181,23 +179,34 @@ local function close_ai_pane()
 	print("AI pane closed")
 end
 
-local ensure_ai_pane
-local ensure_or_open_ai_pane
-local default_ai_split_cmd
+-- Find a pane this config marked, so it survives nvim closing and reopening.
+local function find_marked_ai_pane()
+	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
+	if vim.v.shell_error ~= 0 then
+		return nil
+	end
+	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
+		local parts = vim.split(line, "\t", { plain = true })
+		if parts[2] == "1" and parts[1] and parts[1] ~= "" then
+			return parts[1]
+		end
+	end
+	return nil
+end
 
--- Send selection to AI pane
-vim.keymap.set("v", "<leader>cx", function()
-	if not tmux_available() then
-		print("tmux not available")
-		return
+local function ensure_ai_pane()
+	if ai_pane_alive() then
+		return true
 	end
-	local result = yank_selection(false, true)
-	if ensure_or_open_ai_pane(default_ai_split_cmd) then
-		send_to_ai_pane(result .. " ", true)
-	else
-		print("AI pane closed.")
+
+	local existing = find_marked_ai_pane()
+	if existing then
+		vim.g.ai_pane_id = existing
+		return true
 	end
-end, { desc = "Send selection to AI pane" })
+
+	return false
+end
 
 -- Yank all file paths in Oil directory
 vim.keymap.set("n", "<leader>yo", function()
@@ -250,10 +259,6 @@ local function open_ai_split(cmd)
 end
 
 local function toggle_ai_split(cmd)
-	if not tmux_available() then
-		print("tmux not available")
-		return
-	end
 	if ensure_ai_pane() then
 		close_ai_pane()
 		return
@@ -261,7 +266,7 @@ local function toggle_ai_split(cmd)
 	open_ai_split(cmd)
 end
 
-ensure_or_open_ai_pane = function(cmd)
+local function ensure_or_open_ai_pane(cmd)
 	if ensure_ai_pane() then
 		return true
 	end
@@ -277,7 +282,17 @@ local ai_split_commands = {
 	},
 	{ lhs = "<leader>co", cmd = "opencode", desc = "Open OpenCode in tmux split" },
 }
-default_ai_split_cmd = ai_split_commands[1].cmd
+local default_ai_split_cmd = ai_split_commands[1].cmd
+
+-- Send selection to AI pane
+vim.keymap.set("v", "<leader>cx", function()
+	local result = yank_selection(false, true)
+	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+		send_to_ai_pane(result .. " ", true)
+	else
+		print("AI pane closed.")
+	end
+end, { desc = "Send selection to AI pane" })
 
 for _, mapping in ipairs(ai_split_commands) do
 	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
@@ -301,35 +316,6 @@ vim.keymap.set("n", "<leader>cq", function()
 		print("No AI pane open")
 	end
 end, { desc = "Close AI pane" })
-
--- Find a pane this config marked, so it survives nvim closing and reopening.
-local function find_marked_ai_pane()
-	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{@nvim_ai_pane}" 2>/dev/null')
-	if vim.v.shell_error ~= 0 then
-		return nil
-	end
-	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
-		local parts = vim.split(line, "\t", { plain = true })
-		if parts[2] == "1" and parts[1] and parts[1] ~= "" then
-			return parts[1]
-		end
-	end
-	return nil
-end
-
-ensure_ai_pane = function()
-	if ai_pane_alive() then
-		return true
-	end
-
-	local existing = find_marked_ai_pane()
-	if existing then
-		vim.g.ai_pane_id = existing
-		return true
-	end
-
-	return false
-end
 
 local llm_jobs = require("ai.jobs")
 
@@ -393,7 +379,3 @@ vim.keymap.set("v", "<leader>cf", function()
 		llm_jobs.run(llm_location_label(file, range), snippet, message, bufnr)
 	end)
 end, { desc = "Run scoped LLM fix with selection" })
-
-function M.setup() end
-
-return M
