@@ -8,13 +8,14 @@ local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
 local activity_timer = nil
-local config = {
+local default_config = {
 	tool = "codex",
 	timeout_ms = 15 * 60 * 1000,
 }
+local config = vim.deepcopy(default_config)
 
 function M.setup(opts)
-	config = vim.tbl_deep_extend("force", config, opts or {})
+	config = vim.tbl_deep_extend("force", vim.deepcopy(default_config), opts or {})
 end
 
 local function current_tool()
