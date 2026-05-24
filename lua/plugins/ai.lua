@@ -24,7 +24,6 @@ return {
 				callback = function()
 					vim.defer_fn(function()
 						api.start()
-						print("se")
 					end, 100)
 				end,
 			})
@@ -32,10 +31,10 @@ return {
 			vim.keymap.set("n", "<leader>sm", function()
 				if api.is_running() then
 					api.stop()
-					print("sd")
+					vim.notify("Supermaven disabled")
 				else
 					api.start()
-					print("se")
+					vim.notify("Supermaven enabled")
 				end
 			end, { desc = "Toggle SM" })
 		end,

@@ -21,6 +21,10 @@ for _, required in ipairs(required_local_values) do
 	end
 end
 
+if vim.g.cf_tool ~= "codex" and vim.g.cf_tool ~= "claude" then
+	error('local.lua must set vim.g.cf_tool to "codex" or "claude"')
+end
+
 require("options")
 require("keymaps_general")
 require("keymaps_ai")
