@@ -319,16 +319,11 @@ end
 local function cf_command(tool, repo_root, prompt)
 	if tool == "codex" then
 		return {
-			"codex",
-			"--ask-for-approval",
-			"never",
-			"exec",
-			"--cd",
+			"sh",
+			"-c",
+			"exec codex --ask-for-approval never exec --cd \"$1\" --sandbox workspace-write --color never --skip-git-repo-check \"$2\" </dev/null",
+			"codex-cf",
 			repo_root,
-			"--sandbox",
-			"workspace-write",
-			"--color",
-			"never",
 			prompt,
 		}
 	end
