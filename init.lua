@@ -8,7 +8,6 @@ end
 dofile(local_config)
 
 local required_local_values = {
-	{ name = "obsidian_path", kind = "string" },
 	{ name = "supermaven_enabled", kind = "boolean" },
 }
 
