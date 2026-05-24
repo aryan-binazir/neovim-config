@@ -4,6 +4,9 @@ luac.out
 # Per-machine Neovim settings
 local.lua
 
+# Agent scratch files
+_scratch/
+
 # luarocks build files
 *.src.rock
 *.zip

@@ -282,11 +282,11 @@ local function ensure_or_open_ai_pane(cmd)
 end
 
 local ai_split_commands = {
-	{ lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "Open Claude Code in tmux split" },
+	{ lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "Claude Code pane" },
 	{
 		lhs = "<leader>cd",
 		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
-		desc = "Open Codex in tmux split",
+		desc = "Codex pane",
 	},
 }
 local default_ai_split_cmd = ai_split_commands[1].cmd
@@ -302,7 +302,7 @@ vim.keymap.set("n", "<leader>cx", function()
 	else
 		print("AI pane closed.")
 	end
-end, { desc = "Send current line to AI pane" })
+end, { desc = "Send current line" })
 
 vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
@@ -311,7 +311,7 @@ vim.keymap.set("v", "<leader>cx", function()
 	else
 		print("AI pane closed.")
 	end
-end, { desc = "Send selection to AI pane" })
+end, { desc = "Send selection" })
 
 for _, mapping in ipairs(ai_split_commands) do
 	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
@@ -326,7 +326,7 @@ vim.keymap.set("n", "<leader>cp", function()
 	else
 		print("AI pane closed.")
 	end
-end, { desc = "Send file path to AI pane" })
+end, { desc = "Send file path" })
 
 vim.keymap.set("n", "<leader>cq", function()
 	if ensure_ai_pane() then
@@ -334,7 +334,7 @@ vim.keymap.set("n", "<leader>cq", function()
 	else
 		print("No AI pane open")
 	end
-end, { desc = "Close AI pane" })
+end, { desc = "Close pane" })
 
 local llm_jobs = require("ai.jobs")
 
@@ -359,7 +359,7 @@ local function cf_current_line_snippet()
 	return line, snippet
 end
 
-vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "Open LLM job list" })
+vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "Job list" })
 
 -- Quick scoped message: runs a one-shot editor task through the configured LLM tool.
 vim.keymap.set("n", "<leader>cf", function()
@@ -375,7 +375,7 @@ vim.keymap.set("n", "<leader>cf", function()
 	end
 
 	llm_jobs.run(llm_location_label(file, tostring(line)), snippet, message, bufnr)
-end, { desc = "Run scoped LLM fix" })
+end, { desc = "Run scoped fix" })
 
 -- Visual mode: scoped message with line range
 vim.keymap.set("v", "<leader>cf", function()
@@ -397,4 +397,4 @@ vim.keymap.set("v", "<leader>cf", function()
 		local snippet = cf_snippet(bufnr, start_line, end_line)
 		llm_jobs.run(llm_location_label(file, range), snippet, message, bufnr)
 	end)
-end, { desc = "Run scoped LLM fix with selection" })
+end, { desc = "Run scoped fix with selection" })
