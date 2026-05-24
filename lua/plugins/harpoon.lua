@@ -11,7 +11,7 @@ return {
 		end, { desc = "add to harpoon" })
 		vim.keymap.set("n", "<C-g>", function()
 			harpoon.ui:toggle_quick_menu(harpoon:list())
-		end)
+		end, { desc = "harpoon menu" })
 
 		-- Change to leader + number keys
 		for i = 1, 9 do
@@ -23,9 +23,9 @@ return {
 		-- Toggle previous & next buffers stored within Harpoon list
 		vim.keymap.set("n", "<C-n>", function()
 			harpoon:list():prev()
-		end)
+		end, { desc = "previous harpoon file" })
 		vim.keymap.set("n", "<C-m>", function()
 			harpoon:list():next()
-		end)
+		end, { desc = "next harpoon file" })
 	end,
 }
