@@ -290,7 +290,7 @@ local ai_split_commands = {
 	},
 	{
 		lhs = "<leader>cu",
-		cmd = "cursor-agent --force",
+		cmd = "cursor-agent -f",
 		desc = "cursor agent pane",
 	},
 }

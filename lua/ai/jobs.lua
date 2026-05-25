@@ -65,7 +65,7 @@ local function build_command(tool, root, prompt)
 		return {
 			"sh",
 			"-c",
-			"exec codex --ask-for-approval never exec --cd \"$1\" --sandbox workspace-write --color never --skip-git-repo-check \"$2\" </dev/null",
+			'exec codex --ask-for-approval never exec --cd "$1" --sandbox workspace-write --color never --skip-git-repo-check "$2" </dev/null',
 			"codex-cf",
 			root,
 			prompt,
@@ -84,7 +84,7 @@ local function build_command(tool, root, prompt)
 		return {
 			"cursor-agent",
 			"-p",
-			"--force",
+			"-f",
 			"--output-format",
 			"text",
 			prompt,
