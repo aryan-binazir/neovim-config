@@ -288,6 +288,11 @@ local ai_split_commands = {
 		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
 		desc = "codex pane",
 	},
+	{
+		lhs = "<leader>cu",
+		cmd = vim.g.ai_cursor_cmd or "cursor-agent --force",
+		desc = "cursor agent pane",
+	},
 }
 local default_ai_split_cmd = ai_split_commands[1].cmd
 

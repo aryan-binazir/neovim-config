@@ -133,6 +133,7 @@ return {
 			{ "<leader>cl", desc = "llm jobs", icon = icons.jobs },
 			{ "<leader>cp", desc = "send file path", icon = icons.file },
 			{ "<leader>cq", desc = "close ai pane", icon = icons.close },
+			{ "<leader>cu", desc = "open cursor agent", icon = icons.terminal },
 			{ "<leader>cx", desc = "send line/selection", icon = icons.send, mode = { "n", "v" } },
 			{ "<leader>d", group = "diagnostics", icon = icons.diagnostics },
 			{ "<leader>e", desc = "diagnostic float", icon = icons.diagnostic_float },
