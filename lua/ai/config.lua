@@ -1,7 +1,6 @@
 local M = {}
 
 local defaults = {
-	tool = "codex",
 	timeout_ms = 15 * 60 * 1000,
 }
 
@@ -18,8 +17,8 @@ end
 function M.resolve(opts)
 	opts = optional_table(opts, "ai.setup opts") or optional_table(vim.g.ai, "vim.g.ai") or {}
 	local config = {
-		tool = opts.tool or vim.g.cf_tool or defaults.tool,
-		timeout_ms = opts.timeout_ms or vim.g.cf_timeout_ms or defaults.timeout_ms,
+		tool = opts.tool,
+		timeout_ms = opts.timeout_ms or defaults.timeout_ms,
 	}
 
 	if config.tool ~= "codex" and config.tool ~= "claude" and config.tool ~= "cursor" then

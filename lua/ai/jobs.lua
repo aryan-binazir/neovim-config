@@ -8,23 +8,10 @@ local max_jobs = 50
 local max_log_files = 100
 local list_state = nil
 local activity_timer = nil
-local default_config = {
-	tool = "codex",
-	timeout_ms = 15 * 60 * 1000,
-}
-local config = vim.deepcopy(default_config)
+local config
 
 function M.setup(opts)
-	config = vim.tbl_deep_extend("force", vim.deepcopy(default_config), opts or {})
-end
-
-local function current_tool()
-	local tool = config.tool
-	if tool ~= "codex" and tool ~= "claude" and tool ~= "cursor" then
-		vim.notify("Invalid LLM tool: " .. tostring(tool), vim.log.levels.ERROR)
-		return nil
-	end
-	return tool
+	config = opts
 end
 
 local function build_prompt(location, snippet, message)
@@ -750,10 +737,7 @@ function M.run(location, snippet, message, bufnr)
 	local root = repo_root(file)
 	local prompt = build_prompt(location, snippet, message)
 	local timeout_ms = config.timeout_ms
-	local tool = current_tool()
-	if not tool then
-		return
-	end
+	local tool = config.tool
 	local cmd, cmd_err = build_command(tool, root, prompt)
 	if not cmd then
 		vim.notify(cmd_err, vim.log.levels.ERROR)

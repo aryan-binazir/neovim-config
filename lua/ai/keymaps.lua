@@ -282,19 +282,11 @@ local function ensure_or_open_ai_pane(cmd)
 end
 
 local ai_split_commands = {
-	{ lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "claude code pane" },
-	{
-		lhs = "<leader>cd",
-		cmd = "codex --dangerously-bypass-approvals-and-sandbox",
-		desc = "codex pane",
-	},
-	{
-		lhs = "<leader>cu",
-		cmd = "cursor-agent -f",
-		desc = "cursor agent pane",
-	},
+	claude = { lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "claude code pane" },
+	codex = { lhs = "<leader>cd", cmd = "codex --dangerously-bypass-approvals-and-sandbox", desc = "codex pane" },
+	cursor = { lhs = "<leader>cu", cmd = "cursor-agent -f", desc = "cursor agent pane" },
 }
-local default_ai_split_cmd = ai_split_commands[1].cmd
+local default_ai_split_cmd = ai_split_commands[require("ai.config").resolve().tool].cmd
 
 -- Send selection to AI pane
 vim.keymap.set("n", "<leader>cx", function()
@@ -318,7 +310,7 @@ vim.keymap.set("v", "<leader>cx", function()
 	end
 end, { desc = "send selection" })
 
-for _, mapping in ipairs(ai_split_commands) do
+for _, mapping in pairs(ai_split_commands) do
 	local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
 	vim.keymap.set("n", lhs, function()
 		toggle_ai_split(cmd)
