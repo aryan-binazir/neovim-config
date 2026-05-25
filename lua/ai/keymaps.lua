@@ -290,7 +290,7 @@ local ai_split_commands = {
 	},
 	{
 		lhs = "<leader>cu",
-		cmd = vim.g.ai_cursor_cmd or "cursor-agent --force",
+		cmd = "cursor-agent --force",
 		desc = "cursor agent pane",
 	},
 }

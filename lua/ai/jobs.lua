@@ -20,7 +20,7 @@ end
 
 local function current_tool()
 	local tool = config.tool
-	if tool ~= "codex" and tool ~= "claude" then
+	if tool ~= "codex" and tool ~= "claude" and tool ~= "cursor" then
 		vim.notify("Invalid LLM tool: " .. tostring(tool), vim.log.levels.ERROR)
 		return nil
 	end
@@ -77,6 +77,16 @@ local function build_command(tool, root, prompt)
 			"-p",
 			"--permission-mode",
 			"bypassPermissions",
+			prompt,
+		}
+	end
+	if tool == "cursor" then
+		return {
+			"cursor-agent",
+			"-p",
+			"--force",
+			"--output-format",
+			"text",
 			prompt,
 		}
 	end
