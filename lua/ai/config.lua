@@ -1,9 +1,5 @@
 local M = {}
 
-local defaults = {
-	timeout_ms = 15 * 60 * 1000,
-}
-
 local function optional_table(value, name)
 	if value == nil then
 		return nil
@@ -18,11 +14,13 @@ function M.resolve(opts)
 	opts = optional_table(opts, "ai.setup opts") or optional_table(vim.g.ai, "vim.g.ai") or {}
 	local config = {
 		tool = opts.tool,
-		timeout_ms = opts.timeout_ms or defaults.timeout_ms,
+		timeout_ms = opts.timeout_ms,
 	}
 
 	if config.tool ~= "codex" and config.tool ~= "claude" and config.tool ~= "cursor" then
-		error('invalid value for config.tool: ' .. tostring(config.tool) .. ' (expected "codex", "claude", or "cursor")')
+		error(
+			"invalid value for config.tool: " .. tostring(config.tool) .. ' (expected "codex", "claude", or "cursor")'
+		)
 	end
 	if type(config.timeout_ms) ~= "number" then
 		error("invalid value for config.timeout_ms: " .. tostring(config.timeout_ms) .. " (expected number)")

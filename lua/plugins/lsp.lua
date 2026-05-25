@@ -87,7 +87,6 @@ return {
 				"buf_ls",
 				"biome",
 				"golangci_lint_ls",
-				"graphql",
 				"ts_ls",
 			}
 
