@@ -692,6 +692,7 @@ function M.open_list()
 			1000,
 			vim.schedule_wrap(function()
 				if not list_state or not vim.api.nvim_buf_is_valid(buf) then
+					close_list()
 					return
 				end
 				refresh_current()

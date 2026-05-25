@@ -3,7 +3,7 @@ local M = {}
 function M.setup(opts)
 	local config = require("ai.config").resolve(opts)
 	require("ai.jobs").setup(config)
-	require("ai.keymaps")
+	require("ai.keymaps").setup(config)
 end
 
 function M.statusline_component()

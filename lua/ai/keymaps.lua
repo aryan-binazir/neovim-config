@@ -145,6 +145,7 @@ end, { desc = "yank file path, lines, and code (full lines)" })
 -- AI tools in tmux splits
 vim.g.ai_pane_id = nil
 local ai_pane_marker = "@nvim_ai_pane"
+local config
 
 local function tmux_available()
 	return vim.fn.executable("tmux") == 1
@@ -286,7 +287,10 @@ local ai_split_commands = {
 	codex = { lhs = "<leader>cd", cmd = "codex --dangerously-bypass-approvals-and-sandbox", desc = "codex pane" },
 	cursor = { lhs = "<leader>cu", cmd = "cursor-agent -f", desc = "cursor agent pane" },
 }
-local default_ai_split_cmd = ai_split_commands[require("ai.config").resolve().tool].cmd
+
+local function default_ai_split_cmd()
+	return ai_split_commands[config.tool].cmd
+end
 
 -- Send selection to AI pane
 vim.keymap.set("n", "<leader>cx", function()
@@ -294,7 +298,7 @@ vim.keymap.set("n", "<leader>cx", function()
 	if not result then
 		return
 	end
-	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+	if ensure_or_open_ai_pane(default_ai_split_cmd()) then
 		send_to_ai_pane(result .. " ", true)
 	else
 		print("AI pane closed.")
@@ -303,7 +307,7 @@ end, { desc = "send current line" })
 
 vim.keymap.set("v", "<leader>cx", function()
 	local result = yank_selection(false, true)
-	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+	if ensure_or_open_ai_pane(default_ai_split_cmd()) then
 		send_to_ai_pane(result .. " ", true)
 	else
 		print("AI pane closed.")
@@ -318,7 +322,7 @@ for _, mapping in pairs(ai_split_commands) do
 end
 
 vim.keymap.set("n", "<leader>cp", function()
-	if ensure_or_open_ai_pane(default_ai_split_cmd) then
+	if ensure_or_open_ai_pane(default_ai_split_cmd()) then
 		send_to_ai_pane(vim.fn.expand("%:p") .. " ", true)
 	else
 		print("AI pane closed.")
@@ -395,3 +399,11 @@ vim.keymap.set("v", "<leader>cf", function()
 		llm_jobs.run(llm_location_label(file, range), snippet, message, bufnr)
 	end)
 end, { desc = "run scoped fix with selection" })
+
+local M = {}
+
+function M.setup(opts)
+	config = opts
+end
+
+return M
