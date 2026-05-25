@@ -3,6 +3,7 @@ vim.g.ai = {
 	timeout_ms = 5 * 60 * 1000,
 }
 vim.g.claudecode_enabled = true -- Set to false to skip installing Claude Code integration.
+vim.g.supermaven_enabled = false -- Set to true to install and enable Supermaven.
 vim.g.obsidian_path = "~/Obsidian/" -- Set to "" to disable Obsidian on this machine.
 
 local node_host_prog = vim.fn.exepath("neovim-node-host")
