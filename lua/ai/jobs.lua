@@ -419,6 +419,65 @@ local function set_lines(buf, lines)
 	vim.bo[buf].modifiable = false
 end
 
+local function first_list_row()
+	local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
+	if list_state.line_to_job then
+		for row = 1, max_row do
+			if list_state.line_to_job[row] then
+				return row
+			end
+		end
+	end
+	return math.min(5, max_row)
+end
+
+local function set_list_cursor(row)
+	if not list_state or list_state.mode ~= "list" then
+		return
+	end
+	if not list_state.win or not vim.api.nvim_win_is_valid(list_state.win) then
+		return
+	end
+	if not list_state.buf or not vim.api.nvim_buf_is_valid(list_state.buf) then
+		return
+	end
+
+	local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
+	local min_row = math.min(first_list_row(), max_row)
+	local target_row = math.min(math.max(row, min_row), max_row)
+	if target_row ~= vim.api.nvim_win_get_cursor(list_state.win)[1] then
+		vim.api.nvim_win_set_cursor(list_state.win, { target_row, 0 })
+	end
+end
+
+local function current_list_row()
+	if not list_state or list_state.mode ~= "list" then
+		return nil
+	end
+	if not list_state.win or not vim.api.nvim_win_is_valid(list_state.win) then
+		return nil
+	end
+	return vim.api.nvim_win_get_cursor(list_state.win)[1]
+end
+
+local function clamp_list_cursor()
+	local row = current_list_row()
+	if row then
+		set_list_cursor(row)
+	end
+end
+
+local function move_list_cursor(delta, fallback)
+	if not list_state or list_state.mode ~= "list" then
+		vim.cmd("normal! " .. fallback)
+		return
+	end
+	local row = current_list_row()
+	if row then
+		set_list_cursor(row + delta)
+	end
+end
+
 render_list = function()
 	if not list_state or not vim.api.nvim_buf_is_valid(list_state.buf) then
 		return
@@ -479,7 +538,8 @@ render_list = function()
 	end
 	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
 		local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
-		target_row = math.min(target_row, max_row)
+		local min_row = math.min(first_list_row(), max_row)
+		target_row = math.min(math.max(target_row, min_row), max_row)
 		if target_row ~= current_row then
 			vim.api.nvim_win_set_cursor(list_state.win, { target_row, 0 })
 		end
@@ -675,6 +735,36 @@ function M.open_list()
 		vim.keymap.set("n", "d", function()
 			cancel_job(selected_job())
 		end, opts)
+		vim.keymap.set("n", "k", function()
+			move_list_cursor(-1, "k")
+		end, opts)
+		vim.keymap.set("n", "<Up>", function()
+			move_list_cursor(-1, "k")
+		end, opts)
+		vim.keymap.set("n", "j", function()
+			move_list_cursor(1, "j")
+		end, opts)
+		vim.keymap.set("n", "<Down>", function()
+			move_list_cursor(1, "j")
+		end, opts)
+		vim.keymap.set("n", "gg", function()
+			if not list_state or list_state.mode ~= "list" then
+				vim.cmd("normal! gg")
+				return
+			end
+			set_list_cursor(1)
+		end, opts)
+		vim.keymap.set("n", "G", function()
+			if not list_state or list_state.mode ~= "list" then
+				vim.cmd("normal! G")
+				return
+			end
+			set_list_cursor(math.huge)
+		end, opts)
+		vim.api.nvim_create_autocmd("CursorMoved", {
+			buffer = buf,
+			callback = clamp_list_cursor,
+		})
 		vim.api.nvim_create_autocmd("BufWipeout", {
 			buffer = buf,
 			once = true,
