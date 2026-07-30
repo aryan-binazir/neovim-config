@@ -52,7 +52,7 @@ local function build_command(tool, root, prompt)
 		return {
 			"sh",
 			"-c",
-			'exec codex --ask-for-approval never exec --cd "$1" --sandbox workspace-write --color never --skip-git-repo-check "$2" </dev/null',
+			'exec codex --sandbox workspace-write --ask-for-approval on-request -c approvals_reviewer=auto_review -c sandbox_workspace_write.network_access=true exec --cd "$1" --color never --skip-git-repo-check "$2" </dev/null',
 			"codex-cf",
 			root,
 			prompt,
@@ -63,17 +63,7 @@ local function build_command(tool, root, prompt)
 			"claude",
 			"-p",
 			"--permission-mode",
-			"bypassPermissions",
-			prompt,
-		}
-	end
-	if tool == "cursor" then
-		return {
-			"cursor-agent",
-			"-p",
-			"-f",
-			"--output-format",
-			"text",
+			"auto",
 			prompt,
 		}
 	end

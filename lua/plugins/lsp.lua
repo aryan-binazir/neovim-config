@@ -6,7 +6,7 @@ return {
 			"williamboman/mason-lspconfig.nvim",
 			{ "j-hui/fidget.nvim", opts = {} },
 			{ "folke/lazydev.nvim", ft = "lua", opts = {} },
-			"hrsh7th/cmp-nvim-lsp",
+			"saghen/blink.cmp",
 		},
 		config = function()
 			-- Global LspAttach autocmd to ensure keymaps are set
@@ -59,13 +59,7 @@ return {
 				end,
 			})
 
-			local capabilities = vim.lsp.protocol.make_client_capabilities()
-			local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-			if has_cmp then
-				capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-			else
-				vim.notify("cmp_nvim_lsp not found, using basic capabilities", vim.log.levels.WARN)
-			end
+			local capabilities = require("blink.cmp").get_lsp_capabilities()
 
 			local servers = {
 				"lua_ls",

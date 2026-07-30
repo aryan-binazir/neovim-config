@@ -17,10 +17,8 @@ function M.resolve(opts)
 		timeout_ms = opts.timeout_ms,
 	}
 
-	if config.tool ~= "codex" and config.tool ~= "claude" and config.tool ~= "cursor" then
-		error(
-			"invalid value for config.tool: " .. tostring(config.tool) .. ' (expected "codex", "claude", or "cursor")'
-		)
+	if config.tool ~= "codex" and config.tool ~= "claude" then
+		error("invalid value for config.tool: " .. tostring(config.tool) .. ' (expected "codex" or "claude")')
 	end
 	if type(config.timeout_ms) ~= "number" then
 		error("invalid value for config.timeout_ms: " .. tostring(config.timeout_ms) .. " (expected number)")

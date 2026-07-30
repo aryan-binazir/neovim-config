@@ -10,22 +10,51 @@ return {
 	},
 	build = ":TSUpdate",
 	config = function()
+		local treesitter = require("nvim-treesitter")
+		local install_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site")
+		treesitter.setup({
+			install_dir = install_dir,
+		})
+
 		local parsers = { "go", "lua", "python", "tsx", "javascript", "typescript", "bash", "pug", "html" }
 		local configured_parsers = {}
 		for _, parser in ipairs(parsers) do
 			configured_parsers[parser] = true
 		end
+		local function start_treesitter(buffer)
+			local filetype = vim.bo[buffer].filetype
+			local parser = vim.treesitter.language.get_lang(filetype) or filetype
+			if configured_parsers[parser] then
+				pcall(vim.treesitter.start, buffer, parser)
+			end
+		end
 
 		if vim.fn.executable("tree-sitter") == 1 then
 			vim.system({ "tree-sitter", "--version" }, { text = true }, function(result)
-				local major, minor, patch = (result.stdout or ""):match("(%d+)%.(%d+)%.(%d+)")
-				local version = major and { tonumber(major), tonumber(minor), tonumber(patch) } or nil
-				local compatible = version
-					and (version[1] > 0 or version[2] > 26 or (version[2] == 26 and version[3] >= 1))
+				local version = vim.version.parse((result.stdout or "") .. (result.stderr or ""))
+				local compatible = version and vim.version.cmp(version, { 0, 26, 1 }) >= 0
 
 				if result.code == 0 and compatible then
 					vim.schedule(function()
-						require("nvim-treesitter").install(parsers)
+						local task = treesitter.install(parsers)
+						task:await(function(error)
+							if error then
+								return
+							end
+							vim.schedule(function()
+								for _, parser in ipairs(parsers) do
+									local path = vim.fs.joinpath(install_dir, "parser", parser .. ".so")
+									if vim.uv.fs_stat(path) then
+										pcall(vim.treesitter.language.add, parser, { path = path })
+									end
+								end
+								for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+									if vim.api.nvim_buf_is_loaded(buffer) then
+										start_treesitter(buffer)
+									end
+								end
+							end)
+						end)
 					end)
 				end
 			end)
@@ -34,10 +63,7 @@ return {
 		vim.api.nvim_create_autocmd("FileType", {
 			group = vim.api.nvim_create_augroup("treesitter-start", { clear = true }),
 			callback = function(event)
-				local parser = vim.treesitter.language.get_lang(event.match) or event.match
-				if configured_parsers[parser] then
-					pcall(vim.treesitter.start, event.buf, parser)
-				end
+				start_treesitter(event.buf)
 			end,
 		})
 
