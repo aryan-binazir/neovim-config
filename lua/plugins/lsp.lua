@@ -59,17 +59,6 @@ return {
 				end,
 			})
 
-			require("mason-lspconfig").setup()
-
-			local servers = {
-				lua_ls = {
-					Lua = {
-						workspace = { checkThirdParty = false },
-						telemetry = { enable = false },
-					},
-				},
-			}
-
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
 			if has_cmp then
@@ -78,8 +67,7 @@ return {
 				vim.notify("cmp_nvim_lsp not found, using basic capabilities", vim.log.levels.WARN)
 			end
 
-			local mason_lspconfig = require("mason-lspconfig")
-			local ensure_installed_servers = {
+			local servers = {
 				"lua_ls",
 				"gopls",
 				"pyright",
@@ -90,18 +78,21 @@ return {
 				"ts_ls",
 			}
 
-			mason_lspconfig.setup({
-				ensure_installed = ensure_installed_servers,
-				handlers = {
-					function(server_name)
-						local server_config = {
-							capabilities = capabilities,
-							settings = servers[server_name] or {},
-						}
-
-						require("lspconfig")[server_name].setup(server_config)
-					end,
+			vim.lsp.config("*", {
+				capabilities = capabilities,
+			})
+			vim.lsp.config("lua_ls", {
+				settings = {
+					Lua = {
+						workspace = { checkThirdParty = false },
+						telemetry = { enable = false },
+					},
 				},
+			})
+
+			require("mason-lspconfig").setup({
+				ensure_installed = servers,
+				automatic_enable = servers,
 			})
 		end,
 	},
