@@ -29,33 +29,29 @@ return {
 			end
 		end
 
+		local function install_parsers()
+			treesitter.install(parsers):await(function(error, success)
+				vim.schedule(function()
+					if error or success == false then
+						local reason = error and tostring(error) or "see :TSLog"
+						vim.notify("Treesitter install failed: " .. reason, vim.log.levels.WARN)
+						return
+					end
+					for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+						if vim.api.nvim_buf_is_loaded(buffer) then
+							start_treesitter(buffer)
+						end
+					end
+				end)
+			end)
+		end
+
 		if vim.fn.executable("tree-sitter") == 1 then
 			vim.system({ "tree-sitter", "--version" }, { text = true }, function(result)
 				local version = vim.version.parse((result.stdout or "") .. (result.stderr or ""))
 				local compatible = version and vim.version.cmp(version, { 0, 26, 1 }) >= 0
-
 				if result.code == 0 and compatible then
-					vim.schedule(function()
-						local task = treesitter.install(parsers)
-						task:await(function(error)
-							if error then
-								return
-							end
-							vim.schedule(function()
-								for _, parser in ipairs(parsers) do
-									local path = vim.fs.joinpath(install_dir, "parser", parser .. ".so")
-									if vim.uv.fs_stat(path) then
-										pcall(vim.treesitter.language.add, parser, { path = path })
-									end
-								end
-								for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
-									if vim.api.nvim_buf_is_loaded(buffer) then
-										start_treesitter(buffer)
-									end
-								end
-							end)
-						end)
-					end)
+					vim.schedule(install_parsers)
 				end
 			end)
 		end
