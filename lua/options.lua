@@ -48,7 +48,6 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
 	end,
 })
 
--- For Obsidian plugin
 vim.opt.conceallevel = 2
 
 -- Auto-reload files changed outside of Neovim

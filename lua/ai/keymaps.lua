@@ -283,9 +283,12 @@ local function ensure_or_open_ai_pane(cmd)
 end
 
 local ai_split_commands = {
-	claude = { lhs = "<leader>cc", cmd = "claude --dangerously-skip-permissions", desc = "claude code pane" },
-	codex = { lhs = "<leader>cd", cmd = "codex --dangerously-bypass-approvals-and-sandbox", desc = "codex pane" },
-	cursor = { lhs = "<leader>cu", cmd = "cursor-agent -f", desc = "cursor agent pane" },
+	claude = { lhs = "<leader>cc", cmd = "claude --permission-mode auto", desc = "claude code pane" },
+	codex = {
+		lhs = "<leader>cd",
+		cmd = "codex --sandbox workspace-write --ask-for-approval on-request -c approvals_reviewer=auto_review -c sandbox_workspace_write.network_access=true",
+		desc = "codex pane",
+	},
 }
 
 local function default_ai_split_cmd()

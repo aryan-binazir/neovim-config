@@ -6,7 +6,7 @@ return {
 			"williamboman/mason-lspconfig.nvim",
 			{ "j-hui/fidget.nvim", opts = {} },
 			{ "folke/lazydev.nvim", ft = "lua", opts = {} },
-			"hrsh7th/cmp-nvim-lsp",
+			"saghen/blink.cmp",
 		},
 		config = function()
 			-- Global LspAttach autocmd to ensure keymaps are set
@@ -59,27 +59,9 @@ return {
 				end,
 			})
 
-			require("mason-lspconfig").setup()
+			local capabilities = require("blink.cmp").get_lsp_capabilities()
 
 			local servers = {
-				lua_ls = {
-					Lua = {
-						workspace = { checkThirdParty = false },
-						telemetry = { enable = false },
-					},
-				},
-			}
-
-			local capabilities = vim.lsp.protocol.make_client_capabilities()
-			local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-			if has_cmp then
-				capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-			else
-				vim.notify("cmp_nvim_lsp not found, using basic capabilities", vim.log.levels.WARN)
-			end
-
-			local mason_lspconfig = require("mason-lspconfig")
-			local ensure_installed_servers = {
 				"lua_ls",
 				"gopls",
 				"pyright",
@@ -90,18 +72,21 @@ return {
 				"ts_ls",
 			}
 
-			mason_lspconfig.setup({
-				ensure_installed = ensure_installed_servers,
-				handlers = {
-					function(server_name)
-						local server_config = {
-							capabilities = capabilities,
-							settings = servers[server_name] or {},
-						}
-
-						require("lspconfig")[server_name].setup(server_config)
-					end,
+			vim.lsp.config("*", {
+				capabilities = capabilities,
+			})
+			vim.lsp.config("lua_ls", {
+				settings = {
+					Lua = {
+						workspace = { checkThirdParty = false },
+						telemetry = { enable = false },
+					},
 				},
+			})
+
+			require("mason-lspconfig").setup({
+				ensure_installed = servers,
+				automatic_enable = servers,
 			})
 		end,
 	},
