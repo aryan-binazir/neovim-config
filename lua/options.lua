@@ -39,6 +39,20 @@ vim.g.lazygit_use_neovim_remote = 1
 vim.g.lazygit_use_custom_config_file_path = 0
 vim.g.lazygit_config_file_path = {}
 
+-- `nvim /some/dir` opens the directory buffer but leaves cwd at the shell's
+-- location, so pickers search the wrong tree. Follow the argument instead.
+-- Captured here, not in the callback: oil rewrites the arglist entry to an
+-- `oil://` URL before VimEnter runs.
+local first_arg = vim.fn.argv(0)
+if type(first_arg) == "string" and first_arg ~= "" and vim.fn.isdirectory(first_arg) == 1 then
+	local target = vim.fn.fnamemodify(first_arg, ":p")
+	vim.api.nvim_create_autocmd("VimEnter", {
+		callback = function()
+			vim.cmd.cd(vim.fn.fnameescape(target))
+		end,
+	})
+end
+
 vim.opt.foldenable = false
 vim.opt.foldlevel = 99
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
