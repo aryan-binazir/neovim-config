@@ -72,6 +72,7 @@ return {
 
 			local servers = {
 				"lua_ls",
+				"gopls",
 				"pyright",
 				"jsonls",
 				"buf_ls",
@@ -79,9 +80,6 @@ return {
 				"golangci_lint_ls",
 				"ts_ls",
 			}
-			if gopls_path == nil or gopls_path == "" then
-				table.insert(servers, 2, "gopls")
-			end
 
 			vim.lsp.config("*", {
 				capabilities = capabilities,
@@ -94,19 +92,16 @@ return {
 					},
 				},
 			})
+			if gopls_path ~= nil and gopls_path ~= "" then
+				vim.lsp.config("gopls", {
+					cmd = { gopls_path },
+				})
+			end
 
 			require("mason-lspconfig").setup({
 				ensure_installed = servers,
 				automatic_enable = servers,
 			})
-
-			if gopls_path ~= nil and gopls_path ~= "" then
-				-- Homebrew gopls (not Mason, not ~/go/bin) so Defender's process exclusion applies
-				vim.lsp.config("gopls", {
-					cmd = { gopls_path },
-				})
-				vim.lsp.enable("gopls")
-			end
 		end,
 	},
 }
