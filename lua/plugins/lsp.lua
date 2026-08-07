@@ -61,9 +61,17 @@ return {
 
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
 
+			local gopls_path = vim.g.gopls_path
+			if gopls_path ~= nil and gopls_path ~= "" and vim.fn.executable(gopls_path) ~= 1 then
+				vim.notify(
+					("Configured gopls path %q is not executable; falling back to Mason-managed gopls"):format(gopls_path),
+					vim.log.levels.WARN
+				)
+				gopls_path = nil
+			end
+
 			local servers = {
 				"lua_ls",
-				"gopls",
 				"pyright",
 				"jsonls",
 				"buf_ls",
@@ -71,6 +79,9 @@ return {
 				"golangci_lint_ls",
 				"ts_ls",
 			}
+			if gopls_path == nil or gopls_path == "" then
+				table.insert(servers, 2, "gopls")
+			end
 
 			vim.lsp.config("*", {
 				capabilities = capabilities,
@@ -88,6 +99,14 @@ return {
 				ensure_installed = servers,
 				automatic_enable = servers,
 			})
+
+			if gopls_path ~= nil and gopls_path ~= "" then
+				-- Homebrew gopls (not Mason, not ~/go/bin) so Defender's process exclusion applies
+				vim.lsp.config("gopls", {
+					cmd = { gopls_path },
+				})
+				vim.lsp.enable("gopls")
+			end
 		end,
 	},
 }

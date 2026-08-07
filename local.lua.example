@@ -3,6 +3,7 @@ vim.g.ai = {
 	timeout_ms = 5 * 60 * 1000,
 }
 vim.g.claudecode_enabled = true -- Set to false to skip installing Claude Code integration.
+vim.g.gopls_path = "" -- Absolute gopls path (e.g. "/opt/homebrew/bin/gopls" for Defender exclusions); "" = Mason-managed.
 
 local node_host_prog = vim.fn.exepath("neovim-node-host")
 if node_host_prog ~= "" then
