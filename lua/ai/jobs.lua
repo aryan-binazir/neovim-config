@@ -6,12 +6,27 @@ local jobs = {}
 local next_job_id = 1
 local max_jobs = 50
 local max_log_files = 100
-local list_state = nil
 local activity_timer = nil
 local config
 
+-- UI hooks: `changed` fires after any job state change; `pinned_log` names a
+-- log file the UI is currently displaying so pruning spares it.
+local handlers = {
+	changed = function() end,
+	pinned_log = function() end,
+}
+
 function M.setup(opts)
 	config = opts
+end
+
+function M.attach(ui_handlers)
+	handlers = ui_handlers
+end
+
+-- Read-only for callers; only this module mutates it.
+function M.list()
+	return jobs
 end
 
 local function build_prompt(location, snippet, message)
@@ -105,22 +120,16 @@ local function update_activity_progress()
 	start_activity_timer()
 end
 
-local function text_lines(text, opts)
+local function text_lines(text)
 	if not text then
 		return {}
 	end
 	text = tostring(text)
 	if text == "" then
-		return (opts and opts.drop_trailing_empty) and {} or { "" }
+		return { "" }
 	end
 	text = text:gsub("\r\n", "\n"):gsub("\r", "\n")
-	local lines = vim.split(text, "\n", { plain = true })
-	if opts and opts.drop_trailing_empty then
-		while lines[#lines] == "" do
-			table.remove(lines)
-		end
-	end
-	return lines
+	return vim.split(text, "\n", { plain = true })
 end
 
 local function append_lines(lines, text)
@@ -129,14 +138,6 @@ local function append_lines(lines, text)
 		return
 	end
 	vim.list_extend(lines, text_lines(text))
-end
-
-local function normalize_lines(lines)
-	local normalized = {}
-	for _, line in ipairs(lines) do
-		vim.list_extend(normalized, text_lines(line))
-	end
-	return normalized
 end
 
 local function slug(text)
@@ -168,29 +169,14 @@ local function prune_jobs()
 	end
 end
 
-local function find_job(id)
-	for _, job in ipairs(jobs) do
-		if job.id == id then
-			return job
-		end
-	end
-	return nil
-end
-
-local function latest_job()
-	return jobs[#jobs]
-end
-
 local function prune_log_files()
 	local active_logs = {}
 	for _, job in ipairs(jobs) do
 		active_logs[job.log_path] = true
 	end
-	if list_state and list_state.mode == "log" and list_state.selected_job_id then
-		local viewed_job = find_job(list_state.selected_job_id)
-		if viewed_job then
-			active_logs[viewed_job.log_path] = true
-		end
+	local pinned = handlers.pinned_log()
+	if pinned then
+		active_logs[pinned] = true
 	end
 
 	local files = vim.fn.globpath(jobs_dir, "*.log", false, true)
@@ -267,7 +253,7 @@ local function format_elapsed(job)
 	return string.format("%02d:%02d", minutes, seconds)
 end
 
-local function job_label(job)
+function M.label(job)
 	return string.format("#%-3d %-10s %-6s %s %s", job.id, job.status, job.tool, format_elapsed(job), job.location)
 end
 
@@ -291,64 +277,7 @@ local function completion_status(job, result)
 	return "failed", "failed", vim.log.levels.ERROR, false
 end
 
-local function close_list()
-	if not list_state then
-		return
-	end
-	if list_state.timer then
-		list_state.timer:stop()
-		list_state.timer:close()
-	end
-	local win = list_state.win
-	list_state = nil
-	if win and vim.api.nvim_win_is_valid(win) then
-		vim.api.nvim_win_close(win, true)
-	end
-end
-
-local function list_buf()
-	if list_state and vim.api.nvim_buf_is_valid(list_state.buf) then
-		return list_state.buf
-	end
-	local buf = vim.api.nvim_create_buf(false, true)
-	vim.bo[buf].buftype = "nofile"
-	vim.bo[buf].bufhidden = "wipe"
-	vim.bo[buf].swapfile = false
-	vim.bo[buf].filetype = "llm-jobs"
-	return buf
-end
-
-local function list_window_config()
-	local max_width = math.max(1, vim.o.columns - 4)
-	local max_height = math.max(1, vim.o.lines - 4)
-	local width = math.min(120, max_width, math.max(1, math.floor(vim.o.columns * 0.8)))
-	local height = math.min(24, max_height, math.max(1, math.floor(vim.o.lines * 0.55)))
-	return {
-		relative = "editor",
-		width = width,
-		height = height,
-		row = math.max(0, math.floor((vim.o.lines - height) / 2) - 1),
-		col = math.max(0, math.floor((vim.o.columns - width) / 2)),
-		style = "minimal",
-		border = "single",
-		title = " LLM jobs ",
-		title_pos = "center",
-	}
-end
-
-local render_list
-local render_log
-local open_job_log
-local refresh_current
-local readable_log
-
-local function safe_render_list()
-	if render_list then
-		render_list()
-	end
-end
-
-local function cancel_job(job)
+function M.cancel(job)
 	if not job then
 		return
 	end
@@ -363,395 +292,7 @@ local function cancel_job(job)
 	end
 	update_activity_progress()
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
-	safe_render_list()
-end
-
-local function selected_job()
-	if not list_state or list_state.mode ~= "list" then
-		return nil
-	end
-	local row = vim.api.nvim_win_get_cursor(list_state.win)[1]
-	local id = list_state.line_to_job and list_state.line_to_job[row]
-	return id and find_job(id) or nil
-end
-
-local function set_lines(buf, lines)
-	vim.bo[buf].modifiable = true
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, normalize_lines(lines))
-	vim.bo[buf].modifiable = false
-end
-
-local function first_list_row()
-	local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
-	if list_state.line_to_job then
-		for row = 1, max_row do
-			if list_state.line_to_job[row] then
-				return row
-			end
-		end
-	end
-	return math.min(5, max_row)
-end
-
-local function set_list_cursor(row)
-	if not list_state or list_state.mode ~= "list" then
-		return
-	end
-	if not list_state.win or not vim.api.nvim_win_is_valid(list_state.win) then
-		return
-	end
-	if not list_state.buf or not vim.api.nvim_buf_is_valid(list_state.buf) then
-		return
-	end
-
-	local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
-	local min_row = math.min(first_list_row(), max_row)
-	local target_row = math.min(math.max(row, min_row), max_row)
-	if target_row ~= vim.api.nvim_win_get_cursor(list_state.win)[1] then
-		vim.api.nvim_win_set_cursor(list_state.win, { target_row, 0 })
-	end
-end
-
-local function current_list_row()
-	if not list_state or list_state.mode ~= "list" then
-		return nil
-	end
-	if not list_state.win or not vim.api.nvim_win_is_valid(list_state.win) then
-		return nil
-	end
-	return vim.api.nvim_win_get_cursor(list_state.win)[1]
-end
-
-local function clamp_list_cursor()
-	local row = current_list_row()
-	if row then
-		set_list_cursor(row)
-	end
-end
-
-local function move_list_cursor(delta, fallback)
-	if not list_state or list_state.mode ~= "list" then
-		vim.cmd("normal! " .. fallback)
-		return
-	end
-	local row = current_list_row()
-	if row then
-		set_list_cursor(row + delta)
-	end
-end
-
-render_list = function()
-	if not list_state or not vim.api.nvim_buf_is_valid(list_state.buf) then
-		return
-	end
-	if list_state.mode ~= "list" then
-		return
-	end
-
-	local selected_id = list_state.selected_job_id
-	local current_row = nil
-	local row_job_id = nil
-	local prefer_selected = list_state.prefer_selected_job
-	list_state.prefer_selected_job = nil
-	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
-		current_row = vim.api.nvim_win_get_cursor(list_state.win)[1]
-		row_job_id = not prefer_selected and list_state.line_to_job and list_state.line_to_job[current_row]
-		if row_job_id then
-			selected_id = row_job_id
-			list_state.selected_job_id = row_job_id
-		end
-	end
-
-	local lines = {
-		"LLM jobs",
-		"",
-		"  <CR> log   d kill   r refresh   q close",
-		"",
-	}
-	local line_to_job = {}
-	if #jobs == 0 then
-		table.insert(lines, "  No LLM jobs yet")
-	else
-		for i = #jobs, 1, -1 do
-			local job = jobs[i]
-			line_to_job[#lines + 1] = job.id
-			table.insert(lines, "  " .. job_label(job))
-		end
-	end
-
-	list_state.line_to_job = line_to_job
-	set_lines(list_state.buf, lines)
-
-	local target_row = current_row or 5
-	if selected_id and (prefer_selected or row_job_id or not current_row) then
-		for row, id in pairs(line_to_job) do
-			if id == selected_id then
-				target_row = row
-				break
-			end
-		end
-	elseif not current_row and not line_to_job[target_row] then
-		for row = 1, #lines do
-			if line_to_job[row] then
-				target_row = row
-				break
-			end
-		end
-	end
-	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
-		local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
-		local min_row = math.min(first_list_row(), max_row)
-		target_row = math.min(math.max(target_row, min_row), max_row)
-		if target_row ~= current_row then
-			vim.api.nvim_win_set_cursor(list_state.win, { target_row, 0 })
-		end
-	end
-end
-
-open_job_log = function(job)
-	if not job then
-		return
-	end
-	if not readable_log(job) then
-		return
-	end
-	if not list_state then
-		return
-	end
-	list_state.mode = "log"
-	list_state.selected_job_id = job.id
-	list_state.log_cache = nil
-	render_log()
-end
-
-local function log_header(job)
-	return {
-		"LLM job #" .. job.id .. " log",
-		"q close   <Esc> jobs",
-		"",
-	}
-end
-
-local function log_mtime(stat)
-	if not stat or not stat.mtime then
-		return ""
-	end
-	return tostring(stat.mtime.sec) .. "." .. tostring(stat.mtime.nsec or 0)
-end
-
-local function warn_missing_log(job)
-	if not job.log_missing_warned then
-		job.log_missing_warned = true
-		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
-	end
-end
-
-readable_log = function(job)
-	if vim.fn.filereadable(job.log_path) == 1 then
-		return true
-	end
-	warn_missing_log(job)
-	return false
-end
-
-local function read_log_delta(path, offset)
-	local file = io.open(path, "rb")
-	if not file then
-		return nil
-	end
-	file:seek("set", offset)
-	local data = file:read("*a")
-	file:close()
-	return data
-end
-
-local function append_log_lines(buf, text)
-	if not text or text == "" then
-		return
-	end
-	local lines = text_lines(text, { drop_trailing_empty = true })
-	if #lines == 0 then
-		return
-	end
-	vim.bo[buf].modifiable = true
-	vim.api.nvim_buf_set_lines(buf, -1, -1, false, lines)
-	vim.bo[buf].modifiable = false
-end
-
-local function replace_log_lines(buf, job)
-	local lines = log_header(job)
-	vim.list_extend(lines, vim.fn.readfile(job.log_path))
-	set_lines(buf, lines)
-end
-
-local function update_log_cache(job, stat, mtime)
-	list_state.log_cache = {
-		job_id = job.id,
-		path = job.log_path,
-		size = stat.size,
-		mtime = mtime,
-	}
-end
-
-local function update_log_buffer(job, cache, can_append)
-	if can_append then
-		local delta = read_log_delta(job.log_path, cache.size)
-		append_log_lines(list_state.buf, delta)
-	else
-		replace_log_lines(list_state.buf, job)
-	end
-end
-
-render_log = function()
-	if not list_state or list_state.mode ~= "log" then
-		return
-	end
-	local job = find_job(list_state.selected_job_id)
-	if not job then
-		return
-	end
-	if not readable_log(job) then
-		return
-	end
-	local stat = vim.uv.fs_stat(job.log_path)
-	if not stat then
-		return
-	end
-	local cursor_row = 1
-	local was_at_bottom = true
-	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
-		cursor_row = vim.api.nvim_win_get_cursor(list_state.win)[1]
-		was_at_bottom = cursor_row >= vim.api.nvim_buf_line_count(list_state.buf) - 2
-	end
-	local mtime = log_mtime(stat)
-	local cache = list_state.log_cache
-	local can_append = cache
-		and cache.job_id == job.id
-		and cache.path == job.log_path
-		and stat.size >= cache.size
-		and vim.api.nvim_buf_is_valid(list_state.buf)
-
-	if can_append and stat.size == cache.size and mtime == cache.mtime then
-		return
-	end
-
-	update_log_buffer(job, cache, can_append)
-	update_log_cache(job, stat, mtime)
-	if list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
-		local max_row = math.max(1, vim.api.nvim_buf_line_count(list_state.buf))
-		local target_row = was_at_bottom and max_row or math.min(cursor_row, max_row)
-		vim.api.nvim_win_set_cursor(list_state.win, { target_row, 0 })
-	end
-end
-
-refresh_current = function()
-	if list_state and list_state.mode == "log" then
-		render_log()
-	else
-		safe_render_list()
-	end
-end
-
-local function back_to_list()
-	if not list_state then
-		return
-	end
-	if list_state.mode == "log" then
-		list_state.mode = "list"
-		list_state.log_cache = nil
-		list_state.prefer_selected_job = true
-		safe_render_list()
-		return
-	end
-end
-
-function M.open_list()
-	local buf = list_buf()
-	local win
-	local opened_new_win = false
-	if list_state and list_state.win and vim.api.nvim_win_is_valid(list_state.win) then
-		win = list_state.win
-		vim.api.nvim_set_current_win(win)
-	else
-		win = vim.api.nvim_open_win(buf, true, list_window_config())
-		opened_new_win = true
-	end
-	vim.wo[win].wrap = false
-	vim.wo[win].cursorline = true
-	list_state = list_state or {}
-	list_state.buf = buf
-	list_state.win = win
-	list_state.mode = "list"
-	list_state.selected_job_id = list_state.selected_job_id or (latest_job() and latest_job().id) or nil
-	list_state.prefer_selected_job = opened_new_win or list_state.prefer_selected_job
-
-	if not vim.b[buf].llm_job_list_mapped then
-		vim.b[buf].llm_job_list_mapped = true
-		local opts = { buffer = buf, silent = true, nowait = true }
-		vim.keymap.set("n", "q", close_list, opts)
-		vim.keymap.set("n", "<Esc>", back_to_list, opts)
-		vim.keymap.set("n", "r", refresh_current, opts)
-		vim.keymap.set("n", "<CR>", function()
-			open_job_log(selected_job())
-		end, opts)
-		vim.keymap.set("n", "d", function()
-			cancel_job(selected_job())
-		end, opts)
-		vim.keymap.set("n", "k", function()
-			move_list_cursor(-1, "k")
-		end, opts)
-		vim.keymap.set("n", "<Up>", function()
-			move_list_cursor(-1, "k")
-		end, opts)
-		vim.keymap.set("n", "j", function()
-			move_list_cursor(1, "j")
-		end, opts)
-		vim.keymap.set("n", "<Down>", function()
-			move_list_cursor(1, "j")
-		end, opts)
-		vim.keymap.set("n", "gg", function()
-			if not list_state or list_state.mode ~= "list" then
-				vim.cmd("normal! gg")
-				return
-			end
-			set_list_cursor(1)
-		end, opts)
-		vim.keymap.set("n", "G", function()
-			if not list_state or list_state.mode ~= "list" then
-				vim.cmd("normal! G")
-				return
-			end
-			set_list_cursor(math.huge)
-		end, opts)
-		vim.api.nvim_create_autocmd("CursorMoved", {
-			buffer = buf,
-			callback = clamp_list_cursor,
-		})
-		vim.api.nvim_create_autocmd("BufWipeout", {
-			buffer = buf,
-			once = true,
-			callback = function()
-				if list_state and list_state.buf == buf then
-					close_list()
-				end
-			end,
-		})
-	end
-	if not list_state.timer then
-		list_state.timer = vim.uv.new_timer()
-		list_state.timer:start(
-			0,
-			1000,
-			vim.schedule_wrap(function()
-				if not list_state or not vim.api.nvim_buf_is_valid(buf) then
-					close_list()
-					return
-				end
-				refresh_current()
-			end)
-		)
-	end
-	safe_render_list()
+	handlers.changed()
 end
 
 local function write_buffer(bufnr)
@@ -811,7 +352,7 @@ function M.run(location, snippet, message, bufnr)
 	prune_jobs()
 	start_log(job)
 	update_activity_progress()
-	safe_render_list()
+	handlers.changed()
 
 	local ok_system, handle = pcall(vim.system, cmd, {
 		cwd = root,
@@ -836,7 +377,7 @@ function M.run(location, snippet, message, bufnr)
 			if checktime then
 				vim.cmd("checktime")
 			end
-			safe_render_list()
+			handlers.changed()
 		end)
 	end)
 
@@ -850,7 +391,7 @@ function M.run(location, snippet, message, bufnr)
 		}, job.log_path, "a")
 		update_activity_progress()
 		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
-		safe_render_list()
+		handlers.changed()
 		return
 	end
 	job.handle = handle

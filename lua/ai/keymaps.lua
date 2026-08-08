@@ -1,6 +1,7 @@
 local yank = require("yank")
 local pane = require("ai.pane")
 local llm_jobs = require("ai.jobs")
+local ui = require("ai.ui")
 
 local M = {}
 
@@ -73,7 +74,7 @@ function M.setup(config)
 		send_reference(vim.fn.expand("%:p"))
 	end, { desc = "send file path" })
 
-	vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "job list" })
+	vim.keymap.set("n", "<leader>cl", ui.open_list, { desc = "job list" })
 
 	vim.keymap.set("n", "<leader>cf", function()
 		local bufnr = vim.api.nvim_get_current_buf()
