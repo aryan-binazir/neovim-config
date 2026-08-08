@@ -17,7 +17,6 @@ return {
 			{ "<leader>lc", "<cmd>LazyGitCurrentFile<cr>", desc = "lazygit current file" },
 		},
 		config = function()
-			-- Add keymap to quit Lazygit floating window
 			vim.api.nvim_create_autocmd("FileType", {
 				pattern = "lazygit",
 				callback = function()
@@ -70,8 +69,6 @@ return {
 				globalstatus = true,
 				theme = "codedark",
 				component_separators = { left = "", right = "" },
-				-- section_separators   = { left = '▶', right = '◀' },
-				-- component_separators = { left = '', right = '' },
 				section_separators = { left = "", right = "" },
 			},
 			sections = {

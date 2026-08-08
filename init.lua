@@ -7,15 +7,6 @@ end
 
 dofile(local_config)
 
-local required_local_values = {}
-
-for _, required in ipairs(required_local_values) do
-	local value = vim.g[required.name]
-	if type(value) ~= required.kind then
-		error("local.lua must set vim.g." .. required.name .. " as " .. required.kind)
-	end
-end
-
 require("options")
 require("keymaps_general")
 require("ai").setup(vim.g.ai or {})

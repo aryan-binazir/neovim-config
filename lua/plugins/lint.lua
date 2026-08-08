@@ -4,7 +4,6 @@ return {
 	config = function()
 		local lint = require("lint")
 
-		-- Helper function to check if a command exists
 		local function command_exists(cmd)
 			return vim.fn.executable(cmd) == 1
 		end
@@ -17,7 +16,6 @@ return {
 
 		lint.linters_by_ft = linters
 
-		-- Create autocommand which carries out the actual linting
 		local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
 		vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
 			group = lint_augroup,
@@ -29,12 +27,10 @@ return {
 			end,
 		})
 
-		-- Add a command to manually trigger linting
 		vim.api.nvim_create_user_command("Lint", function()
 			lint.try_lint()
 		end, { desc = "trigger linting for current file" })
 
-		-- Add a command to check linter status
 		vim.api.nvim_create_user_command("LintStatus", function()
 			local ft = vim.bo.filetype
 			if not linters[ft] then

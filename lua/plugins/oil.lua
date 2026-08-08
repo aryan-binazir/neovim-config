@@ -15,7 +15,6 @@ return {
 				show_hidden = true,
 			},
 		})
-		-- Set the main Oil keymap
 		vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "open oil file browser" })
 	end,
 }

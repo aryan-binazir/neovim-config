@@ -80,10 +80,6 @@ local function running_job_count()
 	return count
 end
 
-function M.running_count()
-	return running_job_count()
-end
-
 function M.statusline_component()
 	local running = running_job_count()
 	if running == 0 then
@@ -830,10 +826,8 @@ function M.run(location, snippet, message, bufnr)
 	local job = {
 		id = job_id,
 		tool = tool,
-		title = "cf " .. tool,
 		status = "running",
 		location = location,
-		location_file = file,
 		repo_root = root,
 		prompt = prompt,
 		cmd = cmd,
@@ -861,8 +855,6 @@ function M.run(location, snippet, message, bufnr)
 	}, function(result)
 		vim.schedule(function()
 			job.finished_at_ts = os.time()
-			job.exit_code = result.code
-			job.signal = result.signal
 			finish_log(job, result)
 
 			local status, job_status, notify_level, checktime = completion_status(job, result)

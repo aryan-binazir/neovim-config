@@ -1,10 +1,8 @@
--- Helper for yanking paths
 local function yank_paths(paths, label)
 	vim.fn.setreg("+", table.concat(paths, "\n"))
 	print("Yanked " .. #paths .. " " .. label)
 end
 
--- Helper for formatting line ranges
 local function format_range(start_line, end_line)
 	return start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
 end
@@ -55,7 +53,6 @@ local function ai_pane_target()
 	return vim.fn.shellescape(vim.g.ai_pane_id)
 end
 
--- Helper for sending to AI pane
 local function send_to_ai_pane(text, focus)
 	local target = ai_pane_target()
 	if not target then
@@ -103,7 +100,6 @@ vim.keymap.set("n", "<leader>yh", function()
 	yank_paths(paths, "harpoon paths")
 end, { desc = "yank all harpoon paths" })
 
--- Helper for visual selection yanking
 local yank_ns = vim.api.nvim_create_namespace("yank_selection_highlight")
 
 local function yank_selection(include_code, skip_register)
@@ -119,7 +115,6 @@ local function yank_selection(include_code, skip_register)
 		vim.fn.setreg("+", result)
 	end
 	feed_escape()
-	-- Highlight the yanked range
 	vim.defer_fn(function()
 		vim.highlight.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
 		vim.defer_fn(function()

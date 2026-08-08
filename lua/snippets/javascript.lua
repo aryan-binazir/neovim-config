@@ -41,20 +41,17 @@ ls.add_snippets("javascript", {
 	-- Loops
 	s(
 		"for",
-		fmt(
-			"for (let {} = 0; {} < {}; {}++) {{\n  {}\n}}",
-			{
-				i(1, "i"),
-				f(function(args)
-					return args[1][1]
-				end, { 1 }),
-				i(2),
-				f(function(args)
-					return args[1][1]
-				end, { 1 }),
-				i(3),
-			}
-		)
+		fmt("for (let {} = 0; {} < {}; {}++) {{\n  {}\n}}", {
+			i(1, "i"),
+			f(function(args)
+				return args[1][1]
+			end, { 1 }),
+			i(2),
+			f(function(args)
+				return args[1][1]
+			end, { 1 }),
+			i(3),
+		})
 	),
 	s("forin", fmt("for (const {} in {}) {{\n  {}\n}}", { i(1, "key"), i(2), i(3) })),
 	s("forof", fmt("for (const {} of {}) {{\n  {}\n}}", { i(1, "item"), i(2), i(3) })),
@@ -181,11 +178,6 @@ ls.add_snippets("javascript", {
 	s("desc", fmt("const {{ {} }} = {}", { i(1), i(2) })),
 	s("nf", fmt("const {} = ({}) => null", { i(1, "ComponentName"), i(2, "props") })),
 	s("rett", fmt("return (\n  {}\n)", { i(1) })),
-})
-
--- Also add the same snippets for TypeScript with type annotations
-ls.add_snippets("typescript", {
-	-- All JavaScript snippets work in TypeScript
 })
 
 -- TypeScript specific snippets

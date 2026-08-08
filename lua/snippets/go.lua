@@ -8,7 +8,6 @@ local fmt = require("luasnip.extras.fmt").fmt
 
 -- Go snippets
 ls.add_snippets("go", {
-	-- Error handling (the famous Go pattern!)
 	s(
 		"iferr",
 		fmt("if err != nil {{\n\t{}\n}}", {
