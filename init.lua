@@ -9,6 +9,7 @@ dofile(local_config)
 
 require("options")
 require("keymaps_general")
+require("yank")
 require("ai").setup(vim.g.ai or {})
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"

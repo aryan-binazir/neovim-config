@@ -1,24 +1,4 @@
-local function yank_paths(paths, label)
-	vim.fn.setreg("+", table.concat(paths, "\n"))
-	print("Yanked " .. #paths .. " " .. label)
-end
-
-local function format_range(start_line, end_line)
-	return start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
-end
-
-local function visual_range()
-	local start_line = vim.fn.line("v")
-	local end_line = vim.fn.line(".")
-	if start_line > end_line then
-		start_line, end_line = end_line, start_line
-	end
-	return start_line, end_line
-end
-
-local function feed_escape()
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
-end
+local yank = require("yank")
 
 local function current_file_or_notify()
 	local file = vim.fn.expand("%:p")
@@ -35,15 +15,6 @@ local function current_line_reference()
 		return nil
 	end
 	return file .. ":" .. vim.fn.line(".")
-end
-
-local function optional_require(name, label)
-	local ok, module = pcall(require, name)
-	if not ok then
-		print(label .. " not available")
-		return nil
-	end
-	return module
 end
 
 local function ai_pane_target()
@@ -63,74 +34,6 @@ local function send_to_ai_pane(text, focus)
 		vim.fn.system("tmux select-pane -t " .. target)
 	end
 end
-
-vim.keymap.set("n", "<leader>yp", function()
-	yank_paths({ vim.fn.expand("%:p") }, "path")
-end, { desc = "yank absolute file path" })
-
-vim.keymap.set("n", "<leader>yb", function()
-	local paths = {}
-	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-		if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buflisted then
-			local name = vim.api.nvim_buf_get_name(buf)
-			if name ~= "" then
-				table.insert(paths, name)
-			end
-		end
-	end
-	yank_paths(paths, "buffer paths")
-end, { desc = "yank all buffer paths" })
-
-vim.keymap.set("n", "<leader>yh", function()
-	local harpoon = optional_require("harpoon", "Harpoon")
-	if not harpoon then
-		return
-	end
-	local paths = {}
-	local cwd = vim.fn.getcwd() .. "/"
-	for _, item in ipairs(harpoon:list().items) do
-		if item.value and item.value ~= "" then
-			local path = item.value:sub(1, 1) == "/" and item.value or (cwd .. item.value)
-			table.insert(paths, path)
-		end
-	end
-	yank_paths(paths, "harpoon paths")
-end, { desc = "yank all harpoon paths" })
-
-local yank_ns = vim.api.nvim_create_namespace("yank_selection_highlight")
-
-local function yank_selection(include_code, skip_register)
-	local start_line, end_line = visual_range()
-	local bufnr = vim.api.nvim_get_current_buf()
-	local path = vim.fn.expand("%:p")
-	local result = path .. ":" .. format_range(start_line, end_line)
-	if include_code then
-		local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
-		result = result .. "\n" .. table.concat(lines, "\n")
-	end
-	if not skip_register then
-		vim.fn.setreg("+", result)
-	end
-	feed_escape()
-	vim.defer_fn(function()
-		vim.hl.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
-		vim.defer_fn(function()
-			vim.api.nvim_buf_clear_namespace(bufnr, yank_ns, 0, -1)
-		end, 150)
-	end, 0)
-	if not skip_register then
-		print("Yanked " .. (include_code and "selection with code" or "selection reference"))
-	end
-	return result
-end
-
-vim.keymap.set("v", "<leader>ys", function()
-	yank_selection(false)
-end, { desc = "yank file path and line numbers (full lines)" })
-
-vim.keymap.set("v", "<leader>yc", function()
-	yank_selection(true)
-end, { desc = "yank file path, lines, and code (full lines)" })
 
 vim.g.ai_pane_id = nil
 local ai_pane_marker = "@nvim_ai_pane"
@@ -206,27 +109,6 @@ local function ensure_ai_pane()
 	return false
 end
 
-vim.keymap.set("n", "<leader>yo", function()
-	local oil = optional_require("oil", "Oil")
-	if not oil then
-		return
-	end
-	local dir = oil.get_current_dir()
-	if not dir then
-		print("Not in Oil buffer")
-		return
-	end
-	local bufnr = vim.api.nvim_get_current_buf()
-	local paths = {}
-	for lnum = 1, vim.api.nvim_buf_line_count(bufnr) do
-		local entry = oil.get_entry_on_line(bufnr, lnum)
-		if entry and entry.type == "file" then
-			table.insert(paths, dir .. entry.name)
-		end
-	end
-	yank_paths(paths, "Oil paths")
-end, { desc = "yank all file paths in oil directory" })
-
 local function open_ai_split(cmd)
 	if not tmux_available() then
 		print("tmux not available")
@@ -296,7 +178,7 @@ vim.keymap.set("n", "<leader>cx", function()
 end, { desc = "send current line" })
 
 vim.keymap.set("v", "<leader>cx", function()
-	local result = yank_selection(false, true)
+	local result = yank.yank_selection(false, true)
 	if ensure_or_open_ai_pane(default_ai_split_cmd()) then
 		send_to_ai_pane(result .. " ", true)
 	else
@@ -361,14 +243,14 @@ end, { desc = "run scoped fix" })
 
 vim.keymap.set("v", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
-	local start_line, end_line = visual_range()
+	local start_line, end_line = yank.visual_range()
 	local file = current_file_or_notify()
 	if not file then
-		feed_escape()
+		yank.feed_escape()
 		return
 	end
-	local range = format_range(start_line, end_line)
-	feed_escape()
+	local range = yank.format_range(start_line, end_line)
+	yank.feed_escape()
 
 	vim.schedule(function()
 		local message = vim.fn.input("LLM Message: ")
