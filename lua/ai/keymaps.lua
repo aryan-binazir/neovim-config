@@ -332,14 +332,6 @@ vim.keymap.set("n", "<leader>cp", function()
 	end
 end, { desc = "send file path" })
 
-vim.keymap.set("n", "<leader>cq", function()
-	if ensure_ai_pane() then
-		close_ai_pane()
-	else
-		print("No AI pane open")
-	end
-end, { desc = "close pane" })
-
 local llm_jobs = require("ai.jobs")
 
 local function llm_location_label(file, range)
