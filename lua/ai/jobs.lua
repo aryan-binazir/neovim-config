@@ -47,29 +47,6 @@ local function repo_root(file)
 	return vim.fs.root(dir, ".git") or dir or vim.fn.getcwd()
 end
 
-local function build_command(tool, root, prompt)
-	if tool == "codex" then
-		return {
-			"sh",
-			"-c",
-			'exec codex --sandbox workspace-write --ask-for-approval on-request -c approvals_reviewer=auto_review -c sandbox_workspace_write.network_access=true exec --cd "$1" --color never --skip-git-repo-check "$2" </dev/null',
-			"codex-cf",
-			root,
-			prompt,
-		}
-	end
-	if tool == "claude" then
-		return {
-			"claude",
-			"-p",
-			"--permission-mode",
-			"auto",
-			prompt,
-		}
-	end
-	return nil, "Unknown LLM tool: " .. tostring(tool)
-end
-
 local function running_job_count()
 	local count = 0
 	for _, job in ipairs(jobs) do
@@ -814,11 +791,7 @@ function M.run(location, snippet, message, bufnr)
 	local prompt = build_prompt(location, snippet, message)
 	local timeout_ms = config.timeout_ms
 	local tool = config.tool
-	local cmd, cmd_err = build_command(tool, root, prompt)
-	if not cmd then
-		vim.notify(cmd_err, vim.log.levels.ERROR)
-		return
-	end
+	local cmd = require("ai.config").tools[tool].exec(root, prompt)
 
 	local job_id = next_job_id
 	next_job_id = next_job_id + 1

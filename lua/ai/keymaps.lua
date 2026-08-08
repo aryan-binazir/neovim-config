@@ -13,14 +13,7 @@ local function current_file_or_notify()
 	return file
 end
 
-local ai_split_commands = {
-	claude = { lhs = "<leader>cc", cmd = "claude --permission-mode auto", desc = "claude code pane" },
-	codex = {
-		lhs = "<leader>cd",
-		cmd = "codex --sandbox workspace-write --ask-for-approval on-request -c approvals_reviewer=auto_review -c sandbox_workspace_write.network_access=true",
-		desc = "codex pane",
-	},
-}
+local tools = require("ai.config").tools
 
 local function llm_location_label(file, range)
 	return (file .. ":" .. range):gsub("%c", " ")
@@ -45,7 +38,7 @@ end
 
 function M.setup(config)
 	local function default_split_cmd()
-		return ai_split_commands[config.tool].cmd
+		return tools[config.tool].cmd
 	end
 
 	local function send_reference(result)
@@ -68,12 +61,13 @@ function M.setup(config)
 		send_reference(yank.yank_selection(false, true))
 	end, { desc = "send selection" })
 
-	for _, mapping in pairs(ai_split_commands) do
-		local lhs, cmd, desc = mapping.lhs, mapping.cmd, mapping.desc
-		vim.keymap.set("n", lhs, function()
-			pane.toggle(cmd)
-		end, { desc = desc })
-	end
+	vim.keymap.set("n", "<leader>cc", function()
+		pane.toggle(tools.claude.cmd)
+	end, { desc = "claude code pane" })
+
+	vim.keymap.set("n", "<leader>cd", function()
+		pane.toggle(tools.codex.cmd)
+	end, { desc = "codex pane" })
 
 	vim.keymap.set("n", "<leader>cp", function()
 		send_reference(vim.fn.expand("%:p"))
