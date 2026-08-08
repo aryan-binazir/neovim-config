@@ -10,7 +10,7 @@ M.tools = {
 	claude = {
 		cmd = claude_cmd,
 		exec = function(_, prompt)
-			local argv = vim.split(claude_cmd, " ", { plain = true })
+			local argv = vim.split(claude_cmd, " ", { plain = true, trimempty = true })
 			table.insert(argv, 2, "-p")
 			table.insert(argv, prompt)
 			return argv

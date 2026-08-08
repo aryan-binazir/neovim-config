@@ -61,7 +61,6 @@ return {
 					mappings = {
 						i = {
 							["<c-d>"] = "delete_buffer",
-						["<C-p>"] = require("telescope.actions.layout").toggle_preview,
 						},
 					},
 				},
@@ -79,18 +78,8 @@ return {
 
 		-- Telescope keymaps
 		vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>", { desc = "telescope undo" })
-		vim.keymap.set(
-			"n",
-			"<leader>?",
-			require("telescope.builtin").oldfiles,
-			{ desc = "find recently opened files" }
-		)
-		vim.keymap.set(
-			"n",
-			"<leader><space>",
-			require("telescope.builtin").buffers,
-			{ desc = "find existing buffers" }
-		)
+		vim.keymap.set("n", "<leader>?", require("telescope.builtin").oldfiles, { desc = "find recently opened files" })
+		vim.keymap.set("n", "<leader><space>", require("telescope.builtin").buffers, { desc = "find existing buffers" })
 		vim.keymap.set("n", "<leader>/", function()
 			require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
 				winblend = 10,
@@ -105,12 +94,7 @@ return {
 		end, { desc = "search in open files" })
 		vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = "search resume" })
 		vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "search help" })
-		vim.keymap.set(
-			"n",
-			"<leader>sw",
-			require("telescope.builtin").grep_string,
-			{ desc = "search current word" }
-		)
+		vim.keymap.set("n", "<leader>sw", require("telescope.builtin").grep_string, { desc = "search current word" })
 		vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "search diagnostics" })
 		vim.keymap.set("n", "<C-f>", require("telescope.builtin").live_grep, { desc = "search by grep c-f" })
 		vim.keymap.set("n", "<C-p>", function()

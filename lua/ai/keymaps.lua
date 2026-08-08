@@ -45,8 +45,6 @@ function M.setup(config)
 	local function send_reference(result)
 		if pane.ensure_or_open(default_split_cmd()) then
 			pane.send(result .. " ", true)
-		else
-			print("AI pane closed.")
 		end
 	end
 

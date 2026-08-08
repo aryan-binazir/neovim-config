@@ -45,7 +45,9 @@ return {
 			map("n", "<leader>hs", gs.stage_hunk, { desc = "git stage hunk" })
 			map("n", "<leader>hr", gs.reset_hunk, { desc = "git reset hunk" })
 			map("n", "<leader>hS", gs.stage_buffer, { desc = "git stage buffer" })
-			map("n", "<leader>hu", gs.undo_stage_hunk, { desc = "undo stage hunk" })
+			-- stage_hunk toggles: on an already-staged hunk it un-stages,
+			-- replacing the deprecated undo_stage_hunk.
+			map("n", "<leader>hu", gs.stage_hunk, { desc = "toggle stage hunk" })
 			map("n", "<leader>hR", gs.reset_buffer, { desc = "git reset buffer" })
 			map("n", "<leader>hp", gs.preview_hunk, { desc = "preview git hunk" })
 			map("n", "<leader>hb", function()

@@ -234,11 +234,7 @@ ls.add_snippets("typescript", {
 	s("omit", fmt("Omit<{}, {}>", { i(1), i(2) })),
 })
 
--- Copy JavaScript snippets to TypeScript as well
-for _, snippet in ipairs(ls.get_snippets("javascript")) do
-	ls.add_snippets("typescript", { snippet })
-end
-
--- Also add snippets for JSX/TSX files
-ls.add_snippets("javascriptreact", ls.get_snippets("javascript"))
-ls.add_snippets("typescriptreact", ls.get_snippets("typescript"))
+-- TypeScript and the react filetypes inherit the JavaScript snippets
+ls.filetype_extend("typescript", { "javascript" })
+ls.filetype_extend("javascriptreact", { "javascript" })
+ls.filetype_extend("typescriptreact", { "typescript", "javascript" })

@@ -2,7 +2,6 @@ local icons = {
 	ai = { icon = "󰚩", color = "cyan" },
 	action = { icon = "󰌵", color = "yellow" },
 	buffers = { icon = "󰈔", color = "azure" },
-	close = { icon = "󰅖", color = "red" },
 	diagnostic_float = { icon = "󰨄", color = "yellow" },
 	diagnostic_list = { icon = "󰉹", color = "yellow" },
 	diagnostics = { icon = "󰗖", color = "yellow" },
@@ -52,6 +51,24 @@ local approved_non_leader_mappings = {
 	["<C-n>"] = true,
 }
 
+-- One trigger per approved prefix, so the approval tables above stay the
+-- single source of truth for what which-key reacts to.
+local function trigger_list()
+	local triggers = { { "<leader>", mode = { "n", "v" } } }
+	local keys = {}
+	for lhs in pairs(approved_non_leader_mappings) do
+		table.insert(keys, lhs)
+	end
+	for prefix in pairs(approved_leader_prefixes) do
+		table.insert(keys, "<leader>" .. prefix)
+	end
+	table.sort(keys)
+	for _, lhs in ipairs(keys) do
+		table.insert(triggers, { lhs, mode = { "n", "v" } })
+	end
+	return triggers
+end
+
 local function approved_leader_mapping(mapping)
 	local lhs = mapping.lhs or ""
 	if approved_non_leader_mappings[lhs] then
@@ -75,24 +92,7 @@ return {
 		icons = {
 			group = "",
 		},
-		triggers = {
-			{ "<C-g>", mode = { "n", "v" } },
-			{ "<C-m>", mode = { "n", "v" } },
-			{ "<C-n>", mode = { "n", "v" } },
-			{ "<leader>", mode = { "n", "v" } },
-			{ "<leader>/", mode = { "n", "v" } },
-			{ "<leader><space>", mode = { "n", "v" } },
-			{ "<leader>?", mode = { "n", "v" } },
-			{ "<leader>c", mode = { "n", "v" } },
-			{ "<leader>d", mode = { "n", "v" } },
-			{ "<leader>e", mode = { "n", "v" } },
-			{ "<leader>h", mode = { "n", "v" } },
-			{ "<leader>m", mode = { "n", "v" } },
-			{ "<leader>s", mode = { "n", "v" } },
-			{ "<leader>t", mode = { "n", "v" } },
-			{ "<leader>u", mode = { "n", "v" } },
-			{ "<leader>y", mode = { "n", "v" } },
-		},
+		triggers = trigger_list(),
 		plugins = {
 			marks = false,
 			registers = false,
@@ -132,7 +132,6 @@ return {
 			{ "<leader>cf", desc = "run llm fix", icon = icons.fix, mode = { "n", "v" } },
 			{ "<leader>cl", desc = "llm jobs", icon = icons.jobs },
 			{ "<leader>cp", desc = "send file path", icon = icons.file },
-			{ "<leader>cq", desc = "close ai pane", icon = icons.close },
 			{ "<leader>cx", desc = "send line/selection", icon = icons.send, mode = { "n", "v" } },
 			{ "<leader>d", group = "diagnostics", icon = icons.diagnostics },
 			{ "<leader>e", desc = "diagnostic float", icon = icons.diagnostic_float },

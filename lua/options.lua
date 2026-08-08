@@ -29,15 +29,6 @@ vim.o.timeoutlen = 300
 vim.o.completeopt = "menuone,noselect"
 vim.o.termguicolors = true
 
--- Lazygit options
-vim.g.lazygit_floating_window_winblend = 0
-vim.g.lazygit_floating_window_scaling_factor = 0.9
-vim.g.lazygit_floating_window_border_chars = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
-vim.g.lazygit_floating_window_use_plenary = 0
-vim.g.lazygit_use_neovim_remote = 1
-vim.g.lazygit_use_custom_config_file_path = 0
-vim.g.lazygit_config_file_path = {}
-
 -- `nvim /some/dir` opens the directory buffer but leaves cwd at the shell's
 -- location, so pickers search the wrong tree. Follow the argument instead.
 -- Captured here, not in the callback: oil rewrites the arglist entry to an

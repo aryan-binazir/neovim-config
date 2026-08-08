@@ -3,7 +3,7 @@ vim.keymap.set({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-local function Toggle_diagnostics()
+local function toggle_diagnostics()
 	if vim.g.diagnostics_active then
 		vim.g.diagnostics_active = false
 		vim.diagnostic.enable(false)
@@ -22,7 +22,7 @@ vim.keymap.set("n", "<leader>dj", function()
 end, { desc = "go to next diagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "open floating diagnostic message" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "go to diagnostics list" })
-vim.keymap.set("n", "<leader>tt", Toggle_diagnostics, { silent = true, desc = "toggle vim diagnostics" })
+vim.keymap.set("n", "<leader>tt", toggle_diagnostics, { silent = true, desc = "toggle vim diagnostics" })
 
 -- Other Keymaps
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { silent = true, desc = "toggle relative number" })
