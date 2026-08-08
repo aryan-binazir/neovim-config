@@ -1,11 +1,7 @@
 local ls = require("luasnip")
 local s = ls.snippet
-local t = ls.text_node
 local i = ls.insert_node
 local f = ls.function_node
-local c = ls.choice_node
-local d = ls.dynamic_node
-local sn = ls.snippet_node
 local fmt = require("luasnip.extras.fmt").fmt
 
 -- JavaScript snippets
@@ -32,10 +28,6 @@ ls.add_snippets("javascript", {
 	s("afn", fmt("const {} = ({}) => {}", { i(1, "name"), i(2), i(3) })),
 	s("iife", fmt("(function({}) {{\n  {}\n}})({})", { i(1), i(2), i(3) })),
 
-	-- Variables
-	s("const", fmt("const {} = {}", { i(1), i(2) })),
-	s("let", fmt("let {} = {}", { i(1), i(2) })),
-
 	-- Control flow
 	s("if", fmt("if ({}) {{\n  {}\n}}", { i(1), i(2) })),
 	s("ife", fmt("if ({}) {{\n  {}\n}} else {{\n  {}\n}}", { i(1), i(2), i(3) })),
@@ -45,7 +37,6 @@ ls.add_snippets("javascript", {
 		"switch",
 		fmt("switch ({}) {{\n  case {}:\n    {}\n    break;\n  default:\n    {}\n}}", { i(1), i(2), i(3), i(4) })
 	),
-	s("case", fmt("case {}:\n  {}\n  break;", { i(1), i(2) })),
 
 	-- Loops
 	s(
@@ -84,7 +75,6 @@ ls.add_snippets("javascript", {
 	s("then", fmt(".then(({}) => {{\n  {}\n}})", { i(1, "result"), i(2) })),
 	s("catch", fmt(".catch(({}) => {{\n  {}\n}})", { i(1, "error"), i(2) })),
 	s("async", fmt("async function {}({}) {{\n  {}\n}}", { i(1, "name"), i(2), i(3) })),
-	s("await", fmt("await {}", { i(1) })),
 	s("trycatch", fmt("try {{\n  {}\n}} catch ({}) {{\n  {}\n}}", { i(1), i(2, "error"), i(3) })),
 
 	-- Classes
@@ -190,81 +180,8 @@ ls.add_snippets("javascript", {
 	-- Common patterns
 	s("desc", fmt("const {{ {} }} = {}", { i(1), i(2) })),
 	s("nf", fmt("const {} = ({}) => null", { i(1, "ComponentName"), i(2, "props") })),
-	s("ret", fmt("return {}", { i(1) })),
 	s("rett", fmt("return (\n  {}\n)", { i(1) })),
 })
-
--- Visual selection snippets (for wrapping selected text)
-ls.add_snippets("javascript", {
-	s(
-		{ trig = "waf", name = "Wrap in arrow function", dscr = "Wrap selection in arrow function" },
-		fmt(
-			"({}) => {{\n  {}\n}}",
-			{ i(1, "param"), d(1, function(_, snip)
-				return sn(nil, { t(snip.env.LS_SELECT_RAW) })
-			end) }
-		),
-		{
-			condition = function()
-				return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-			end,
-		}
-	),
-	s(
-		{ trig = "wfn", name = "Wrap in function", dscr = "Wrap selection in function" },
-		fmt(
-			"function {}({}) {{\n  {}\n}}",
-			{ i(1, "name"), i(2), d(1, function(_, snip)
-				return sn(nil, { t(snip.env.LS_SELECT_RAW) })
-			end) }
-		),
-		{
-			condition = function()
-				return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-			end,
-		}
-	),
-	s(
-		{ trig = "wcl", name = "Wrap in console.log", dscr = "Wrap selection in console.log" },
-		fmt("console.log({})", { d(1, function(_, snip)
-			return sn(nil, { t(snip.env.LS_SELECT_RAW) })
-		end) }),
-		{
-			condition = function()
-				return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-			end,
-		}
-	),
-	s(
-		{ trig = "wtry", name = "Wrap in try/catch", dscr = "Wrap selection in try/catch" },
-		fmt("try {{\n  {}\n}} catch ({}) {{\n  {}\n}}", {
-			d(1, function(_, snip)
-				return sn(nil, { t(snip.env.LS_SELECT_RAW) })
-			end),
-			i(1, "error"),
-			i(2, "console.error(error)"),
-		}),
-		{
-			condition = function()
-				return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-			end,
-		}
-	),
-	s(
-		{ trig = "wif", name = "Wrap in if", dscr = "Wrap selection in if statement" },
-		fmt("if ({}) {{\n  {}\n}}", {
-			i(1, "condition"),
-			d(1, function(_, snip)
-				return sn(nil, { t(snip.env.LS_SELECT_RAW) })
-			end),
-		}),
-		{
-			condition = function()
-				return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-			end,
-		}
-	),
-}, { type = "autosnippets" })
 
 -- Also add the same snippets for TypeScript with type annotations
 ls.add_snippets("typescript", {

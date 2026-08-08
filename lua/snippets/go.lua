@@ -89,7 +89,6 @@ ls.add_snippets("go", {
 	s("gof", fmt("go {}({})", { i(1, "function"), i(2) })),
 	s("ch", fmt("make(chan {})", { i(1, "int") })),
 	s("chb", fmt("make(chan {}, {})", { i(1, "int"), i(2, "1") })),
-	s("close", fmt("close({})", { i(1, "ch") })),
 
 	-- Defer
 	s("defer", fmt("defer func() {{\n\t{}\n}}()", { i(1) })),
@@ -98,19 +97,13 @@ ls.add_snippets("go", {
 	-- Variables and constants
 	s("var", fmt("var {} {}", { i(1, "name"), i(2, "type") })),
 	s("const", fmt("const {} = {}", { i(1, "name"), i(2, "value") })),
-	s(":=", fmt("{} := {}", { i(1, "name"), i(2, "value") })),
 
-	-- Package and imports
-	s("package", fmt("package {}", { i(1, "main") })),
-	s("import", fmt('import "{}"', { i(1) })),
+	-- Imports
 	s("imports", fmt('import (\n\t"{}"\n)', { i(1) })),
 
 	-- Common patterns
 	s("make", fmt("make({}, {})", { i(1, "map[string]int"), i(2, "0") })),
-	s("new", fmt("new({})", { i(1, "Type") })),
 	s("append", fmt("append({}, {})", { i(1, "slice"), i(2, "item") })),
-	s("len", fmt("len({})", { i(1) })),
-	s("cap", fmt("cap({})", { i(1) })),
 
 	-- Testing
 	s("test", fmt("func Test{}(t *testing.T) {{\n\t{}\n}}", { i(1, "Name"), i(2) })),

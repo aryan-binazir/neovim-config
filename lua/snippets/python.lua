@@ -2,9 +2,6 @@ local ls = require("luasnip")
 local s = ls.snippet
 local t = ls.text_node
 local i = ls.insert_node
-local f = ls.function_node
-local c = ls.choice_node
-local fmt = require("luasnip.extras.fmt").fmt
 
 -- Python snippets
 ls.add_snippets("python", {
@@ -114,10 +111,6 @@ ls.add_snippets("python", {
 	}),
 
 	-- Imports
-	s("import", {
-		t("import "),
-		i(1, "module"),
-	}),
 	s("from", {
 		t("from "),
 		i(1, "module"),
@@ -131,29 +124,6 @@ ls.add_snippets("python", {
 		t({ "", "    " }),
 		i(1, "main()"),
 	}),
-	s("print", {
-		t("print("),
-		i(1),
-		t(")"),
-	}),
-
-	-- Data structures
-	s("list", {
-		t("["),
-		i(1),
-		t("]"),
-	}),
-	s("dict", {
-		t("{"),
-		i(1, '"key": "value"'),
-		t("}"),
-	}),
-	s("tuple", {
-		t("("),
-		i(1),
-		t(",)"),
-	}),
-
 	-- Testing
 	s("test", {
 		t("def test_"),
@@ -169,9 +139,4 @@ ls.add_snippets("python", {
 		i(2, "Error message"),
 		t('"'),
 	}),
-
-	-- Common variables
-	s("name", t("__name__")),
-	s("file", t("__file__")),
-	s("doc", t("__doc__")),
 })
