@@ -119,7 +119,6 @@ end
 
 local function update_activity_progress()
 	local count = running_job_count()
-	vim.g.llm_jobs_running = count
 	vim.cmd("redrawstatus")
 	if count == 0 then
 		stop_activity_timer()

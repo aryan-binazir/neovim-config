@@ -1,17 +1,11 @@
 local M = {}
 
-local function optional_table(value, name)
-	if value == nil then
-		return nil
-	end
-	if type(value) ~= "table" then
-		error(name .. " must be a table")
-	end
-	return value
-end
-
 function M.resolve(opts)
-	opts = optional_table(opts, "ai.setup opts") or optional_table(vim.g.ai, "vim.g.ai") or {}
+	if opts == nil then
+		opts = {}
+	elseif type(opts) ~= "table" then
+		error("ai.setup opts must be a table")
+	end
 	local config = {
 		tool = opts.tool,
 		timeout_ms = opts.timeout_ms,

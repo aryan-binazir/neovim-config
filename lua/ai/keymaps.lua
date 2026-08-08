@@ -64,12 +64,10 @@ local function send_to_ai_pane(text, focus)
 	end
 end
 
--- Yank absolute file path
 vim.keymap.set("n", "<leader>yp", function()
 	yank_paths({ vim.fn.expand("%:p") }, "path")
 end, { desc = "yank absolute file path" })
 
--- Yank all buffer paths
 vim.keymap.set("n", "<leader>yb", function()
 	local paths = {}
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -83,7 +81,6 @@ vim.keymap.set("n", "<leader>yb", function()
 	yank_paths(paths, "buffer paths")
 end, { desc = "yank all buffer paths" })
 
--- Yank all harpoon paths
 vim.keymap.set("n", "<leader>yh", function()
 	local harpoon = optional_require("harpoon", "Harpoon")
 	if not harpoon then
@@ -116,7 +113,7 @@ local function yank_selection(include_code, skip_register)
 	end
 	feed_escape()
 	vim.defer_fn(function()
-		vim.highlight.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
+		vim.hl.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
 		vim.defer_fn(function()
 			vim.api.nvim_buf_clear_namespace(bufnr, yank_ns, 0, -1)
 		end, 150)
@@ -127,17 +124,14 @@ local function yank_selection(include_code, skip_register)
 	return result
 end
 
--- Yank selection reference (path:lines only)
 vim.keymap.set("v", "<leader>ys", function()
 	yank_selection(false)
 end, { desc = "yank file path and line numbers (full lines)" })
 
--- Yank selection with code (path:lines + code content)
 vim.keymap.set("v", "<leader>yc", function()
 	yank_selection(true)
 end, { desc = "yank file path, lines, and code (full lines)" })
 
--- AI tools in tmux splits
 vim.g.ai_pane_id = nil
 local ai_pane_marker = "@nvim_ai_pane"
 local config
@@ -212,7 +206,6 @@ local function ensure_ai_pane()
 	return false
 end
 
--- Yank all file paths in Oil directory
 vim.keymap.set("n", "<leader>yo", function()
 	local oil = optional_require("oil", "Oil")
 	if not oil then
@@ -290,7 +283,6 @@ local function default_ai_split_cmd()
 	return ai_split_commands[config.tool].cmd
 end
 
--- Send selection to AI pane
 vim.keymap.set("n", "<leader>cx", function()
 	local result = current_line_reference()
 	if not result then
@@ -352,7 +344,6 @@ end
 
 vim.keymap.set("n", "<leader>cl", llm_jobs.open_list, { desc = "job list" })
 
--- Quick scoped message: runs a one-shot editor task through the configured LLM tool.
 vim.keymap.set("n", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local file = current_file_or_notify()
@@ -368,7 +359,6 @@ vim.keymap.set("n", "<leader>cf", function()
 	llm_jobs.run(llm_location_label(file, tostring(line)), snippet, message, bufnr)
 end, { desc = "run scoped fix" })
 
--- Visual mode: scoped message with line range
 vim.keymap.set("v", "<leader>cf", function()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local start_line, end_line = visual_range()
