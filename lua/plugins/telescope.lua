@@ -100,7 +100,6 @@ return {
 		vim.keymap.set("n", "<C-p>", function()
 			require("telescope.builtin").find_files({
 				hidden = true,
-				no_ignore = true,
 				find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
 			})
 		end, { desc = "search files c-p" })
