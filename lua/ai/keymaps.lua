@@ -25,8 +25,8 @@ local function write_current_buffer()
 	return false
 end
 
-local function llm_location_label(file, range)
-	return (file .. ":" .. range):gsub("%c", " ")
+local function llm_location_label(reference)
+	return reference:gsub("%c", " ")
 end
 
 local function cf_snippet(bufnr, start_line, end_line)
@@ -85,12 +85,12 @@ function M.setup(config)
 
 	vim.keymap.set("v", "<leader>cx", function()
 		write_current_buffer()
-		local file = current_file_or_notify()
-		if not file then
-			yank.feed_escape()
+		local selection = yank.selection()
+		if selection.path == "" then
+			current_file_or_notify()
 			return
 		end
-		send_reference(yank.yank_selection(false, true))
+		send_reference(selection.ref)
 	end, { desc = "send selection" })
 
 	vim.keymap.set("n", "<leader>cc", function()
@@ -157,27 +157,24 @@ function M.setup(config)
 			return
 		end
 
-		llm_jobs.run(llm_location_label(file, tostring(line)), snippet, message, bufnr)
+		llm_jobs.run(llm_location_label(file .. ":" .. line), snippet, message, bufnr)
 	end, { desc = "run scoped fix" })
 
 	vim.keymap.set("v", "<leader>cf", function()
 		local bufnr = vim.api.nvim_get_current_buf()
-		local start_line, end_line = yank.visual_range()
-		local file = current_file_or_notify()
-		if not file then
-			yank.feed_escape()
+		local selection = yank.selection()
+		if selection.path == "" then
+			vim.notify("Current buffer has no file name", vim.log.levels.ERROR)
 			return
 		end
-		local range = yank.format_range(start_line, end_line)
-		yank.feed_escape()
+		local snippet = cf_snippet(bufnr, selection.start_line, selection.end_line)
 
 		vim.schedule(function()
 			local message = vim.fn.input("LLM Message: ")
 			if message == "" then
 				return
 			end
-			local snippet = cf_snippet(bufnr, start_line, end_line)
-			llm_jobs.run(llm_location_label(file, range), snippet, message, bufnr)
+			llm_jobs.run(llm_location_label(selection.ref), snippet, message, bufnr)
 		end)
 	end, { desc = "run scoped fix with selection" })
 end

@@ -14,11 +14,11 @@ local function optional_require(name, label)
 	return module
 end
 
-function M.format_range(start_line, end_line)
+local function format_range(start_line, end_line)
 	return start_line == end_line and tostring(start_line) or (start_line .. "-" .. end_line)
 end
 
-function M.visual_range()
+local function visual_range()
 	local start_line = vim.fn.line("v")
 	local end_line = vim.fn.line(".")
 	if start_line > end_line then
@@ -27,35 +27,38 @@ function M.visual_range()
 	return start_line, end_line
 end
 
-function M.feed_escape()
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+local function feed_escape()
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
 end
 
-local yank_ns = vim.api.nvim_create_namespace("yank_selection_highlight")
+local yank_ns = vim.api.nvim_create_namespace("selection_highlight")
 
-function M.yank_selection(include_code, skip_register)
-	local start_line, end_line = M.visual_range()
+function M.selection()
+	local start_line, end_line = visual_range()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.fn.expand("%:p")
-	local result = path .. ":" .. M.format_range(start_line, end_line)
-	if include_code then
-		local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
-		result = result .. "\n" .. table.concat(lines, "\n")
-	end
-	if not skip_register then
-		vim.fn.setreg("+", result)
-	end
-	M.feed_escape()
+	local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
+	local ref = path .. ":" .. format_range(start_line, end_line)
+	feed_escape()
 	vim.defer_fn(function()
+		if not vim.api.nvim_buf_is_valid(bufnr) then
+			return
+		end
 		vim.hl.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
 		vim.defer_fn(function()
+			if not vim.api.nvim_buf_is_valid(bufnr) then
+				return
+			end
 			vim.api.nvim_buf_clear_namespace(bufnr, yank_ns, 0, -1)
 		end, 150)
 	end, 0)
-	if not skip_register then
-		print("Yanked " .. (include_code and "selection with code" or "selection reference"))
-	end
-	return result
+	return {
+		path = path,
+		start_line = start_line,
+		end_line = end_line,
+		ref = ref,
+		lines = lines,
+	}
 end
 
 vim.keymap.set("n", "<leader>yp", function()
@@ -131,11 +134,15 @@ vim.keymap.set("n", "<leader>yq", function()
 end, { desc = "yank quickfix list" })
 
 vim.keymap.set("v", "<leader>ys", function()
-	M.yank_selection(false)
+	local selection = M.selection()
+	vim.fn.setreg("+", selection.ref)
+	print("Yanked selection reference")
 end, { desc = "yank file path and line numbers (full lines)" })
 
 vim.keymap.set("v", "<leader>yc", function()
-	M.yank_selection(true)
+	local selection = M.selection()
+	vim.fn.setreg("+", selection.ref .. "\n" .. table.concat(selection.lines, "\n"))
+	print("Yanked selection with code")
 end, { desc = "yank file path, lines, and code (full lines)" })
 
 return M
