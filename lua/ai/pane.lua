@@ -1,58 +1,47 @@
--- Tmux pane hosting an interactive AI tool. One pane at a time, tracked by ID
--- and tool name via vim globals and a tmux pane option so it survives restarts.
+-- Tmux pane hosting an interactive AI tool. The marker stores the tool name
+-- so the pane can be recovered after nvim restarts.
 local M = {}
 
-vim.g.ai_pane_id = nil
-vim.g.ai_pane_tool = nil
 local ai_pane_marker = "@nvim_ai_pane"
-
-local function pane_target()
-	if not vim.g.ai_pane_id then
-		return nil
-	end
-	return vim.fn.shellescape(vim.g.ai_pane_id)
-end
+local pane_id = nil
+local pane_tool = nil
 
 local function pane_alive()
-	local target = pane_target()
-	if not target then
+	if not pane_id then
 		return false
 	end
-	local check = vim.fn.system("tmux display-message -t " .. target .. " -p '#{pane_id}' 2>/dev/null")
-	return vim.trim(check) ~= ""
+	local out = vim.fn.system({ "tmux", "display-message", "-t", pane_id, "-p", "#{pane_id}" })
+	return vim.v.shell_error == 0 and vim.trim(out):match("^%%%d+$") ~= nil
 end
 
-local function set_pane_option(pane_id, option, value)
-	vim.fn.system(
-		"tmux set-option -p -t "
-			.. vim.fn.shellescape(pane_id)
-			.. " "
-			.. vim.fn.shellescape(option)
-			.. " "
-			.. vim.fn.shellescape(value)
-			.. " 2>/dev/null"
-	)
+local function set_pane_option(target, option, value)
+	vim.fn.system({ "tmux", "set-option", "-p", "-t", target, option, value })
 end
 
 local function close_pane()
-	local target = pane_target()
-	if target then
-		vim.fn.system("tmux kill-pane -t " .. target)
+	if not pane_id then
+		return
 	end
-	vim.g.ai_pane_id = nil
-	vim.g.ai_pane_tool = nil
-	print("AI pane closed")
+	local out = vim.fn.system({ "tmux", "kill-pane", "-t", pane_id })
+	local succeeded = vim.v.shell_error == 0
+	pane_id = nil
+	pane_tool = nil
+	if succeeded then
+		vim.notify("AI pane closed", vim.log.levels.INFO)
+	else
+		vim.notify("Failed to close AI pane: " .. vim.trim(out), vim.log.levels.ERROR)
+	end
 end
 
 -- Find a pane this config marked, so it survives nvim closing and reopening.
 local function find_marked_pane()
-	local out = vim.fn.system('tmux list-panes -F "#{pane_id}\t#{' .. ai_pane_marker .. '}" 2>/dev/null')
+	local out = vim.fn.system({ "tmux", "list-panes", "-F", "#{pane_id}\t#{" .. ai_pane_marker .. "}" })
 	if vim.v.shell_error ~= 0 then
 		return nil
 	end
 	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
 		local parts = vim.split(line, "\t", { plain = true })
-		if parts[1] and parts[1] ~= "" and parts[2] and parts[2] ~= "" then
+		if parts[1] and parts[1]:match("^%%%d+$") and parts[2] and parts[2] ~= "" then
 			return parts[1], parts[2]
 		end
 	end
@@ -66,8 +55,8 @@ local function ensure_pane()
 
 	local existing, tool = find_marked_pane()
 	if existing then
-		vim.g.ai_pane_id = existing
-		vim.g.ai_pane_tool = tool
+		pane_id = existing
+		pane_tool = tool
 		return true
 	end
 
@@ -76,10 +65,10 @@ end
 
 local function open_split(name, cmd)
 	if vim.fn.executable("tmux") ~= 1 then
-		print("tmux not available")
+		vim.notify("tmux not available", vim.log.levels.ERROR)
 		return false
 	end
-	local pane_id = vim.fn.system({
+	local out = vim.fn.system({
 		"tmux",
 		"split-window",
 		"-h",
@@ -92,21 +81,21 @@ local function open_split(name, cmd)
 		vim.fn.getcwd(),
 		"$SHELL -ic " .. vim.fn.shellescape(cmd),
 	})
-	pane_id = vim.trim(pane_id)
-	if pane_id == "" then
-		print("Failed to create tmux split")
+	local created_pane_id = vim.trim(out)
+	if vim.v.shell_error ~= 0 or not created_pane_id:match("^%%%d+$") then
+		vim.notify("Failed to create tmux split: " .. created_pane_id, vim.log.levels.ERROR)
 		return false
 	end
-	set_pane_option(pane_id, ai_pane_marker, name)
-	vim.fn.system({ "tmux", "select-pane", "-t", pane_id, "-T", name })
-	vim.g.ai_pane_id = pane_id
-	vim.g.ai_pane_tool = name
+	set_pane_option(created_pane_id, ai_pane_marker, name)
+	vim.fn.system({ "tmux", "select-pane", "-t", created_pane_id, "-T", name })
+	pane_id = created_pane_id
+	pane_tool = name
 	return true
 end
 
 function M.toggle(name, cmd)
 	if ensure_pane() then
-		if vim.g.ai_pane_tool ~= name then
+		if pane_tool ~= name then
 			close_pane()
 			open_split(name, cmd)
 			return
@@ -126,7 +115,7 @@ function M.ensure_or_open(name, cmd)
 end
 
 function M.wait_ready(timeout_ms, callback)
-	local target = vim.g.ai_pane_id
+	local target = pane_id
 	if not target then
 		callback(false)
 		return
@@ -204,26 +193,24 @@ function M.wait_ready(timeout_ms, callback)
 end
 
 function M.send(text, focus)
-	local target = pane_target()
-	if not target then
+	if not pane_id then
 		return
 	end
-	vim.fn.system("tmux send-keys -t " .. target .. " -l " .. vim.fn.shellescape(text))
+	vim.fn.system({ "tmux", "send-keys", "-t", pane_id, "-l", text })
 	if focus then
-		vim.fn.system("tmux select-pane -t " .. target)
+		vim.fn.system({ "tmux", "select-pane", "-t", pane_id })
 	end
 end
 
 function M.send_block(text, focus)
-	local target = pane_target()
-	if not target then
+	if not pane_id then
 		return
 	end
 	local buffer_name = "nvim_ai_" .. vim.fn.getpid()
 	vim.fn.system({ "tmux", "load-buffer", "-b", buffer_name, "-" }, text)
-	vim.fn.system("tmux paste-buffer -r -p -d -b " .. buffer_name .. " -t " .. target)
+	vim.fn.system({ "tmux", "paste-buffer", "-r", "-p", "-d", "-b", buffer_name, "-t", pane_id })
 	if focus then
-		vim.fn.system("tmux select-pane -t " .. target)
+		vim.fn.system({ "tmux", "select-pane", "-t", pane_id })
 	end
 end
 

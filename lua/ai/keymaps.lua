@@ -85,6 +85,11 @@ function M.setup(config)
 
 	vim.keymap.set("v", "<leader>cx", function()
 		write_current_buffer()
+		local file = current_file_or_notify()
+		if not file then
+			yank.feed_escape()
+			return
+		end
 		send_reference(yank.yank_selection(false, true))
 	end, { desc = "send selection" })
 
@@ -97,7 +102,11 @@ function M.setup(config)
 	end, { desc = "codex pane" })
 
 	vim.keymap.set("n", "<leader>cp", function()
-		send_reference(vim.fn.expand("%:p"))
+		local file = current_file_or_notify()
+		if not file then
+			return
+		end
+		send_reference(file)
 	end, { desc = "send file path" })
 
 	vim.keymap.set("n", "<leader>ce", function()
