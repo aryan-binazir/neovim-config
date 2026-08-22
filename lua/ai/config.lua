@@ -45,8 +45,14 @@ function M.resolve(opts)
 	if not M.tools[config.tool] then
 		error("invalid value for config.tool: " .. tostring(config.tool) .. ' (expected "codex" or "claude")')
 	end
-	if type(config.timeout_ms) ~= "number" then
-		error("invalid value for config.timeout_ms: " .. tostring(config.timeout_ms) .. " (expected number)")
+	if
+		type(config.timeout_ms) ~= "number"
+		or config.timeout_ms ~= config.timeout_ms
+		or config.timeout_ms <= 0
+		or config.timeout_ms == math.huge
+		or config.timeout_ms ~= math.floor(config.timeout_ms)
+	then
+		error("invalid value for config.timeout_ms: " .. tostring(config.timeout_ms) .. " (expected positive integer)")
 	end
 
 	return config

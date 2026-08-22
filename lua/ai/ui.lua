@@ -2,6 +2,7 @@
 local jobs = require("ai.jobs")
 
 local M = {}
+local log_missing_warned = {}
 
 -- state is nil while closed; fields: buf, win, mode ("list"|"log"),
 -- viewing_id (job whose log is shown), cursor_job (one-shot row preference),
@@ -61,8 +62,8 @@ local function readable_log(job)
 	if vim.fn.filereadable(job.log_path) == 1 then
 		return true
 	end
-	if not job.log_missing_warned then
-		job.log_missing_warned = true
+	if not log_missing_warned[job.id] then
+		log_missing_warned[job.id] = true
 		vim.notify("No log found for job #" .. job.id, vim.log.levels.WARN)
 	end
 	return false
@@ -227,11 +228,15 @@ function M.open_list()
 			end,
 		})
 
-		state.timer = vim.uv.new_timer()
-		state.timer:start(
+		local owner = state
+		owner.timer = vim.uv.new_timer()
+		owner.timer:start(
 			0,
 			1000,
 			vim.schedule_wrap(function()
+				if state ~= owner then
+					return
+				end
 				if not state or not vim.api.nvim_buf_is_valid(buf) then
 					close()
 					return
@@ -248,15 +253,6 @@ function M.open_list()
 	render_list()
 end
 
-jobs.attach({
-	changed = refresh,
-	pinned_log = function()
-		if state and state.mode == "log" then
-			local job = find_job(state.viewing_id)
-			return job and job.log_path or nil
-		end
-		return nil
-	end,
-})
+jobs.on_change = refresh
 
 return M

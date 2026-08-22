@@ -9,19 +9,10 @@ local max_log_files = 100
 local activity_timer = nil
 local config
 
--- UI hooks: `changed` fires after any job state change; `pinned_log` names a
--- log file the UI is currently displaying so pruning spares it.
-local handlers = {
-	changed = function() end,
-	pinned_log = function() end,
-}
+M.on_change = function() end
 
 function M.setup(opts)
 	config = opts
-end
-
-function M.attach(ui_handlers)
-	handlers = ui_handlers
 end
 
 -- Read-only for callers; only this module mutates it.
@@ -82,42 +73,21 @@ function M.statusline_component()
 	return running > 1 and (frames[index] .. running) or frames[index]
 end
 
-local function stop_activity_timer()
-	if not activity_timer then
-		return
-	end
-	activity_timer:stop()
-	activity_timer:close()
-	activity_timer = nil
-end
-
-local function start_activity_timer()
-	if activity_timer then
-		return
-	end
-	activity_timer = vim.uv.new_timer()
-	activity_timer:start(
-		0,
-		150,
-		vim.schedule_wrap(function()
-			if running_job_count() == 0 then
-				stop_activity_timer()
-				return
-			end
-			vim.cmd("redrawstatus")
-		end)
-	)
-end
-
-local function update_activity_progress()
-	local count = running_job_count()
+local function update_activity()
 	vim.cmd("redrawstatus")
-	if count == 0 then
-		stop_activity_timer()
+	if running_job_count() == 0 then
+		if activity_timer then
+			activity_timer:stop()
+			activity_timer:close()
+			activity_timer = nil
+		end
 		return
 	end
 
-	start_activity_timer()
+	if not activity_timer then
+		activity_timer = vim.uv.new_timer()
+		activity_timer:start(150, 150, vim.schedule_wrap(update_activity))
+	end
 end
 
 local function text_lines(text)
@@ -150,7 +120,7 @@ end
 
 local function job_log_path(id, location)
 	local stamp = os.date("%Y%m%d-%H%M%S")
-	return string.format("%s/%04d-%s-%s.log", jobs_dir, id, stamp, slug(location))
+	return string.format("%s/%04d-%d-%s-%s.log", jobs_dir, id, vim.uv.os_getpid(), stamp, slug(location))
 end
 
 local function prune_jobs()
@@ -174,10 +144,6 @@ local function prune_log_files()
 	for _, job in ipairs(jobs) do
 		active_logs[job.log_path] = true
 	end
-	local pinned = handlers.pinned_log()
-	if pinned then
-		active_logs[pinned] = true
-	end
 
 	local files = vim.fn.globpath(jobs_dir, "*.log", false, true)
 	table.sort(files, function(a, b)
@@ -187,7 +153,8 @@ local function prune_log_files()
 	local i = 1
 	while #files > max_log_files and i <= #files do
 		local path = files[i]
-		if active_logs[path] then
+		local recent = vim.fn.getftime(path) >= os.time() - config.timeout_ms / 1000
+		if active_logs[path] or recent then
 			i = i + 1
 		else
 			vim.fn.delete(path)
@@ -257,24 +224,32 @@ function M.label(job)
 	return string.format("#%-3d %-10s %-6s %s %s", job.id, job.status, job.tool, format_elapsed(job), job.location)
 end
 
-local function notify_job(job, status, level)
-	vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", level)
+local notify_levels = {
+	cancelled = vim.log.levels.WARN,
+	timed_out = vim.log.levels.ERROR,
+	killed = vim.log.levels.ERROR,
+	failed = vim.log.levels.ERROR,
+}
+
+local function notify_job(job)
+	local status = job.status:gsub("_", " ")
+	vim.notify(job.tool .. " " .. status .. "; <leader>cl for log", notify_levels[job.status])
 end
 
 local function completion_status(job, result)
 	if job.cancel_requested then
-		return "cancelled", "cancelled", vim.log.levels.WARN, false
+		return "cancelled"
 	end
 	if result.code == 124 then
-		return "timed out", "timed_out", vim.log.levels.ERROR, false
+		return "timed_out"
 	end
 	if result.signal and result.signal ~= 0 then
-		return "killed", "killed", vim.log.levels.ERROR, false
+		return "killed"
 	end
 	if result.code == 0 then
-		return "done", "done", nil, true
+		return "done"
 	end
-	return "failed", "failed", vim.log.levels.ERROR, false
+	return "failed"
 end
 
 function M.cancel(job)
@@ -290,9 +265,9 @@ function M.cancel(job)
 	if job.handle then
 		job.handle:kill(15)
 	end
-	update_activity_progress()
+	update_activity()
 	vim.notify(job.tool .. " cancelling job #" .. job.id, vim.log.levels.WARN)
-	handlers.changed()
+	M.on_change()
 end
 
 local function write_buffer(bufnr)
@@ -351,8 +326,8 @@ function M.run(location, snippet, message, bufnr)
 	table.insert(jobs, job)
 	prune_jobs()
 	start_log(job)
-	update_activity_progress()
-	handlers.changed()
+	update_activity()
+	M.on_change()
 
 	local ok_system, handle = pcall(vim.system, cmd, {
 		cwd = root,
@@ -370,14 +345,13 @@ function M.run(location, snippet, message, bufnr)
 			job.finished_at_ts = os.time()
 			finish_log(job, result)
 
-			local status, job_status, notify_level, checktime = completion_status(job, result)
-			job.status = job_status
-			update_activity_progress()
-			notify_job(job, status, notify_level)
-			if checktime then
+			job.status = completion_status(job, result)
+			update_activity()
+			notify_job(job)
+			if job.status == "done" then
 				vim.cmd("checktime")
 			end
-			handlers.changed()
+			M.on_change()
 		end)
 	end)
 
@@ -389,9 +363,9 @@ function M.run(location, snippet, message, bufnr)
 			"Finished: " .. os.date("%Y-%m-%d %H:%M:%S"),
 			"Failed to start: " .. tostring(handle),
 		}, job.log_path, "a")
-		update_activity_progress()
+		update_activity()
 		vim.notify("Failed to start " .. job.tool .. "; <leader>cl for log", vim.log.levels.ERROR)
-		handlers.changed()
+		M.on_change()
 		return
 	end
 	job.handle = handle
