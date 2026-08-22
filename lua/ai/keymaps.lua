@@ -47,29 +47,31 @@ local function cf_current_line_snippet()
 end
 
 function M.setup(config)
-	local function send_reference(result)
-		write_current_buffer()
-		if pane.ensure_or_open(config.tool, tools[config.tool].cmd) then
-			pane.send(result .. " ", true)
-		end
-	end
-
-	local function send_block(text)
-		local ok, created = pane.ensure_or_open(config.tool, tools[config.tool].cmd)
+	local function with_pane(fn)
+		local ok = pane.ensure_or_open(config.tool, tools[config.tool].cmd)
 		if not ok then
 			return
 		end
-		if created then
-			pane.wait_ready(15000, function(ready)
-				if ready then
-					pane.send_block(text .. "\n", true)
-				else
-					vim.notify("AI pane did not become ready; text not sent", vim.log.levels.WARN)
-				end
-			end)
-		else
+		pane.wait_ready(15000, function(ready)
+			if ready then
+				fn()
+			else
+				vim.notify("AI pane did not become ready; nothing sent", vim.log.levels.WARN)
+			end
+		end)
+	end
+
+	local function send_reference(result)
+		write_current_buffer()
+		with_pane(function()
+			pane.send(result .. " ", true)
+		end)
+	end
+
+	local function send_block(text)
+		with_pane(function()
 			pane.send_block(text .. "\n", true)
-		end
+		end)
 	end
 
 	vim.keymap.set("n", "<leader>cx", function()
@@ -100,23 +102,20 @@ function M.setup(config)
 
 	vim.keymap.set("n", "<leader>ce", function()
 		local bufnr = vim.api.nvim_get_current_buf()
-		local changed = false
+		local last_event
 		local autocmd = vim.api.nvim_create_autocmd("DiagnosticChanged", {
 			buffer = bufnr,
-			once = true,
 			callback = function()
-				changed = true
+				last_event = vim.uv.now()
 			end,
 		})
 		local wrote = write_current_buffer()
 		if wrote then
 			vim.wait(1000, function()
-				return changed
+				return last_event ~= nil and (vim.uv.now() - last_event) >= 300
 			end, 50)
 		end
-		if not changed then
-			vim.api.nvim_del_autocmd(autocmd)
-		end
+		vim.api.nvim_del_autocmd(autocmd)
 		local lines = context.diagnostic_lines(bufnr)
 		if #lines == 0 then
 			vim.notify("No diagnostics in buffer")

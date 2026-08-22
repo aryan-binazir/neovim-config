@@ -55,10 +55,14 @@ function M.quickfix_lines()
 			path = item.filename or ""
 		end
 		if path ~= "" then
-			table.insert(
-				lines,
-				string.format("%s:%d:%d: %s", absolute_path(path), item.lnum, item.col, single_line(item.text))
-			)
+			local location = absolute_path(path)
+			if item.lnum > 0 then
+				location = location .. ":" .. item.lnum
+				if item.col > 0 then
+					location = location .. ":" .. item.col
+				end
+			end
+			table.insert(lines, location .. ": " .. single_line(item.text))
 		end
 	end
 	return lines
