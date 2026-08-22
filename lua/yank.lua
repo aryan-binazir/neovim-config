@@ -28,7 +28,7 @@ local function visual_range()
 end
 
 local function feed_escape()
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
+	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "ni", false)
 end
 
 local yank_ns = vim.api.nvim_create_namespace("selection_highlight")
@@ -37,7 +37,6 @@ function M.selection()
 	local start_line, end_line = visual_range()
 	local bufnr = vim.api.nvim_get_current_buf()
 	local path = vim.fn.expand("%:p")
-	local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
 	local ref = path .. ":" .. format_range(start_line, end_line)
 	feed_escape()
 	vim.defer_fn(function()
@@ -57,7 +56,6 @@ function M.selection()
 		start_line = start_line,
 		end_line = end_line,
 		ref = ref,
-		lines = lines,
 	}
 end
 
@@ -141,7 +139,8 @@ end, { desc = "yank file path and line numbers (full lines)" })
 
 vim.keymap.set("v", "<leader>yc", function()
 	local selection = M.selection()
-	vim.fn.setreg("+", selection.ref .. "\n" .. table.concat(selection.lines, "\n"))
+	local lines = vim.api.nvim_buf_get_lines(0, selection.start_line - 1, selection.end_line, false)
+	vim.fn.setreg("+", selection.ref .. "\n" .. table.concat(lines, "\n"))
 	print("Yanked selection with code")
 end, { desc = "yank file path, lines, and code (full lines)" })
 

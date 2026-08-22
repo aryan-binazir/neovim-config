@@ -25,10 +25,6 @@ local function write_current_buffer()
 	return false
 end
 
-local function llm_location_label(reference)
-	return reference:gsub("%c", " ")
-end
-
 local function cf_snippet(bufnr, start_line, end_line)
 	local lines = vim.api.nvim_buf_get_lines(bufnr, start_line - 1, end_line, false)
 	local numbered = {}
@@ -157,7 +153,7 @@ function M.setup(config)
 			return
 		end
 
-		llm_jobs.run(llm_location_label(file .. ":" .. line), snippet, message, bufnr)
+		llm_jobs.run(((file .. ":" .. line):gsub("%c", " ")), snippet, message, bufnr)
 	end, { desc = "run scoped fix" })
 
 	vim.keymap.set("v", "<leader>cf", function()
@@ -174,7 +170,7 @@ function M.setup(config)
 			if message == "" then
 				return
 			end
-			llm_jobs.run(llm_location_label(selection.ref), snippet, message, bufnr)
+			llm_jobs.run((selection.ref:gsub("%c", " ")), snippet, message, bufnr)
 		end)
 	end, { desc = "run scoped fix with selection" })
 end

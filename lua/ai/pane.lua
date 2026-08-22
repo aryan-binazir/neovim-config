@@ -15,7 +15,7 @@ local function pane_alive()
 end
 
 local function set_pane_option(target, option, value)
-	vim.fn.system({ "tmux", "set-option", "-p", "-t", target, option, value })
+	return vim.fn.system({ "tmux", "set-option", "-p", "-t", target, option, value })
 end
 
 local function close_pane()
@@ -86,7 +86,10 @@ local function open_split(name, cmd)
 		vim.notify("Failed to create tmux split: " .. created_pane_id, vim.log.levels.ERROR)
 		return false
 	end
-	set_pane_option(created_pane_id, ai_pane_marker, name)
+	out = set_pane_option(created_pane_id, ai_pane_marker, name)
+	if vim.v.shell_error ~= 0 then
+		vim.notify("AI pane opened but could not be marked for recovery: " .. vim.trim(out), vim.log.levels.WARN)
+	end
 	vim.fn.system({ "tmux", "select-pane", "-t", created_pane_id, "-T", name })
 	pane_id = created_pane_id
 	pane_tool = name
@@ -196,7 +199,11 @@ function M.send(text, focus)
 	if not pane_id then
 		return
 	end
-	vim.fn.system({ "tmux", "send-keys", "-t", pane_id, "-l", text })
+	local out = vim.fn.system({ "tmux", "send-keys", "-t", pane_id, "-l", text })
+	if vim.v.shell_error ~= 0 then
+		vim.notify("Failed to send to AI pane: " .. vim.trim(out), vim.log.levels.ERROR)
+		return
+	end
 	if focus then
 		vim.fn.system({ "tmux", "select-pane", "-t", pane_id })
 	end
