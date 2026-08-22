@@ -119,9 +119,62 @@ end
 
 function M.ensure_or_open(name, cmd)
 	if ensure_pane() then
-		return true
+		return true, false
 	end
-	return open_split(name, cmd)
+	local ok = open_split(name, cmd)
+	return ok, ok
+end
+
+function M.wait_ready(timeout_ms, callback)
+	local target = vim.g.ai_pane_id
+	if not target then
+		callback(false)
+		return
+	end
+
+	local shells = { sh = true, bash = true, zsh = true, fish = true, dash = true }
+	local timer = vim.uv.new_timer()
+	local started = vim.uv.hrtime()
+	local finished = false
+
+	local function finish(ready)
+		if finished then
+			return
+		end
+		finished = true
+		timer:stop()
+		timer:close()
+		callback(ready)
+	end
+
+	timer:start(
+		0,
+		250,
+		vim.schedule_wrap(function()
+			local command = vim.trim(vim.fn.system({
+				"tmux",
+				"display-message",
+				"-p",
+				"-t",
+				target,
+				"#{pane_current_command}",
+			}))
+			if command ~= "" and not shells[command] then
+				timer:stop()
+				timer:start(
+					1000,
+					0,
+					vim.schedule_wrap(function()
+						finish(true)
+					end)
+				)
+				return
+			end
+			if (vim.uv.hrtime() - started) / 1000000 >= timeout_ms then
+				finish(false)
+			end
+		end)
+	)
 end
 
 function M.send(text, focus)
@@ -140,8 +193,9 @@ function M.send_block(text, focus)
 	if not target then
 		return
 	end
-	vim.fn.system({ "tmux", "load-buffer", "-b", "nvim_ai", "-" }, text)
-	vim.fn.system("tmux paste-buffer -p -d -b nvim_ai -t " .. target)
+	local buffer_name = "nvim_ai_" .. vim.fn.getpid()
+	vim.fn.system({ "tmux", "load-buffer", "-b", buffer_name, "-" }, text)
+	vim.fn.system("tmux paste-buffer -p -d -b " .. buffer_name .. " -t " .. target)
 	if focus then
 		vim.fn.system("tmux select-pane -t " .. target)
 	end

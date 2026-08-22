@@ -20,7 +20,9 @@ local tools = require("ai.config").tools
 local function write_current_buffer()
 	if vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "" and vim.bo.modified then
 		vim.cmd("silent update")
+		return true
 	end
+	return false
 end
 
 local function llm_location_label(file, range)
@@ -53,12 +55,25 @@ function M.setup(config)
 	end
 
 	local function send_block(text)
-		if pane.ensure_or_open(config.tool, tools[config.tool].cmd) then
+		local ok, created = pane.ensure_or_open(config.tool, tools[config.tool].cmd)
+		if not ok then
+			return
+		end
+		if created then
+			pane.wait_ready(15000, function(ready)
+				if ready then
+					pane.send_block(text .. "\n", true)
+				else
+					vim.notify("AI pane did not become ready; text not sent", vim.log.levels.WARN)
+				end
+			end)
+		else
 			pane.send_block(text .. "\n", true)
 		end
 	end
 
 	vim.keymap.set("n", "<leader>cx", function()
+		write_current_buffer()
 		local file = current_file_or_notify()
 		if not file then
 			return
@@ -67,6 +82,7 @@ function M.setup(config)
 	end, { desc = "send current line" })
 
 	vim.keymap.set("v", "<leader>cx", function()
+		write_current_buffer()
 		send_reference(yank.yank_selection(false, true))
 	end, { desc = "send selection" })
 
@@ -83,8 +99,25 @@ function M.setup(config)
 	end, { desc = "send file path" })
 
 	vim.keymap.set("n", "<leader>ce", function()
-		write_current_buffer()
-		local lines = context.diagnostic_lines(0)
+		local bufnr = vim.api.nvim_get_current_buf()
+		local changed = false
+		local autocmd = vim.api.nvim_create_autocmd("DiagnosticChanged", {
+			buffer = bufnr,
+			once = true,
+			callback = function()
+				changed = true
+			end,
+		})
+		local wrote = write_current_buffer()
+		if wrote then
+			vim.wait(1000, function()
+				return changed
+			end, 50)
+		end
+		if not changed then
+			vim.api.nvim_del_autocmd(autocmd)
+		end
+		local lines = context.diagnostic_lines(bufnr)
 		if #lines == 0 then
 			vim.notify("No diagnostics in buffer")
 			return

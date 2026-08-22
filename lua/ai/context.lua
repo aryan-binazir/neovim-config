@@ -12,7 +12,7 @@ local function absolute_path(path)
 end
 
 local function single_line(message)
-	return tostring(message):gsub("[\r\n]+", " ")
+	return (tostring(message):gsub("[\r\n]+", " "))
 end
 
 function M.diagnostic_lines(bufnr)

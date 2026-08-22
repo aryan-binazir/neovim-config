@@ -8,13 +8,26 @@ return {
 		{
 			"<leader>gm",
 			function()
-				local base = "main"
-				for _, candidate in ipairs({ "origin/main", "origin/master" }) do
-					vim.fn.system({ "git", "rev-parse", "--verify", "-q", candidate })
-					if vim.v.shell_error == 0 then
-						base = candidate
-						break
+				local base = vim.trim(vim.fn.system({
+					"git",
+					"symbolic-ref",
+					"-q",
+					"--short",
+					"refs/remotes/origin/HEAD",
+				}))
+				if vim.v.shell_error ~= 0 or base == "" then
+					base = nil
+					for _, candidate in ipairs({ "origin/main", "origin/master", "main", "master" }) do
+						vim.fn.system({ "git", "rev-parse", "--verify", "-q", candidate })
+						if vim.v.shell_error == 0 then
+							base = candidate
+							break
+						end
 					end
+				end
+				if not base then
+					vim.notify("No base branch found (origin/HEAD, main, master)", vim.log.levels.ERROR)
+					return
 				end
 				vim.cmd("DiffviewOpen " .. base .. "...HEAD")
 			end,
