@@ -2,6 +2,7 @@ local yank = require("yank")
 local pane = require("ai.pane")
 local llm_jobs = require("ai.jobs")
 local ui = require("ai.ui")
+local context = require("ai.context")
 
 local M = {}
 
@@ -15,6 +16,12 @@ local function current_file_or_notify()
 end
 
 local tools = require("ai.config").tools
+
+local function write_current_buffer()
+	if vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "" and vim.bo.modified then
+		vim.cmd("silent update")
+	end
+end
 
 local function llm_location_label(file, range)
 	return (file .. ":" .. range):gsub("%c", " ")
@@ -39,11 +46,15 @@ end
 
 function M.setup(config)
 	local function send_reference(result)
-		if vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "" and vim.bo.modified then
-			vim.cmd("silent update")
-		end
+		write_current_buffer()
 		if pane.ensure_or_open(config.tool, tools[config.tool].cmd) then
 			pane.send(result .. " ", true)
+		end
+	end
+
+	local function send_block(text)
+		if pane.ensure_or_open(config.tool, tools[config.tool].cmd) then
+			pane.send_block(text .. "\n", true)
 		end
 	end
 
@@ -70,6 +81,26 @@ function M.setup(config)
 	vim.keymap.set("n", "<leader>cp", function()
 		send_reference(vim.fn.expand("%:p"))
 	end, { desc = "send file path" })
+
+	vim.keymap.set("n", "<leader>ce", function()
+		write_current_buffer()
+		local lines = context.diagnostic_lines(0)
+		if #lines == 0 then
+			vim.notify("No diagnostics in buffer")
+			return
+		end
+		local file = vim.fn.expand("%:p")
+		send_block("Diagnostics for " .. file .. ":\n" .. table.concat(lines, "\n"))
+	end, { desc = "send buffer diagnostics" })
+
+	vim.keymap.set("n", "<leader>cq", function()
+		local lines = context.quickfix_lines()
+		if #lines == 0 then
+			vim.notify("Quickfix list is empty")
+			return
+		end
+		send_block("Quickfix list:\n" .. table.concat(lines, "\n"))
+	end, { desc = "send quickfix list" })
 
 	vim.keymap.set("n", "<leader>cl", ui.open_list, { desc = "job list" })
 

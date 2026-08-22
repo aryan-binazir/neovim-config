@@ -135,4 +135,16 @@ function M.send(text, focus)
 	end
 end
 
+function M.send_block(text, focus)
+	local target = pane_target()
+	if not target then
+		return
+	end
+	vim.fn.system({ "tmux", "load-buffer", "-b", "nvim_ai", "-" }, text)
+	vim.fn.system("tmux paste-buffer -p -d -b nvim_ai -t " .. target)
+	if focus then
+		vim.fn.system("tmux select-pane -t " .. target)
+	end
+end
+
 return M

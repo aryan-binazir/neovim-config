@@ -96,6 +96,7 @@ return {
 		vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "search help" })
 		vim.keymap.set("n", "<leader>sw", require("telescope.builtin").grep_string, { desc = "search current word" })
 		vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "search diagnostics" })
+		vim.keymap.set("n", "<leader>sq", require("telescope.builtin").quickfix, { desc = "search quickfix" })
 		vim.keymap.set("n", "<C-f>", require("telescope.builtin").live_grep, { desc = "search by grep c-f" })
 		vim.keymap.set("n", "<C-p>", function()
 			require("telescope.builtin").find_files({

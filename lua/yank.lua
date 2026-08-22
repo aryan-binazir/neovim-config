@@ -112,6 +112,24 @@ vim.keymap.set("n", "<leader>yo", function()
 	yank_paths(paths, "Oil paths")
 end, { desc = "yank all file paths in oil directory" })
 
+vim.keymap.set("n", "<leader>yd", function()
+	local lines = require("ai.context").diagnostic_lines(0)
+	if #lines == 0 then
+		vim.notify("No diagnostics in buffer")
+		return
+	end
+	yank_paths(lines, "diagnostics")
+end, { desc = "yank buffer diagnostics" })
+
+vim.keymap.set("n", "<leader>yq", function()
+	local lines = require("ai.context").quickfix_lines()
+	if #lines == 0 then
+		vim.notify("Quickfix list is empty")
+		return
+	end
+	yank_paths(lines, "quickfix entries")
+end, { desc = "yank quickfix list" })
+
 vim.keymap.set("v", "<leader>ys", function()
 	M.yank_selection(false)
 end, { desc = "yank file path and line numbers (full lines)" })
