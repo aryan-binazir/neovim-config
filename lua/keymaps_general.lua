@@ -26,7 +26,7 @@ vim.keymap.set("n", "<leader>tt", toggle_diagnostics, { silent = true, desc = "t
 
 -- Other Keymaps
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { silent = true, desc = "toggle relative number" })
-vim.keymap.set("n", "<leader>rr", "<cmd>e!<CR>", { desc = "check external changes" })
+vim.keymap.set("n", "<leader>rr", "<cmd>checktime<CR>", { desc = "check external changes" })
 
 -- Location list specific mappings
 vim.api.nvim_create_autocmd("FileType", {

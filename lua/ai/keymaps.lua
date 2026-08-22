@@ -38,12 +38,11 @@ local function cf_current_line_snippet()
 end
 
 function M.setup(config)
-	local function default_split_cmd()
-		return tools[config.tool].cmd
-	end
-
 	local function send_reference(result)
-		if pane.ensure_or_open(default_split_cmd()) then
+		if vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "" and vim.bo.modified then
+			vim.cmd("silent update")
+		end
+		if pane.ensure_or_open(config.tool, tools[config.tool].cmd) then
 			pane.send(result .. " ", true)
 		end
 	end
@@ -61,11 +60,11 @@ function M.setup(config)
 	end, { desc = "send selection" })
 
 	vim.keymap.set("n", "<leader>cc", function()
-		pane.toggle(tools.claude.cmd)
+		pane.toggle("claude", tools.claude.cmd)
 	end, { desc = "claude code pane" })
 
 	vim.keymap.set("n", "<leader>cd", function()
-		pane.toggle(tools.codex.cmd)
+		pane.toggle("codex", tools.codex.cmd)
 	end, { desc = "codex pane" })
 
 	vim.keymap.set("n", "<leader>cp", function()

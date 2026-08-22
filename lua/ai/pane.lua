@@ -1,8 +1,9 @@
--- Tmux pane hosting an interactive AI tool. One pane at a time, tracked via
--- vim.g.ai_pane_id and a tmux pane option so it survives nvim restarts.
+-- Tmux pane hosting an interactive AI tool. One pane at a time, tracked by ID
+-- and tool name via vim globals and a tmux pane option so it survives restarts.
 local M = {}
 
 vim.g.ai_pane_id = nil
+vim.g.ai_pane_tool = nil
 local ai_pane_marker = "@nvim_ai_pane"
 
 local function pane_target()
@@ -39,6 +40,7 @@ local function close_pane()
 		vim.fn.system("tmux kill-pane -t " .. target)
 	end
 	vim.g.ai_pane_id = nil
+	vim.g.ai_pane_tool = nil
 	print("AI pane closed")
 end
 
@@ -50,8 +52,8 @@ local function find_marked_pane()
 	end
 	for _, line in ipairs(vim.split(vim.trim(out), "\n", { trimempty = true })) do
 		local parts = vim.split(line, "\t", { plain = true })
-		if parts[2] == "1" and parts[1] and parts[1] ~= "" then
-			return parts[1]
+		if parts[1] and parts[1] ~= "" and parts[2] and parts[2] ~= "" then
+			return parts[1], parts[2]
 		end
 	end
 	return nil
@@ -62,16 +64,17 @@ local function ensure_pane()
 		return true
 	end
 
-	local existing = find_marked_pane()
+	local existing, tool = find_marked_pane()
 	if existing then
 		vim.g.ai_pane_id = existing
+		vim.g.ai_pane_tool = tool
 		return true
 	end
 
 	return false
 end
 
-local function open_split(cmd)
+local function open_split(name, cmd)
 	if vim.fn.executable("tmux") ~= 1 then
 		print("tmux not available")
 		return false
@@ -94,24 +97,31 @@ local function open_split(cmd)
 		print("Failed to create tmux split")
 		return false
 	end
-	set_pane_option(pane_id, ai_pane_marker, "1")
+	set_pane_option(pane_id, ai_pane_marker, name)
+	vim.fn.system({ "tmux", "select-pane", "-t", pane_id, "-T", name })
 	vim.g.ai_pane_id = pane_id
+	vim.g.ai_pane_tool = name
 	return true
 end
 
-function M.toggle(cmd)
+function M.toggle(name, cmd)
 	if ensure_pane() then
+		if vim.g.ai_pane_tool ~= name then
+			close_pane()
+			open_split(name, cmd)
+			return
+		end
 		close_pane()
 		return
 	end
-	open_split(cmd)
+	open_split(name, cmd)
 end
 
-function M.ensure_or_open(cmd)
+function M.ensure_or_open(name, cmd)
 	if ensure_pane() then
 		return true
 	end
-	return open_split(cmd)
+	return open_split(name, cmd)
 end
 
 function M.send(text, focus)
