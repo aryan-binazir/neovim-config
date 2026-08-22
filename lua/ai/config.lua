@@ -1,35 +1,42 @@
 local M = {}
 
-local claude_cmd = "claude --permission-mode auto"
-local codex_cmd =
-	"codex --sandbox workspace-write --ask-for-approval on-request -c approvals_reviewer=auto_review -c sandbox_workspace_write.network_access=true"
+local claude_argv = { "claude", "--permission-mode", "auto" }
+local codex_argv = {
+	"codex",
+	"--sandbox",
+	"workspace-write",
+	"--ask-for-approval",
+	"on-request",
+	"-c",
+	"approvals_reviewer=auto_review",
+	"-c",
+	"sandbox_workspace_write.network_access=true",
+}
 
--- Per tool: `cmd` is the interactive command the tmux pane runs; `exec`
--- builds the argv for a one-shot background job from the same flags.
+-- Per tool, `argv` is the interactive command; `cmd` is its shell-escaped pane form,
+-- and `exec` builds the argv for a one-shot background job.
 M.tools = {
 	claude = {
-		cmd = claude_cmd,
+		argv = claude_argv,
 		exec = function(_, prompt)
-			local argv = vim.split(claude_cmd, " ", { plain = true, trimempty = true })
-			table.insert(argv, 2, "-p")
-			table.insert(argv, prompt)
+			local argv = vim.deepcopy(claude_argv)
+			vim.list_extend(argv, { "-p", prompt })
 			return argv
 		end,
 	},
 	codex = {
-		cmd = codex_cmd,
+		argv = codex_argv,
 		exec = function(root, prompt)
-			return {
-				"sh",
-				"-c",
-				"exec " .. codex_cmd .. ' exec --cd "$1" --color never --skip-git-repo-check "$2" </dev/null',
-				"codex-cf",
-				root,
-				prompt,
-			}
+			local argv = vim.deepcopy(codex_argv)
+			vim.list_extend(argv, { "exec", "--cd", root, "--color", "never", "--skip-git-repo-check", prompt })
+			return argv
 		end,
 	},
 }
+
+for _, tool in pairs(M.tools) do
+	tool.cmd = table.concat(vim.tbl_map(vim.fn.shellescape, tool.argv), " ")
+end
 
 function M.resolve(opts)
 	if opts == nil then

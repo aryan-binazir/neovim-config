@@ -237,7 +237,7 @@ function M.open_list()
 				if state ~= owner then
 					return
 				end
-				if not state or not vim.api.nvim_buf_is_valid(buf) then
+				if not vim.api.nvim_buf_is_valid(buf) then
 					close()
 					return
 				end
