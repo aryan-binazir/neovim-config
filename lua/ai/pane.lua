@@ -1,3 +1,7 @@
+if vim.env.HERDR_ENV == "1" then
+	return require("ai.pane_herdr")
+end
+
 -- Tmux pane hosting an interactive AI tool. The marker stores the tool name
 -- so the pane can be recovered after nvim restarts.
 local M = {}
