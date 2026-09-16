@@ -63,6 +63,7 @@ return {
 			local servers = {
 				"lua_ls",
 				"gopls",
+				"rust_analyzer",
 				"pyright",
 				"jsonls",
 				"buf_ls",
