@@ -15,6 +15,7 @@ return {
 				lua = { "stylua" },
 				python = { "black" },
 				go = { "gofmt" },
+				rust = { "rustfmt" },
 				javascript = { "biome" },
 				typescript = { "biome" },
 				javascriptreact = { "biome" },

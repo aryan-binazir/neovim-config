@@ -19,6 +19,7 @@ return {
 				require("snippets.javascript")
 				require("snippets.go")
 				require("snippets.python")
+				require("snippets.rust")
 			end,
 		},
 	},

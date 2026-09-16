@@ -16,7 +16,8 @@ return {
 			install_dir = install_dir,
 		})
 
-		local parsers = { "go", "lua", "python", "tsx", "javascript", "typescript", "bash", "pug", "html" }
+		local parsers =
+			{ "go", "lua", "python", "tsx", "javascript", "typescript", "bash", "pug", "html", "rust", "toml" }
 		local configured_parsers = {}
 		for _, parser in ipairs(parsers) do
 			configured_parsers[parser] = true

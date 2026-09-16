@@ -63,7 +63,6 @@ return {
 			local servers = {
 				"lua_ls",
 				"gopls",
-				"rust_analyzer",
 				"pyright",
 				"jsonls",
 				"buf_ls",
@@ -93,6 +92,17 @@ return {
 				ensure_installed = servers,
 				automatic_enable = servers,
 			})
+
+			-- rust-analyzer comes from rustup (`rustup component add rust-analyzer`) rather than
+			-- Mason so it stays version-matched with the compiler.
+			vim.lsp.config("rust_analyzer", {
+				settings = {
+					["rust-analyzer"] = {
+						check = { command = "clippy" },
+					},
+				},
+			})
+			vim.lsp.enable("rust_analyzer")
 		end,
 	},
 }
