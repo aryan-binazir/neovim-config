@@ -97,8 +97,12 @@ function M.setup(config)
 		pane.toggle("codex", tools.codex.cmd)
 	end, { desc = "codex pane" })
 
+	vim.keymap.set("n", "<leader>co", function()
+		pane.toggle("opencode", tools.opencode.cmd)
+	end, { desc = "opencode pane" })
+
 	vim.keymap.set("n", "<leader>pi", function()
-		pane.toggle("pi", "pi")
+		pane.toggle("pi", tools.pi.cmd)
 	end, { desc = "pi pane" })
 
 	vim.keymap.set("n", "<leader>cp", function()

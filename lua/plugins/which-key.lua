@@ -131,6 +131,7 @@ return {
 			{ "<leader>ca", desc = "code action", icon = icons.action },
 			{ "<leader>cc", desc = "open claude code", icon = icons.ai },
 			{ "<leader>cd", desc = "open codex", icon = icons.terminal },
+			{ "<leader>co", desc = "open opencode", icon = icons.terminal },
 			{ "<leader>ce", desc = "send diagnostics", icon = icons.send },
 			{ "<leader>cf", desc = "run llm fix", icon = icons.fix, mode = { "n", "v" } },
 			{ "<leader>cl", desc = "llm jobs", icon = icons.jobs },

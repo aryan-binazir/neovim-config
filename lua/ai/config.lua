@@ -13,6 +13,9 @@ local codex_argv = {
 	"sandbox_workspace_write.network_access=true",
 }
 
+local opencode_argv = { "opencode" }
+local pi_argv = { "pi" }
+
 -- Per tool, `argv` is the interactive command; `cmd` is its shell-escaped pane form,
 -- and `exec` builds the argv for a one-shot background job.
 M.tools = {
@@ -29,6 +32,22 @@ M.tools = {
 		exec = function(root, prompt)
 			local argv = vim.deepcopy(codex_argv)
 			vim.list_extend(argv, { "exec", "--cd", root, "--color", "never", "--skip-git-repo-check", prompt })
+			return argv
+		end,
+	},
+	opencode = {
+		argv = opencode_argv,
+		exec = function(_, prompt)
+			local argv = vim.deepcopy(opencode_argv)
+			vim.list_extend(argv, { "run", prompt })
+			return argv
+		end,
+	},
+	pi = {
+		argv = pi_argv,
+		exec = function(_, prompt)
+			local argv = vim.deepcopy(pi_argv)
+			vim.list_extend(argv, { "--print", prompt })
 			return argv
 		end,
 	},
@@ -50,7 +69,15 @@ function M.resolve(opts)
 	}
 
 	if not M.tools[config.tool] then
-		error("invalid value for config.tool: " .. tostring(config.tool) .. ' (expected "codex" or "claude")')
+		local names = vim.tbl_keys(M.tools)
+		table.sort(names)
+		error(
+			"invalid value for config.tool: "
+				.. tostring(config.tool)
+				.. ' (expected one of: "'
+				.. table.concat(names, '", "')
+				.. '")'
+		)
 	end
 	if
 		type(config.timeout_ms) ~= "number"
