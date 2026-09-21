@@ -28,6 +28,8 @@ vim.o.updatetime = 250
 vim.o.timeoutlen = 300
 vim.o.completeopt = "menuone,noselect"
 vim.o.termguicolors = true
+-- Default border for all floating windows (diagnostics, hover, signature help, etc.)
+vim.o.winborder = "rounded"
 
 -- `nvim /some/dir` opens the directory buffer but leaves cwd at the shell's
 -- location, so pickers search the wrong tree. Follow the argument instead.
