@@ -3,6 +3,8 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.g["diagnostics_active"] = true
+-- Show diagnostics inline by default; <leader>tt toggles all diagnostic display.
+vim.diagnostic.config({ virtual_text = true })
 
 -- General options
 vim.o.hlsearch = false
