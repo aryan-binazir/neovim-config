@@ -4,14 +4,11 @@ AI editing sends source context to an interactive tool or requests a scoped edit
 
 ## Language
 
-**Reference**: A file path, optionally followed by a line or line range.
+**Reference**: A source file path, optionally followed by a line or line range.
+_Avoid_: Source snippet
 
-**Selection**: The source lines selected in the editor.
+**Scoped fix**: A one-shot editing request with a Reference, a Source snippet and the user's message.
+_Avoid_: LLM exec
 
-**Scoped fix**: A one-shot editing request with a source location, a numbered snippet and the user's message.
-
-**Source snippet**: The source text supplied as context for a scoped fix.
-
-**Buffer diagnostics**: Errors, warnings and other diagnostic messages for the current file.
-
-**Quickfix list**: The editor's list of file locations and associated messages.
+**Source snippet**: Source text supplied as context for a Scoped fix.
+_Avoid_: Reference

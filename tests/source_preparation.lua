@@ -22,6 +22,12 @@ package.loaded["ai.pane"] = {
 	send_block = function(text)
 		table.insert(sent, text)
 	end,
+	deliver = function(_, _, text)
+		table.insert(sent, text)
+	end,
+	deliver_block = function(_, _, text)
+		table.insert(sent, text)
+	end,
 	toggle = function() end,
 }
 require("ai.jobs").setup({ tool = "codex", timeout_ms = 1000 })
@@ -50,6 +56,7 @@ local function format_on_save(buf)
 	})
 end
 local function test(name, fn)
+	vim.cmd("messages clear")
 	local ok, err = xpcall(fn, debug.traceback)
 	if not ok then
 		io.stderr:write("FAIL " .. name .. "\n" .. err .. "\n")
@@ -185,19 +192,22 @@ test("file reference saves without adding line numbers", function()
 	equal(vim.fn.readfile(path), { "formatted", "alpha", "beta", "gamma" })
 end)
 
-test("unnamed references and fixes never dispatch", function()
+test("unnamed references and fixes notify without dispatch", function()
 	vim.cmd.enew({ bang = true })
 	vim.api.nvim_buf_set_lines(0, 0, -1, false, { "alpha", "beta", "gamma" })
 	local count, executions = #sent, #executed
-	mapping("n", "<leader>cx")()
-	mapping("n", "<leader>cp")()
-	mapping("n", "<leader>cf")()
-	visual()
-	mapping("v", "<leader>cx")()
-	vim.api.nvim_feedkeys("", "x", false)
-	visual()
-	mapping("v", "<leader>cf")()
-	vim.api.nvim_feedkeys("", "x", false)
+	for _, lhs in ipairs({ "<leader>cx", "<leader>cp", "<leader>cf" }) do
+		vim.cmd("messages clear")
+		mapping("n", lhs)()
+		assert(vim.fn.execute("messages"):find("Current buffer has no file name", 1, true))
+	end
+	for _, lhs in ipairs({ "<leader>cx", "<leader>cf" }) do
+		visual()
+		vim.cmd("messages clear")
+		mapping("v", lhs)()
+		assert(vim.fn.execute("messages"):find("Current buffer has no file name", 1, true))
+		vim.api.nvim_feedkeys("", "x", false)
+	end
 	equal({ #sent, #executed }, { count, executions })
 end)
 
@@ -206,6 +216,7 @@ test("cancelled scoped fix does not save or dispatch", function()
 	format_on_save(buf)
 	local count = #executed
 	run_fix("n", "")
+	equal(vim.fn.getchar(1), 0)
 	equal(#executed, count)
 	equal(vim.fn.filereadable(path), 0)
 	equal(vim.api.nvim_buf_get_lines(buf, 0, -1, false), { "alpha", "beta", "gamma" })
@@ -215,8 +226,14 @@ test("readonly references and scoped fixes do not dispatch after failed save", f
 	local path, buf = source("readonly.lua")
 	vim.bo[buf].readonly = true
 	local count, executions = #sent, #executed
-	equal(pcall(mapping("n", "<leader>cx")), false)
+	local ok, err = pcall(mapping("n", "<leader>cx"))
+	equal(ok, false)
+	assert(tostring(err):find("Vim(update):E45", 1, true))
 	run_fix("n", "fix readonly")
+	equal(vim.fn.getchar(1), 0)
+	local messages = vim.fn.execute("messages")
+	assert(messages:find("LLM exec not started:", 1, true))
+	assert(messages:find("Vim(write):E45", 1, true))
 	equal({ #sent, #executed }, { count, executions })
 	equal(vim.fn.filereadable(path), 0)
 	vim.bo[buf].readonly = false
@@ -249,6 +266,7 @@ test("diagnostics settle after the last real DiagnosticChanged event", function(
 	local path, buf = source("diagnostics.lua")
 	local namespace = vim.api.nvim_create_namespace("source-preparation-diagnostics")
 	local before = #vim.api.nvim_get_autocmds({ event = "DiagnosticChanged", buffer = buf })
+	local last_event_at
 	vim.api.nvim_create_autocmd("BufWritePre", {
 		buffer = buf,
 		once = true,
@@ -260,6 +278,7 @@ test("diagnostics settle after the last real DiagnosticChanged event", function(
 				{ { lnum = 0, col = 0, message = "early", severity = vim.diagnostic.severity.ERROR } }
 			)
 			vim.defer_fn(function()
+				last_event_at = vim.uv.hrtime()
 				vim.diagnostic.set(namespace, buf, {
 					{ lnum = 2, col = 1, message = "last\nmessage", severity = vim.diagnostic.severity.WARN },
 					{ lnum = 0, col = 0, message = "first", severity = vim.diagnostic.severity.ERROR },
@@ -270,7 +289,9 @@ test("diagnostics settle after the last real DiagnosticChanged event", function(
 	local started = vim.uv.hrtime()
 	mapping("n", "<leader>ce")()
 	local elapsed = (vim.uv.hrtime() - started) / 1e6
-	assert(elapsed >= 400 and elapsed < 1200, "diagnostic debounce took " .. elapsed)
+	local quiet_elapsed = (vim.uv.hrtime() - assert(last_event_at)) / 1e6
+	assert(elapsed < 800, "diagnostic debounce took " .. elapsed)
+	assert(quiet_elapsed >= 280 and quiet_elapsed < 450, "diagnostic quiet period took " .. quiet_elapsed)
 	equal(
 		sent[#sent],
 		"Diagnostics for " .. path .. ":\n" .. path .. ":1:1: [E] first\n" .. path .. ":3:2: [W] last message\n"
@@ -285,8 +306,9 @@ test("diagnostic wait is capped even when no event arrives", function()
 	local started = vim.uv.hrtime()
 	mapping("n", "<leader>ce")()
 	local elapsed = (vim.uv.hrtime() - started) / 1e6
-	assert(elapsed >= 900 and elapsed < 1400, "diagnostic cap took " .. elapsed)
+	assert(elapsed >= 950 and elapsed < 1200, "diagnostic cap took " .. elapsed)
 	equal(#sent, count)
+	assert(vim.fn.execute("messages"):find("No diagnostics in buffer", 1, true))
 	equal(#vim.api.nvim_get_autocmds({ event = "DiagnosticChanged", buffer = buf }), before)
 end)
 
@@ -324,6 +346,7 @@ test("quickfix mapping retains formatting and empty-list cancellation", function
 	vim.fn.setqflist({})
 	mapping("n", "<leader>cq")()
 	equal(#sent, count)
+	assert(vim.fn.execute("messages"):find("Quickfix list is empty", 1, true))
 end)
 
 test("visual scoped fix saves the original buffer after a buffer switch", function()
@@ -367,6 +390,8 @@ test("wiped visual source never starts a scoped job", function()
 	vim.wait(200, function()
 		return false
 	end)
+	equal(vim.fn.getchar(1), 0)
+	assert(vim.fn.execute("messages"):find("LLM exec not started: Current buffer is no longer valid", 1, true))
 	equal(#executed, count)
 	equal(vim.fn.filereadable(path), 0)
 end)
@@ -381,6 +406,7 @@ test("cancelled visual input does not save or execute", function()
 	vim.wait(200, function()
 		return false
 	end)
+	equal(vim.fn.getchar(1), 0)
 	equal(#executed, count)
 	equal(vim.fn.filereadable(path), 0)
 end)
@@ -390,6 +416,8 @@ test("named nonfile scoped source is rejected after input", function()
 	vim.bo[buf].buftype = "nofile"
 	local count = #executed
 	run_fix("n", "fix scratch")
+	equal(vim.fn.getchar(1), 0)
+	assert(vim.fn.execute("messages"):find("LLM exec not started: Current buffer is not a normal file", 1, true))
 	equal(#executed, count)
 	equal(vim.fn.filereadable(path), 0)
 end)
@@ -420,7 +448,7 @@ test("continuous diagnostics cannot extend the one-second cap", function()
 	local elapsed = (vim.uv.hrtime() - started) / 1e6
 	timer:stop()
 	timer:close()
-	assert(elapsed >= 900 and elapsed < 1400, "continuous diagnostics took " .. elapsed)
+	assert(elapsed >= 950 and elapsed < 1200, "continuous diagnostics took " .. elapsed)
 	equal(sent[#sent], "Diagnostics for " .. path .. ":\n" .. path .. ":1:1: [H] busy\n")
 	equal(#vim.api.nvim_get_autocmds({ event = "DiagnosticChanged", buffer = buf }), 0)
 end)
@@ -429,7 +457,9 @@ test("readonly diagnostic save failure cleans its subscription", function()
 	local _, buf = source("readonly-diagnostics.lua")
 	vim.bo[buf].readonly = true
 	local count = #sent
-	equal(pcall(mapping("n", "<leader>ce")), false)
+	local ok, err = pcall(mapping("n", "<leader>ce"))
+	equal(ok, false)
+	assert(tostring(err):find("Vim(update):E45", 1, true))
 	equal(#sent, count)
 	equal(#vim.api.nvim_get_autocmds({ event = "DiagnosticChanged", buffer = buf }), 0)
 	vim.bo[buf].readonly = false
