@@ -75,9 +75,11 @@ for _, backend in ipairs({ "tmux", "herdr" }) do
 	equal(calls, { { "open", "opencode", tools.opencode.cmd }, { "wait", 15000 } })
 	equal(notices, { { "AI pane did not become ready; nothing sent", vim.log.levels.WARN } })
 
-	calls = {}
-	pane.toggle("claude")
-	equal(calls, { { "toggle", "claude", tools.claude.cmd } })
+	for _, name in ipairs({ "claude", "codex", "opencode", "pi" }) do
+		calls = {}
+		pane.toggle(name)
+		equal(calls, { { "toggle", name, tools[name].cmd } })
+	end
 	print("PASS " .. backend .. " delivery, failure, timeout and toggle")
 end
 
