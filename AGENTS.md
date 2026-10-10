@@ -8,3 +8,7 @@ Run the relevant suites through `tests/run.sh`:
 bash tests/run.sh source_preparation
 bash tests/run.sh pane_delivery
 ```
+
+# Languages
+
+Do not introduce programming languages other than Lua and Bash.
