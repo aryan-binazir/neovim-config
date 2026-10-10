@@ -9,9 +9,17 @@ return {
 			"saghen/blink.cmp",
 		},
 		config = function()
+			local idle_timers = {}
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 				callback = function(event)
+					local client_id = event.data.client_id
+					local timer = idle_timers[client_id]
+					idle_timers[client_id] = nil
+					if timer and not timer:is_closing() then
+						timer:stop()
+						timer:close()
+					end
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					local bufnr = event.buf
 
@@ -44,6 +52,36 @@ return {
 					vim.api.nvim_buf_create_user_command(bufnr, "Format", function(_)
 						vim.lsp.buf.format()
 					end, { desc = "format current buffer with lsp" })
+				end,
+			})
+
+			vim.api.nvim_create_autocmd("LspDetach", {
+				group = vim.api.nvim_create_augroup("lsp-idle", { clear = true }),
+				callback = function(event)
+					local client_id = event.data.client_id
+					vim.schedule(function()
+						local client = vim.lsp.get_client_by_id(client_id)
+						if
+							not client
+							or client:is_stopped()
+							or next(client.attached_buffers)
+							or idle_timers[client_id]
+						then
+							return
+						end
+						local timer
+						timer = vim.defer_fn(function()
+							if idle_timers[client_id] ~= timer then
+								return
+							end
+							idle_timers[client_id] = nil
+							client = vim.lsp.get_client_by_id(client_id)
+							if client and not next(client.attached_buffers) then
+								client:stop(1000)
+							end
+						end, 30000)
+						idle_timers[client_id] = timer
+					end)
 				end,
 			})
 
@@ -82,11 +120,20 @@ return {
 					},
 				},
 			})
-			if gopls_path ~= nil and gopls_path ~= "" then
-				vim.lsp.config("gopls", {
-					cmd = { gopls_path },
-				})
-			end
+			vim.lsp.config("gopls", {
+				cmd = gopls_path ~= nil and gopls_path ~= "" and { gopls_path } or nil,
+				settings = {
+					gopls = {
+						directoryFilters = { "-**/node_modules", "-**/_scratch" },
+					},
+				},
+			})
+			vim.lsp.config("ts_ls", {
+				init_options = {
+					disableAutomaticTypingAcquisition = true,
+					tsserver = { useSyntaxServer = "never" },
+				},
+			})
 
 			require("mason-lspconfig").setup({
 				-- format.lua pins biome and typescript-language-server; registry installs would race those versions.
@@ -101,6 +148,7 @@ return {
 			vim.lsp.config("rust_analyzer", {
 				settings = {
 					["rust-analyzer"] = {
+						files = { exclude = { "_scratch" } },
 						check = { command = "clippy" },
 					},
 				},
