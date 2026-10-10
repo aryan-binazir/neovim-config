@@ -89,7 +89,10 @@ return {
 			end
 
 			require("mason-lspconfig").setup({
-				ensure_installed = servers,
+				-- format.lua pins biome and typescript-language-server; registry installs would race those versions.
+				ensure_installed = vim.tbl_filter(function(server)
+					return server ~= "biome" and server ~= "ts_ls"
+				end, servers),
 				automatic_enable = servers,
 			})
 

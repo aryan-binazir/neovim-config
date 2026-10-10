@@ -3,7 +3,12 @@ return {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		dependencies = { "williamboman/mason.nvim" },
 		opts = {
-			ensure_installed = { "stylua", "biome", "black" },
+			ensure_installed = {
+				{ "stylua", version = "v2.6.0" },
+				{ "biome", version = "2.5.15" },
+				{ "black", version = "26.10.1" },
+				{ "typescript-language-server", version = "6.0.2" },
+			},
 		},
 	},
 	{
