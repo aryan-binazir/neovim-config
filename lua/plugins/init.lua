@@ -63,6 +63,7 @@ return {
 	},
 	{
 		"nvim-lualine/lualine.nvim",
+		event = "VeryLazy",
 		opts = {
 			options = {
 				icons_enabled = true,
@@ -70,12 +71,38 @@ return {
 				theme = "codedark",
 				component_separators = { left = "", right = "" },
 				section_separators = { left = "", right = "" },
+				refresh = {
+					refresh_time = 100,
+					statusline = 10000,
+					events = {
+						"WinEnter",
+						"BufEnter",
+						"BufWritePost",
+						"SessionLoadPost",
+						"FileChangedShellPost",
+						"VimResized",
+						"Filetype",
+						"CursorMoved",
+						"CursorMovedI",
+						"ModeChanged",
+						"DiagnosticChanged",
+						"User",
+					},
+				},
 			},
 			sections = {
 				lualine_a = { "mode" },
 				lualine_b = {
 					"branch",
-					"diff",
+					{
+						"diff",
+						source = function()
+							local counts = vim.b.gitsigns_status_dict
+							if counts then
+								return { added = counts.added, modified = counts.changed, removed = counts.removed }
+							end
+						end,
+					},
 					"diagnostics",
 					function()
 						local ok, ai = pcall(require, "ai")
@@ -93,6 +120,7 @@ return {
 	-- Indentation guides
 	{
 		"lukas-reineke/indent-blankline.nvim",
+		event = { "BufReadPost", "BufNewFile" },
 		main = "ibl",
 		opts = {},
 	},

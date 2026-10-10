@@ -1,11 +1,12 @@
 return {
+	{ "folke/lazydev.nvim", ft = "lua", opts = {} },
 	{
 		"neovim/nvim-lspconfig",
+		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			{ "williamboman/mason.nvim", config = true },
 			"williamboman/mason-lspconfig.nvim",
 			{ "j-hui/fidget.nvim", opts = {} },
-			{ "folke/lazydev.nvim", ft = "lua", opts = {} },
 			"saghen/blink.cmp",
 		},
 		config = function()
@@ -112,6 +113,7 @@ return {
 			vim.lsp.config("*", {
 				capabilities = capabilities,
 			})
+			vim.lsp.config("golangci_lint_ls", { before_init = function() end })
 			vim.lsp.config("lua_ls", {
 				settings = {
 					Lua = {
