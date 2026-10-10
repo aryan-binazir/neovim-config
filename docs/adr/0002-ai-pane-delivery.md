@@ -1,5 +1,5 @@
 # Pane owns ready-to-send delivery
 
-`ai.pane` owns opening or recovering a pane, waiting under the existing 15-second readiness policy, sending text and warning on timeout. Keymaps request reference or block delivery and retain buffer writes and text suffixes. A private tmux adapter holds the original implementation alongside the existing Herdr adapter, so shell polling and startup grace remain distinct from Herdr agent readiness.
+`ai.pane` owns opening or recovering a pane, waiting for readiness and dispatching text so callers cannot omit or reorder those steps. The tmux and Herdr adapters retain their readiness, recovery and transport policies because sharing those policies would change behavior. Moving tmux intact into a private adapter lets the existing pane module own the common delivery ordering without duplicating it in both adapters.
 
-Readiness still captures a target while transport uses the adapter's current pane state. This refactor preserves the baseline replacement, routing, focus and failure behavior rather than changing concurrency policy. Lifecycle methods belong to the adapters and are absent from the public pane interface; callers use `deliver`, `deliver_block` or `toggle`.
+A failed readiness result keeps the existing warning, whether caused by timeout or Herdr pane replacement. Tmux waits on a captured target and sends through current pane state, including replacement during startup grace; Herdr aborts the wait when its target changes. This refactor preserves those distinct replacement contracts and the existing 15-second policy.
