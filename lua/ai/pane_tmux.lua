@@ -1,5 +1,3 @@
--- Tmux pane hosting an interactive AI tool. The marker stores the tool name
--- so the pane can be recovered after nvim restarts.
 local M = {}
 
 local ai_pane_marker = "@nvim_ai_pane"
@@ -33,7 +31,6 @@ local function close_pane()
 	end
 end
 
--- Find a pane this config marked, so it survives nvim closing and reopening.
 local function find_marked_pane()
 	local out = vim.fn.system({ "tmux", "list-panes", "-F", "#{pane_id}\t#{" .. ai_pane_marker .. "}" })
 	if vim.v.shell_error ~= 0 then
