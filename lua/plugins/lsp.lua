@@ -10,19 +10,16 @@ return {
 		},
 		config = function()
 			local idle_timers = {}
-			local function cancel_idle_timer(client_id)
-				local timer = idle_timers[client_id]
-				idle_timers[client_id] = nil
-				if timer and not timer:is_closing() then
-					timer:stop()
-					timer:close()
-				end
-			end
-
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("lsp-attach", { clear = true }),
 				callback = function(event)
-					cancel_idle_timer(event.data.client_id)
+					local client_id = event.data.client_id
+					local timer = idle_timers[client_id]
+					idle_timers[client_id] = nil
+					if timer and not timer:is_closing() then
+						timer:stop()
+						timer:close()
+					end
 					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					local bufnr = event.buf
 
@@ -80,7 +77,7 @@ return {
 							idle_timers[client_id] = nil
 							client = vim.lsp.get_client_by_id(client_id)
 							if client and not next(client.attached_buffers) then
-								client:stop()
+								client:stop(1000)
 							end
 						end, 30000)
 						idle_timers[client_id] = timer
