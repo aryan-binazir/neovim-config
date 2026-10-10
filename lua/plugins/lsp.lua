@@ -89,7 +89,9 @@ return {
 			end
 
 			require("mason-lspconfig").setup({
-				ensure_installed = servers,
+				ensure_installed = vim.tbl_filter(function(server)
+					return server ~= "biome" and server ~= "ts_ls"
+				end, servers),
 				automatic_enable = servers,
 			})
 
