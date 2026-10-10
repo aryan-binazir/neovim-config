@@ -9,30 +9,12 @@ local M = {}
 local tools = require("ai.config").tools
 
 function M.setup(config)
-	local function with_pane(fn)
-		local ok = pane.ensure_or_open(config.tool, tools[config.tool].cmd)
-		if not ok then
-			return
-		end
-		pane.wait_ready(15000, function(ready)
-			if ready then
-				fn()
-			else
-				vim.notify("AI pane did not become ready; nothing sent", vim.log.levels.WARN)
-			end
-		end)
-	end
-
 	local function send_reference(result)
-		with_pane(function()
-			pane.send(result .. " ", true)
-		end)
+		pane.deliver(config.tool, tools[config.tool].cmd, result .. " ", true)
 	end
 
 	local function send_block(text)
-		with_pane(function()
-			pane.send_block(text .. "\n", true)
-		end)
+		pane.deliver_block(config.tool, tools[config.tool].cmd, text .. "\n", true)
 	end
 
 	vim.keymap.set("n", "<leader>cx", function()
