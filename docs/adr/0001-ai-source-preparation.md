@@ -1,0 +1,7 @@
+# Prepare AI source context in ai.context
+
+The existing context module owns reference validation and saving, source capture and diagnostic settling. Keymaps bind those operations, collect user input and dispatch the prepared text. Clipboard yanks keep using the shared diagnostic and quickfix formatting, and yank.selection keeps visual exit and highlighting.
+
+Reference preparation retains `silent update`, including the check after capture. Normal and visual line references save before reading the range; file references capture the path before saving. Scoped fixes capture the original buffer, location and snippet before input, then jobs validate and `silent write` that buffer after nonempty input. Format-on-save can therefore leave a scoped-fix snippet and location describing the pre-save source. This preserves main at `2cfb0405f41a21825756d34984b31e224c4c64b1`; correcting that timing belongs in a separate behavior change.
+
+Diagnostics subscribe before saving and retain the 300 ms quiet period, 1 second cap and 50 ms polling. The diagnostics header still reads the current file after the wait, while diagnostic lines use the captured buffer. Preparation removes the subscription on save or wait failure, then propagates the original error without dispatch. The jobs save remains a job-start precondition because combining its validation, command or error handling with reference saving would change behavior. Pane lifecycle, routing and prompts remain with their existing owners.
