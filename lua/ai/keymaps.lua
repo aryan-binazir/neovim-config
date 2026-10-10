@@ -6,15 +6,13 @@ local context = require("ai.context")
 
 local M = {}
 
-local tools = require("ai.config").tools
-
 function M.setup(config)
 	local function send_reference(result)
-		pane.deliver(config.tool, tools[config.tool].cmd, result .. " ", true)
+		pane.deliver(config.tool, result .. " ", true)
 	end
 
 	local function send_block(text)
-		pane.deliver_block(config.tool, tools[config.tool].cmd, text .. "\n", true)
+		pane.deliver_block(config.tool, text .. "\n", true)
 	end
 
 	vim.keymap.set("n", "<leader>cx", function()
@@ -32,19 +30,19 @@ function M.setup(config)
 	end, { desc = "send selection" })
 
 	vim.keymap.set("n", "<leader>cc", function()
-		pane.toggle("claude", tools.claude.cmd)
+		pane.toggle("claude")
 	end, { desc = "claude code pane" })
 
 	vim.keymap.set("n", "<leader>cd", function()
-		pane.toggle("codex", tools.codex.cmd)
+		pane.toggle("codex")
 	end, { desc = "codex pane" })
 
 	vim.keymap.set("n", "<leader>co", function()
-		pane.toggle("opencode", tools.opencode.cmd)
+		pane.toggle("opencode")
 	end, { desc = "opencode pane" })
 
 	vim.keymap.set("n", "<leader>pi", function()
-		pane.toggle("pi", tools.pi.cmd)
+		pane.toggle("pi")
 	end, { desc = "pi pane" })
 
 	vim.keymap.set("n", "<leader>cp", function()
