@@ -13,10 +13,10 @@ package.loaded["ai.pane"] = {
 	end,
 	send = record,
 	send_block = record,
-	deliver = function(_, _, text)
+	deliver = function(_, text)
 		record(text)
 	end,
-	deliver_block = function(_, _, text)
+	deliver_block = function(_, text)
 		record(text)
 	end,
 	toggle = function() end,

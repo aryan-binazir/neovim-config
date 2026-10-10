@@ -1,5 +1,6 @@
 local root = vim.fs.dirname(vim.fs.dirname(debug.getinfo(1, "S").source:sub(2)))
 vim.opt.runtimepath:prepend(root)
+local tools = require("ai.config").tools
 
 local function equal(actual, expected)
 	assert(vim.deep_equal(actual, expected), vim.inspect(actual) .. " ~= " .. vim.inspect(expected))
@@ -47,36 +48,38 @@ for _, backend in ipairs({ "tmux", "herdr" }) do
 	local pane = require("ai.pane")
 
 	local reference = "/tmp/literal $file:3 "
-	pane.deliver("synthetic", "synthetic-command", reference, true)
-	equal(calls, { { "open", "synthetic", "synthetic-command" }, { "wait", 15000 } })
+	pane.deliver("codex", reference, true)
+	equal(calls, { { "open", "codex", tools.codex.cmd }, { "wait", 15000 } })
 	assert(type(ready) == "function")
 	ready(true)
 	equal(calls[3], { "send", reference, true })
 	equal(notices, {})
 
 	calls, ready = {}, nil
-	pane.deliver_block("synthetic", "synthetic-command", "first\nsecond\n", false)
-	equal(calls, { { "open", "synthetic", "synthetic-command" }, { "wait", 15000 } })
+	pane.deliver_block("opencode", "first\nsecond\n", false)
+	equal(calls, { { "open", "opencode", tools.opencode.cmd }, { "wait", 15000 } })
 	ready(true)
 	equal(calls[3], { "block", "first\nsecond\n", false })
 
 	calls, ready = {}, nil
 	opens = false
-	pane.deliver("synthetic", "synthetic-command", "never", true)
-	equal(calls, { { "open", "synthetic", "synthetic-command" } })
+	pane.deliver("codex", "never", true)
+	equal(calls, { { "open", "codex", tools.codex.cmd } })
 	equal(ready, nil)
 	equal(notices, {})
 
 	calls, ready = {}, nil
 	opens = true
-	pane.deliver_block("synthetic", "synthetic-command", "never\n", true)
+	pane.deliver_block("opencode", "never\n", true)
 	ready(false)
-	equal(calls, { { "open", "synthetic", "synthetic-command" }, { "wait", 15000 } })
+	equal(calls, { { "open", "opencode", tools.opencode.cmd }, { "wait", 15000 } })
 	equal(notices, { { "AI pane did not become ready; nothing sent", vim.log.levels.WARN } })
 
-	calls = {}
-	pane.toggle("other", "other-command")
-	equal(calls, { { "toggle", "other", "other-command" } })
+	for _, name in ipairs({ "claude", "codex", "opencode", "pi" }) do
+		calls = {}
+		pane.toggle(name)
+		equal(calls, { { "toggle", name, tools[name].cmd } })
+	end
 	print("PASS " .. backend .. " delivery, failure, timeout and toggle")
 end
 
