@@ -1,6 +1,103 @@
 return {
 	"nvim-telescope/telescope.nvim",
 	version = false,
+	cmd = "Telescope",
+	keys = {
+		{ "<leader>u", "<cmd>Telescope undo<cr>", desc = "telescope undo" },
+		{
+			"<leader>?",
+			function()
+				require("telescope.builtin").oldfiles()
+			end,
+			desc = "find recently opened files",
+		},
+		{
+			"<leader><space>",
+			function()
+				require("telescope.builtin").buffers()
+			end,
+			desc = "find existing buffers",
+		},
+		{
+			"<leader>/",
+			function()
+				require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
+					winblend = 10,
+					previewer = false,
+				}))
+			end,
+			desc = "fuzzily search in current buffer",
+		},
+		{
+			"<leader>s/",
+			function()
+				require("telescope.builtin").live_grep({
+					grep_open_files = true,
+					prompt_title = "Live Grep in Open Files",
+				})
+			end,
+			desc = "search in open files",
+		},
+		{
+			"<leader>sr",
+			function()
+				require("telescope.builtin").resume()
+			end,
+			desc = "search resume",
+		},
+		{
+			"<leader>sh",
+			function()
+				require("telescope.builtin").help_tags()
+			end,
+			desc = "search help",
+		},
+		{
+			"<leader>sw",
+			function()
+				require("telescope.builtin").grep_string()
+			end,
+			desc = "search current word",
+		},
+		{
+			"<leader>sd",
+			function()
+				require("telescope.builtin").diagnostics()
+			end,
+			desc = "search diagnostics",
+		},
+		{
+			"<leader>sq",
+			function()
+				require("telescope.builtin").quickfix()
+			end,
+			desc = "search quickfix",
+		},
+		{
+			"<C-f>",
+			function()
+				require("telescope.builtin").live_grep()
+			end,
+			desc = "search by grep c-f",
+		},
+		{
+			"<C-p>",
+			function()
+				require("telescope.builtin").find_files({
+					hidden = true,
+					find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
+				})
+			end,
+			desc = "search files c-p",
+		},
+		{
+			"<leader>gs",
+			function()
+				require("telescope.builtin").git_status()
+			end,
+			desc = "git status",
+		},
+	},
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		{
@@ -75,35 +172,5 @@ return {
 
 		pcall(telescope.load_extension, "fzf")
 		pcall(telescope.load_extension, "ui-select")
-
-		-- Telescope keymaps
-		vim.keymap.set("n", "<leader>u", "<cmd>Telescope undo<cr>", { desc = "telescope undo" })
-		vim.keymap.set("n", "<leader>?", require("telescope.builtin").oldfiles, { desc = "find recently opened files" })
-		vim.keymap.set("n", "<leader><space>", require("telescope.builtin").buffers, { desc = "find existing buffers" })
-		vim.keymap.set("n", "<leader>/", function()
-			require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({
-				winblend = 10,
-				previewer = false,
-			}))
-		end, { desc = "fuzzily search in current buffer" })
-		vim.keymap.set("n", "<leader>s/", function()
-			require("telescope.builtin").live_grep({
-				grep_open_files = true,
-				prompt_title = "Live Grep in Open Files",
-			})
-		end, { desc = "search in open files" })
-		vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = "search resume" })
-		vim.keymap.set("n", "<leader>sh", require("telescope.builtin").help_tags, { desc = "search help" })
-		vim.keymap.set("n", "<leader>sw", require("telescope.builtin").grep_string, { desc = "search current word" })
-		vim.keymap.set("n", "<leader>sd", require("telescope.builtin").diagnostics, { desc = "search diagnostics" })
-		vim.keymap.set("n", "<leader>sq", require("telescope.builtin").quickfix, { desc = "search quickfix" })
-		vim.keymap.set("n", "<C-f>", require("telescope.builtin").live_grep, { desc = "search by grep c-f" })
-		vim.keymap.set("n", "<C-p>", function()
-			require("telescope.builtin").find_files({
-				hidden = true,
-				find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
-			})
-		end, { desc = "search files c-p" })
-		vim.keymap.set("n", "<leader>gs", require("telescope.builtin").git_status, { desc = "git status" })
 	end,
 }

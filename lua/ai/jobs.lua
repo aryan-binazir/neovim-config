@@ -74,7 +74,10 @@ function M.statusline_component()
 end
 
 local function update_activity()
-	vim.cmd("redrawstatus")
+	local lualine = package.loaded.lualine
+	if lualine then
+		pcall(lualine.refresh, { place = { "statusline" }, force = true })
+	end
 	if running_job_count() == 0 then
 		if activity_timer then
 			activity_timer:stop()
