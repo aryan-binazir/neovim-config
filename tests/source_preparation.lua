@@ -1,11 +1,13 @@
 vim.opt.rtp:prepend(vim.fn.getcwd())
 vim.g.mapleader = " "
-local tmp, sent, executions = assert(vim.env.AI_TEST_TMP), {}, {}
+local tmp = assert(vim.uv.fs_realpath(assert(vim.env.AI_TEST_TMP)))
+local sent, blocks, pane_opens = {}, {}, 0
 local function record(text)
 	table.insert(sent, text)
 end
 package.loaded["ai.pane"] = {
 	ensure_or_open = function()
+		pane_opens = pane_opens + 1
 		return true
 	end,
 	wait_ready = function(_, done)
@@ -16,20 +18,17 @@ package.loaded["ai.pane"] = {
 	deliver = function(_, text)
 		record(text)
 	end,
-	deliver_block = function(_, text)
+	deliver_block = function(tool, text, focus)
+		table.insert(blocks, { tool = tool, text = text, focus = focus })
 		record(text)
 	end,
-	toggle = function() end,
+	toggle = function()
+		pane_opens = pane_opens + 1
+	end,
 }
-vim.system = function(cmd, opts, done)
-	table.insert(executions, { cmd = cmd, opts = opts })
-	vim.schedule(function()
-		done({ code = 0, signal = 0 })
-	end)
-	return { kill = function() end }
+vim.system = function()
+	error("source preparation must not launch subprocesses")
 end
-local jobs = require("ai.jobs")
-jobs.setup({ tool = "codex", timeout_ms = 1000 })
 require("ai.keymaps").setup({ tool = "codex" })
 local function equal(actual, expected)
 	assert(vim.deep_equal(actual, expected), "expected " .. vim.inspect(expected) .. ", got " .. vim.inspect(actual))
@@ -105,7 +104,7 @@ test("scoped fixes capture before input and save the original buffer", function(
 		if mode == "v" then
 			visual()
 		end
-		local before, prompted = #executions, false
+		local before, prompted = #blocks, false
 		vim.fn.input = function()
 			prompted = true
 			equal(vim.fn.filereadable(path), 0)
@@ -119,29 +118,35 @@ test("scoped fixes capture before input and save the original buffer", function(
 			vim.api.nvim_feedkeys("", "x", false)
 		end
 		assert(vim.wait(500, function()
-			return #executions == before + 1
+			return #blocks == before + 1
 		end))
-		local job = jobs.list()[#jobs.list()]
-		equal(job.location, path .. (mode == "v" and ":2-3" or ":2"))
-		assert(job.prompt:find(mode == "v" and "2: beta\n3: gamma" or "1: alpha\n2: beta\n3: gamma", 1, true))
-		assert(job.prompt:find("Request: fix it", 1, true))
+		local delivery = blocks[#blocks]
+		equal(delivery.tool, "codex")
+		equal(delivery.focus, true)
+		equal(delivery.text, table.concat({
+			"Location: " .. path .. (mode == "v" and ":2-3" or ":2"),
+			"",
+			"```",
+			mode == "v" and "2: beta\n3: gamma" or "1: alpha\n2: beta\n3: gamma",
+			"```",
+			"",
+			"fix it\n",
+		}, "\n"))
 		equal(vim.fn.readfile(path), { "formatted", "alpha", "changed during input", "gamma" })
 		equal(vim.fn.filereadable(other_path), 0)
 		equal(vim.api.nvim_get_current_buf(), other)
-		equal(executions[#executions].opts.cwd, tmp)
-		assert(vim.wait(500, function()
-			return job.status == "done"
-		end))
+		equal(#blocks, before + 1)
 	end
 end)
 
-test("cancelled fixes do not save or execute", function()
+test("cancelled fixes do not save, send, or open a pane", function()
 	for _, mode in ipairs({ "n", "v" }) do
 		local path = source("cancel-" .. mode .. ".lua")
 		if mode == "v" then
 			visual()
 		end
-		local before, prompted = #executions, false
+		local before, prompted = #blocks, false
+		local sent_before, opens_before = #sent, pane_opens
 		vim.fn.input = function()
 			prompted = true
 			return ""
@@ -151,8 +156,113 @@ test("cancelled fixes do not save or execute", function()
 		assert(vim.wait(500, function()
 			return prompted
 		end))
-		equal(#executions, before)
+		equal(#blocks, before)
+		equal(#sent, sent_before)
+		equal(pane_opens, opens_before)
 		equal(vim.fn.filereadable(path), 0)
+	end
+end)
+
+test("scoped fixes route through every configured interactive tool without a timeout", function()
+	local config = require("ai.config")
+	for tool in pairs(config.tools) do
+		local resolved = config.resolve({ tool = tool })
+		equal(resolved.tool, tool)
+		require("ai.keymaps").setup(resolved)
+		local path = source("tool-" .. tool .. ".lua")
+		vim.fn.input = function()
+			return "continue working"
+		end
+		local before = #blocks
+		mapping("n", "<leader>cf")()
+		equal(#blocks, before + 1)
+		equal(blocks[#blocks].tool, tool)
+		equal(blocks[#blocks].focus, true)
+		assert(blocks[#blocks].text:find("Location: " .. path .. ":1", 1, true))
+		assert(blocks[#blocks].text:find("\n\ncontinue working\n", 1, true))
+		equal(config.resolve({ tool = tool, timeout_ms = "obsolete" }), resolved)
+	end
+	for _, opts in ipairs({ { tool = "unknown" }, { tool = false } }) do
+		equal(pcall(config.resolve, opts), false)
+	end
+	require("ai.keymaps").setup({ tool = "codex" })
+end)
+
+test("Pi is the default interactive agent", function()
+	local config = require("ai.config")
+	equal(config.resolve(), { tool = "pi" })
+	equal(config.resolve({}), { tool = "pi" })
+	require("ai").setup()
+	local path = source("default-pi.lua")
+	vim.fn.input = function()
+		return "fix with Pi"
+	end
+	local before = #blocks
+	mapping("n", "<leader>cf")()
+	equal(#blocks, before + 1)
+	equal(blocks[#blocks].tool, "pi")
+	assert(blocks[#blocks].text:find("Location: " .. path .. ":1", 1, true))
+	require("ai.keymaps").setup({ tool = "codex" })
+end)
+
+test("job modules and job list mapping are absent", function()
+	equal(vim.fn.maparg("<leader>cl", "n"), "")
+	for _, name in ipairs({ "ai.jobs", "ai.ui" }) do
+		equal(package.loaded[name], nil)
+	end
+end)
+
+test("invalid original buffers after input never deliver", function()
+	for _, kind in ipairs({ "unnamed", "nonfile", "readonly", "deleted", "save-error" }) do
+		local path, buf = source("invalid-" .. kind .. ".lua")
+		local other_path, other = source("invalid-other-" .. kind .. ".lua")
+		vim.api.nvim_set_current_buf(buf)
+		local before, opens_before = #sent, pane_opens
+		vim.fn.input = function()
+			if kind == "unnamed" then
+				vim.api.nvim_buf_set_name(buf, "")
+			elseif kind == "nonfile" then
+				vim.bo[buf].buftype = "nofile"
+			elseif kind == "readonly" then
+				vim.bo[buf].readonly = true
+			elseif kind == "deleted" then
+				vim.api.nvim_buf_delete(buf, { force = true })
+			else
+				vim.api.nvim_create_autocmd("BufWritePre", {
+					buffer = buf,
+					once = true,
+					callback = function()
+						error("test save failure")
+					end,
+				})
+			end
+			vim.api.nvim_set_current_buf(other)
+			return "fix it"
+		end
+		mapping("n", "<leader>cf")()
+		equal(#sent, before)
+		equal(pane_opens, opens_before)
+		equal(vim.fn.filereadable(path), 0)
+		equal(vim.fn.filereadable(other_path), 0)
+		equal(vim.api.nvim_get_current_buf(), other)
+	end
+end)
+
+test("scoped_prompt returns nil for invalid sources", function()
+	local context = require("ai.context")
+	for _, kind in ipairs({ "unnamed", "nonfile", "readonly", "deleted" }) do
+		local _, buf = source("prompt-invalid-" .. kind .. ".lua")
+		local captured = assert(context.scoped_fix("line"))
+		if kind == "unnamed" then
+			vim.api.nvim_buf_set_name(buf, "")
+		elseif kind == "nonfile" then
+			vim.bo[buf].buftype = "nofile"
+		elseif kind == "readonly" then
+			vim.bo[buf].readonly = true
+		else
+			vim.api.nvim_buf_delete(buf, { force = true })
+		end
+		equal(context.scoped_prompt(captured, "fix it"), nil)
 	end
 end)
 

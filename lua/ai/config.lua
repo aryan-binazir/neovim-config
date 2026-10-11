@@ -16,40 +16,18 @@ local codex_argv = {
 local opencode_argv = { "opencode" }
 local pi_argv = { "pi" }
 
--- Per tool, `argv` is the interactive command; `cmd` is its shell-escaped pane form,
--- and `exec` builds the argv for a one-shot background job.
 M.tools = {
 	claude = {
 		argv = claude_argv,
-		exec = function(_, prompt)
-			local argv = vim.deepcopy(claude_argv)
-			vim.list_extend(argv, { "-p", prompt })
-			return argv
-		end,
 	},
 	codex = {
 		argv = codex_argv,
-		exec = function(root, prompt)
-			local argv = vim.deepcopy(codex_argv)
-			vim.list_extend(argv, { "exec", "--cd", root, "--color", "never", "--skip-git-repo-check", prompt })
-			return argv
-		end,
 	},
 	opencode = {
 		argv = opencode_argv,
-		exec = function(_, prompt)
-			local argv = vim.deepcopy(opencode_argv)
-			vim.list_extend(argv, { "run", prompt })
-			return argv
-		end,
 	},
 	pi = {
 		argv = pi_argv,
-		exec = function(_, prompt)
-			local argv = vim.deepcopy(pi_argv)
-			vim.list_extend(argv, { "--print", prompt })
-			return argv
-		end,
 	},
 }
 
@@ -63,9 +41,12 @@ function M.resolve(opts)
 	elseif type(opts) ~= "table" then
 		error("ai.setup opts must be a table")
 	end
+	local tool = opts.tool
+	if tool == nil then
+		tool = "pi"
+	end
 	local config = {
-		tool = opts.tool,
-		timeout_ms = opts.timeout_ms,
+		tool = tool,
 	}
 
 	if not M.tools[config.tool] then
@@ -79,16 +60,6 @@ function M.resolve(opts)
 				.. '")'
 		)
 	end
-	if
-		type(config.timeout_ms) ~= "number"
-		or config.timeout_ms ~= config.timeout_ms
-		or config.timeout_ms <= 0
-		or config.timeout_ms == math.huge
-		or config.timeout_ms ~= math.floor(config.timeout_ms)
-	then
-		error("invalid value for config.timeout_ms: " .. tostring(config.timeout_ms) .. " (expected positive integer)")
-	end
-
 	return config
 end
 

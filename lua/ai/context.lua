@@ -180,6 +180,44 @@ function M.scoped_fix(scope)
 	}
 end
 
+local function save_source(bufnr)
+	if not vim.api.nvim_buf_is_valid(bufnr) then
+		return false, "Original buffer is no longer valid"
+	end
+	if vim.api.nvim_buf_get_name(bufnr) == "" then
+		return false, "Original buffer has no file name"
+	end
+	if vim.bo[bufnr].buftype ~= "" then
+		return false, "Original buffer is not a normal file"
+	end
+	if not vim.bo[bufnr].modified then
+		return true
+	end
+	local ok, err = pcall(function()
+		vim.api.nvim_buf_call(bufnr, function()
+			vim.cmd("silent write")
+		end)
+	end)
+	return ok, err
+end
+
+function M.scoped_prompt(source, message)
+	local ok, err = save_source(source.bufnr)
+	if not ok then
+		vim.notify("Scoped fix not sent: " .. tostring(err), vim.log.levels.ERROR)
+		return nil
+	end
+	return table.concat({
+		"Location: " .. source.location,
+		"",
+		"```",
+		source.snippet,
+		"```",
+		"",
+		message,
+	}, "\n")
+end
+
 function M.quickfix()
 	local lines = M.quickfix_lines()
 	if #lines == 0 then

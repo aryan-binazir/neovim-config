@@ -1,7 +1,5 @@
 require("yank")
 local pane = require("ai.pane")
-local llm_jobs = require("ai.jobs")
-local ui = require("ai.ui")
 local context = require("ai.context")
 
 local M = {}
@@ -66,8 +64,6 @@ function M.setup(config)
 		end
 	end, { desc = "send quickfix list" })
 
-	vim.keymap.set("n", "<leader>cl", ui.open_list, { desc = "job list" })
-
 	vim.keymap.set("n", "<leader>cf", function()
 		local source = context.scoped_fix("line")
 		if not source then
@@ -78,8 +74,11 @@ function M.setup(config)
 			return
 		end
 
-		llm_jobs.run(source.location, source.snippet, message, source.bufnr)
-	end, { desc = "run scoped fix" })
+		local prompt = context.scoped_prompt(source, message)
+		if prompt then
+			send_block(prompt)
+		end
+	end, { desc = "send scoped fix" })
 
 	vim.keymap.set("v", "<leader>cf", function()
 		local source = context.scoped_fix("selection")
@@ -92,9 +91,12 @@ function M.setup(config)
 			if message == "" then
 				return
 			end
-			llm_jobs.run(source.location, source.snippet, message, source.bufnr)
+			local prompt = context.scoped_prompt(source, message)
+			if prompt then
+				send_block(prompt)
+			end
 		end)
-	end, { desc = "run scoped fix with selection" })
+	end, { desc = "send scoped fix with selection" })
 end
 
 return M
