@@ -104,10 +104,6 @@ return {
 						end,
 					},
 					"diagnostics",
-					function()
-						local ok, ai = pcall(require, "ai")
-						return ok and ai.statusline_component() or ""
-					end,
 				},
 				lualine_c = { "filename" },
 				lualine_x = { "encoding", "fileformat", "filetype" },

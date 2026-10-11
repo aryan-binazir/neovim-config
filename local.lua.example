@@ -1,6 +1,5 @@
 vim.g.ai = {
-	tool = "codex", -- "codex", "claude", "opencode", or "pi"
-	timeout_ms = 5 * 60 * 1000,
+	tool = "pi", -- "codex", "claude", "opencode", or "pi"
 }
 vim.g.claudecode_enabled = true -- Set to false to skip installing Claude Code integration.
 vim.g.gopls_path = "" -- Optional local override (e.g. "/opt/homebrew/bin/gopls"); empty uses Mason-managed gopls.
