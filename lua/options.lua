@@ -2,7 +2,6 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-vim.g["diagnostics_active"] = true
 -- Show diagnostics inline by default; <leader>tt toggles all diagnostic display.
 vim.diagnostic.config({ virtual_text = true })
 
@@ -21,7 +20,6 @@ vim.o.tabstop = 4
 vim.o.shiftwidth = 4
 vim.o.expandtab = true
 vim.o.smartindent = true
-vim.o.autoindent = true
 vim.o.undofile = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
@@ -47,19 +45,14 @@ if type(first_arg) == "string" and first_arg ~= "" and vim.fn.isdirectory(first_
 	})
 end
 
-vim.opt.foldenable = false
-vim.opt.foldlevel = 99
-vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-	callback = function()
-		vim.wo.foldmethod = "expr"
-		vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-	end,
-})
+vim.o.foldenable = false
+vim.o.foldlevel = 99
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
 vim.opt.conceallevel = 2
 
--- Auto-reload files changed outside of Neovim
-vim.opt.autoread = true
+-- Auto-reload files changed outside of Neovim: 'autoread' is on by default, checktime makes it prompt.
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
 	pattern = "*",
 	command = "if mode() != 'c' | checktime | endif",

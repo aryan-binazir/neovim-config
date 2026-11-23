@@ -22,7 +22,7 @@ return {
 				if vim.wo.diff then
 					vim.cmd("normal! ]c")
 				else
-					gs.next_hunk()
+					gs.nav_hunk("next")
 				end
 			end, { desc = "jump to next hunk" })
 
@@ -30,7 +30,7 @@ return {
 				if vim.wo.diff then
 					vim.cmd("normal! [c")
 				else
-					gs.prev_hunk()
+					gs.nav_hunk("prev")
 				end
 			end, { desc = "jump to previous hunk" })
 
@@ -64,10 +64,7 @@ return {
 
 			-- Toggles
 			map("n", "<leader>tb", gs.toggle_current_line_blame, { desc = "toggle git blame line" })
-			map("n", "<leader>td", function()
-				gs.toggle_deleted()
-				gs.refresh()
-			end, { desc = "toggle git show deleted" })
+			map("n", "<leader>td", gs.preview_hunk_inline, { desc = "show deleted lines of hunk inline" })
 
 			-- Text object
 			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "select git hunk" })
