@@ -3,16 +3,6 @@ vim.keymap.set({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 vim.keymap.set("n", "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set("n", "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
-local function toggle_diagnostics()
-	if vim.g.diagnostics_active then
-		vim.g.diagnostics_active = false
-		vim.diagnostic.enable(false)
-	else
-		vim.g.diagnostics_active = true
-		vim.diagnostic.enable()
-	end
-end
-
 -- Diagnostic keymaps
 vim.keymap.set("n", "<leader>dk", function()
 	vim.diagnostic.jump({ count = -1 })
@@ -22,26 +12,20 @@ vim.keymap.set("n", "<leader>dj", function()
 end, { desc = "go to next diagnostic message" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "open floating diagnostic message" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "go to diagnostics list" })
-vim.keymap.set("n", "<leader>tt", toggle_diagnostics, { silent = true, desc = "toggle vim diagnostics" })
+vim.keymap.set("n", "<leader>tt", function()
+	vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+end, { silent = true, desc = "toggle vim diagnostics" })
 
 -- Other Keymaps
 vim.keymap.set("n", "<leader>tr", ":set relativenumber!<CR>", { silent = true, desc = "toggle relative number" })
 vim.keymap.set("n", "<leader>rr", "<cmd>checktime<CR>", { desc = "check external changes" })
 
--- Location list specific mappings
+-- Harpoon's global <C-m> is the same key as <CR> in most terminals; give quickfix
+-- and location list windows their built-in jump back.
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "qf",
 	callback = function()
-		vim.keymap.set("n", "<CR>", function()
-			local wininfo = vim.fn.getwininfo(vim.api.nvim_get_current_win())[1]
-			local line = vim.api.nvim_win_get_cursor(0)[1]
-
-			if wininfo.loclist == 1 then
-				vim.cmd(line .. "ll")
-			else
-				vim.cmd(line .. "cc")
-			end
-		end, { buffer = true, desc = "jump to quickfix item" })
+		vim.keymap.set("n", "<CR>", "<CR>", { buffer = true, desc = "jump to quickfix item" })
 	end,
 })
 

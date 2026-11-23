@@ -43,13 +43,7 @@ function M.selection()
 		if not vim.api.nvim_buf_is_valid(bufnr) then
 			return
 		end
-		vim.hl.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 })
-		vim.defer_fn(function()
-			if not vim.api.nvim_buf_is_valid(bufnr) then
-				return
-			end
-			vim.api.nvim_buf_clear_namespace(bufnr, yank_ns, 0, -1)
-		end, 150)
+		vim.hl.range(bufnr, yank_ns, "IncSearch", { start_line - 1, 0 }, { end_line - 1, -1 }, { timeout = 150 })
 	end, 0)
 	return {
 		path = path,

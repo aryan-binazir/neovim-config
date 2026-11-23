@@ -4,9 +4,11 @@ return {
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
-			{ "williamboman/mason.nvim", config = true },
-			"williamboman/mason-lspconfig.nvim",
+			{ "mason-org/mason.nvim", config = true },
+			"mason-org/mason-lspconfig.nvim",
 			{ "j-hui/fidget.nvim", opts = {} },
+			-- Must load before any server starts: blink registers its completion
+			-- capabilities with vim.lsp.config("*") when it loads.
 			"saghen/blink.cmp",
 		},
 		config = function()
@@ -21,7 +23,6 @@ return {
 						timer:stop()
 						timer:close()
 					end
-					local client = vim.lsp.get_client_by_id(event.data.client_id)
 					local bufnr = event.buf
 
 					local nmap = function(keys, func, desc)
@@ -33,7 +34,6 @@ return {
 
 					nmap("<leader>rn", vim.lsp.buf.rename, "rename symbol")
 					nmap("<leader>ca", vim.lsp.buf.code_action, "code action")
-					nmap("K", vim.lsp.buf.hover, "hover documentation")
 					nmap("<C-k>", vim.lsp.buf.signature_help, "signature help")
 					nmap("gD", vim.lsp.buf.declaration, "go to declaration")
 					nmap("<leader>wa", vim.lsp.buf.add_workspace_folder, "add workspace folder")
@@ -44,15 +44,22 @@ return {
 
 					local telescope = require("telescope.builtin")
 					nmap("gd", telescope.lsp_definitions, "go to definition")
-					nmap("gr", telescope.lsp_references, "go to references")
+					-- nowait: without it every `gr` sits out 'timeoutlen' in case one of
+					-- Neovim's built-in gra/gri/grn/grr/grt/grx maps is being typed.
+					vim.keymap.set(
+						"n",
+						"gr",
+						telescope.lsp_references,
+						{ buffer = bufnr, nowait = true, desc = "lsp: go to references" }
+					)
 					nmap("gI", telescope.lsp_implementations, "go to implementation")
 					nmap("<leader>D", telescope.lsp_type_definitions, "type definition")
 					nmap("<leader>ds", telescope.lsp_document_symbols, "document symbols")
 					nmap("<leader>ws", telescope.lsp_dynamic_workspace_symbols, "workspace symbols")
 
-					vim.api.nvim_buf_create_user_command(bufnr, "Format", function(_)
-						vim.lsp.buf.format()
-					end, { desc = "format current buffer with lsp" })
+					vim.api.nvim_buf_create_user_command(bufnr, "Format", function()
+						require("conform").format({ bufnr = bufnr })
+					end, { desc = "format current buffer" })
 				end,
 			})
 
@@ -86,8 +93,6 @@ return {
 				end,
 			})
 
-			local capabilities = require("blink.cmp").get_lsp_capabilities()
-
 			local gopls_path = vim.g.gopls_path
 			if gopls_path ~= nil and gopls_path ~= "" and vim.fn.executable(gopls_path) ~= 1 then
 				vim.notify(
@@ -103,6 +108,7 @@ return {
 				"lua_ls",
 				"gopls",
 				"pyright",
+				"ruff",
 				"jsonls",
 				"buf_ls",
 				"biome",
@@ -110,9 +116,6 @@ return {
 				"ts_ls",
 			}
 
-			vim.lsp.config("*", {
-				capabilities = capabilities,
-			})
 			vim.lsp.config("golangci_lint_ls", { before_init = function() end })
 			vim.lsp.config("lua_ls", {
 				settings = {
@@ -130,6 +133,12 @@ return {
 					},
 				},
 			})
+			local biome_would_reformat_on_save = { markdown = true, yaml = true }
+			vim.lsp.config("biome", {
+				filetypes = vim.tbl_filter(function(filetype)
+					return not biome_would_reformat_on_save[filetype]
+				end, vim.lsp.config.biome.filetypes),
+			})
 			vim.lsp.config("ts_ls", {
 				init_options = {
 					disableAutomaticTypingAcquisition = true,
@@ -137,10 +146,10 @@ return {
 				},
 			})
 
+			local version_pinned_by_tool_installer = { biome = true, ruff = true, ts_ls = true }
 			require("mason-lspconfig").setup({
-				-- format.lua pins biome and typescript-language-server; registry installs would race those versions.
 				ensure_installed = vim.tbl_filter(function(server)
-					return server ~= "biome" and server ~= "ts_ls"
+					return not version_pinned_by_tool_installer[server]
 				end, servers),
 				automatic_enable = servers,
 			})
