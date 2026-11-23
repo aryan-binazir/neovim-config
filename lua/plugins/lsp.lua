@@ -93,35 +93,6 @@ return {
 				end,
 			})
 
-			-- gofmt leaves imports alone. gopls fixes them from its in-memory index;
-			-- goimports would run the `go` command on every save.
-			vim.api.nvim_create_autocmd("BufWritePre", {
-				group = vim.api.nvim_create_augroup("go-organize-imports", { clear = true }),
-				pattern = "*.go",
-				callback = function(event)
-					local client = vim.lsp.get_clients({ bufnr = event.buf, name = "gopls" })[1]
-					if not client then
-						return
-					end
-					local start_of_file = { line = 0, character = 0 }
-					local response = client:request_sync("textDocument/codeAction", {
-						textDocument = vim.lsp.util.make_text_document_params(event.buf),
-						range = { start = start_of_file, ["end"] = start_of_file },
-						context = { only = { "source.organizeImports" }, diagnostics = {} },
-					}, 500, event.buf)
-					if not response then
-						-- gopls is still loading the module; the write goes ahead without the fix.
-						vim.notify("gopls was too busy to fix imports on this save; save again", vim.log.levels.WARN)
-						return
-					end
-					for _, action in ipairs(response.result or {}) do
-						if action.edit then
-							vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
-						end
-					end
-				end,
-			})
-
 			local gopls_path = vim.g.gopls_path
 			if gopls_path ~= nil and gopls_path ~= "" and vim.fn.executable(gopls_path) ~= 1 then
 				vim.notify(
