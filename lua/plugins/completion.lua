@@ -1,7 +1,6 @@
 return {
 	"saghen/blink.cmp",
 	version = "1.*",
-	-- nvim-lspconfig also pulls this in as a dependency, before any server starts.
 	event = { "InsertEnter", "CmdlineEnter" },
 	dependencies = {
 		{

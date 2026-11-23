@@ -133,11 +133,10 @@ return {
 					},
 				},
 			})
-			-- Biome formats Markdown as CommonMark only (it would rewrite GFM tables) and
-			-- conform falls back to LSP formatting on save, so keep it to code and JSON.
+			local biome_would_reformat_on_save = { markdown = true, yaml = true }
 			vim.lsp.config("biome", {
 				filetypes = vim.tbl_filter(function(filetype)
-					return filetype ~= "markdown" and filetype ~= "yaml"
+					return not biome_would_reformat_on_save[filetype]
 				end, vim.lsp.config.biome.filetypes),
 			})
 			vim.lsp.config("ts_ls", {
@@ -147,10 +146,10 @@ return {
 				},
 			})
 
+			local version_pinned_by_tool_installer = { biome = true, ruff = true, ts_ls = true }
 			require("mason-lspconfig").setup({
-				-- format.lua pins biome, ruff and typescript-language-server; registry installs would race those versions.
 				ensure_installed = vim.tbl_filter(function(server)
-					return server ~= "biome" and server ~= "ruff" and server ~= "ts_ls"
+					return not version_pinned_by_tool_installer[server]
 				end, servers),
 				automatic_enable = servers,
 			})

@@ -1,8 +1,6 @@
 local save_budget_ms = 500
 local formatter_reserve_ms = 200
 
--- gofmt leaves imports alone. gopls fixes them from its in-memory index;
--- goimports would run the `go` command on every save.
 local function organize_go_imports(bufnr, timeout_ms)
 	local gopls = vim.lsp.get_clients({ bufnr = bufnr, name = "gopls" })[1]
 	if not gopls then
@@ -55,7 +53,6 @@ return {
 				json = { "biome" },
 				css = { "biome" },
 			},
-			-- Shared by format-on-save and :Format.
 			default_format_opts = {
 				lsp_format = "fallback",
 			},
