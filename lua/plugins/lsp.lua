@@ -109,7 +109,12 @@ return {
 						range = { start = start_of_file, ["end"] = start_of_file },
 						context = { only = { "source.organizeImports" }, diagnostics = {} },
 					}, 500, event.buf)
-					for _, action in ipairs(response and response.result or {}) do
+					if not response then
+						-- gopls is still loading the module; the write goes ahead without the fix.
+						vim.notify("gopls was too busy to fix imports on this save; save again", vim.log.levels.WARN)
+						return
+					end
+					for _, action in ipairs(response.result or {}) do
 						if action.edit then
 							vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
 						end
