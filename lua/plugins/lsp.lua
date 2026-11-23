@@ -93,6 +93,30 @@ return {
 				end,
 			})
 
+			-- gofmt leaves imports alone. gopls fixes them from its in-memory index;
+			-- goimports would run the `go` command on every save.
+			vim.api.nvim_create_autocmd("BufWritePre", {
+				group = vim.api.nvim_create_augroup("go-organize-imports", { clear = true }),
+				pattern = "*.go",
+				callback = function(event)
+					local client = vim.lsp.get_clients({ bufnr = event.buf, name = "gopls" })[1]
+					if not client then
+						return
+					end
+					local start_of_file = { line = 0, character = 0 }
+					local response = client:request_sync("textDocument/codeAction", {
+						textDocument = vim.lsp.util.make_text_document_params(event.buf),
+						range = { start = start_of_file, ["end"] = start_of_file },
+						context = { only = { "source.organizeImports" }, diagnostics = {} },
+					}, 500, event.buf)
+					for _, action in ipairs(response and response.result or {}) do
+						if action.edit then
+							vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+						end
+					end
+				end,
+			})
+
 			local gopls_path = vim.g.gopls_path
 			if gopls_path ~= nil and gopls_path ~= "" and vim.fn.executable(gopls_path) ~= 1 then
 				vim.notify(
@@ -132,6 +156,13 @@ return {
 						directoryFilters = { "-**/node_modules", "-**/_scratch" },
 					},
 				},
+			})
+			-- Biome formats Markdown as CommonMark only (it would rewrite GFM tables) and
+			-- conform falls back to LSP formatting on save, so keep it to code and JSON.
+			vim.lsp.config("biome", {
+				filetypes = vim.tbl_filter(function(filetype)
+					return filetype ~= "markdown" and filetype ~= "yaml"
+				end, vim.lsp.config.biome.filetypes),
 			})
 			vim.lsp.config("ts_ls", {
 				init_options = {

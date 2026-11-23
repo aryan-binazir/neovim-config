@@ -51,6 +51,7 @@ return {
 			map("n", "<leader>hu", gs.stage_hunk, { desc = "toggle stage hunk" })
 			map("n", "<leader>hR", gs.reset_buffer, { desc = "git reset buffer" })
 			map("n", "<leader>hp", gs.preview_hunk, { desc = "preview git hunk" })
+			map("n", "<leader>td", gs.preview_hunk_inline, { desc = "show deleted lines of hunk inline" })
 			map("n", "<leader>hq", function()
 				gs.setqflist("all")
 			end, { desc = "all hunks to quickfix" })
@@ -64,7 +65,6 @@ return {
 
 			-- Toggles
 			map("n", "<leader>tb", gs.toggle_current_line_blame, { desc = "toggle git blame line" })
-			map("n", "<leader>td", gs.preview_hunk_inline, { desc = "show deleted lines of hunk inline" })
 
 			-- Text object
 			map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", { desc = "select git hunk" })

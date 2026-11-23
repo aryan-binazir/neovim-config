@@ -7,7 +7,6 @@ return {
 				{ "stylua", version = "v2.6.0" },
 				{ "biome", version = "2.6.8" },
 				{ "ruff", version = "0.17.6" },
-				{ "goimports", version = "v0.53.0" },
 				{ "typescript-language-server", version = "6.1.0" },
 			},
 		},
@@ -20,8 +19,7 @@ return {
 			formatters_by_ft = {
 				lua = { "stylua" },
 				python = { "ruff_organize_imports", "ruff_format" },
-				-- goimports formats like gofmt and also fixes imports; gofmt covers machines without it.
-				go = { "goimports", "gofmt", stop_after_first = true },
+				go = { "gofmt" },
 				rust = { "rustfmt" },
 				javascript = { "biome" },
 				typescript = { "biome" },

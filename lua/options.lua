@@ -52,7 +52,7 @@ vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
 vim.opt.conceallevel = 2
 
--- Auto-reload files changed outside of Neovim: 'autoread' is on by default, checktime makes it prompt.
+-- Auto-reload files changed outside of Neovim
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
 	pattern = "*",
 	command = "if mode() != 'c' | checktime | endif",
